@@ -11,7 +11,9 @@ import {
     View,
 } from 'react-native';
 import { useApp } from '../context/AppContext';
-import { Artist } from '../database/database';
+import { Artist } from '../database/asyncDatabase';
+import { Card, Button, SectionHeader } from '../components/UI';
+import { theme, typography } from '../styles/theme';
 
 const ArtistsScreen = ({ navigation }: any) => {
   const { artists, addArtist, updateArtist, deleteArtist } = useApp();
@@ -84,14 +86,14 @@ const ArtistsScreen = ({ navigation }: any) => {
   };
 
   const renderArtist = ({ item }: { item: Artist }) => (
-    <View style={styles.artistCard}>
+    <Card sharp style={styles.artistCard}>
       <View style={styles.artistInfo}>
-        <Text style={styles.artistName}>{item.name}</Text>
+        <Text style={[typography.h3, styles.artistName]}>{item.name}</Text>
         {item.website && (
-          <Text style={styles.artistDetail}>🌐 {item.website}</Text>
+          <Text style={[typography.body2, styles.artistDetail]}>🌐 {item.website}</Text>
         )}
         {item.social_media && (
-          <Text style={styles.artistDetail}>📱 {item.social_media}</Text>
+          <Text style={[typography.body2, styles.artistDetail]}>📱 {item.social_media}</Text>
         )}
       </View>
       <View style={styles.artistActions}>
@@ -99,7 +101,7 @@ const ArtistsScreen = ({ navigation }: any) => {
           style={styles.actionButton}
           onPress={() => openModal(item)}
         >
-          <Ionicons name="create-outline" size={20} color="#007AFF" />
+          <Ionicons name="create-outline" size={20} color={theme.colors.accent} />
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.actionButton}
@@ -108,27 +110,27 @@ const ArtistsScreen = ({ navigation }: any) => {
           <Ionicons name="trash-outline" size={20} color="#FF3B30" />
         </TouchableOpacity>
       </View>
-    </View>
+    </Card>
   );
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>推しアーティスト</Text>
+        <Text style={[typography.h1, styles.headerTitle]}>推しアーティスト</Text>
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => openModal()}
         >
-          <Ionicons name="add" size={24} color="#007AFF" />
+          <Ionicons name="add" size={24} color={theme.colors.primary} />
         </TouchableOpacity>
       </View>
 
       {artists.length === 0 ? (
-        <View style={styles.emptyState}>
-          <Ionicons name="musical-notes-outline" size={64} color="#ccc" />
-          <Text style={styles.emptyStateText}>まだアーティストが登録されていません</Text>
-          <Text style={styles.emptyStateSubtext}>右上の「+」ボタンから追加してみましょう</Text>
-        </View>
+        <Card sharp style={styles.emptyState}>
+          <Ionicons name="musical-notes-outline" size={64} color={theme.colors.text.tertiary} />
+          <Text style={[typography.h3, styles.emptyStateText]}>まだアーティストが登録されていません</Text>
+          <Text style={[typography.body2, styles.emptyStateSubtext]}>右上の「+」ボタンから追加してみましょう</Text>
+        </Card>
       ) : (
         <FlatList
           data={artists}
@@ -211,6 +213,139 @@ const ArtistsScreen = ({ navigation }: any) => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: theme.spacing.lg,
+    backgroundColor: theme.colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+  },
+  headerTitle: {
+    letterSpacing: -1,
+  },
+  addButton: {
+    padding: theme.spacing.sm,
+  },
+  listContainer: {
+    padding: theme.spacing.md,
+  },
+  artistCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: theme.spacing.md,
+  },
+  artistInfo: {
+    flex: 1,
+  },
+  artistName: {
+    marginBottom: theme.spacing.xs,
+    letterSpacing: -0.5,
+  },
+  artistDetail: {
+    color: theme.colors.text.secondary,
+    marginBottom: theme.spacing.xs,
+  },
+  artistActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionButton: {
+    padding: theme.spacing.sm,
+    marginLeft: theme.spacing.sm,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: theme.spacing.xxl,
+    margin: theme.spacing.md,
+  },
+  emptyStateText: {
+    marginTop: theme.spacing.md,
+    textAlign: 'center',
+    color: theme.colors.text.secondary,
+  },
+  emptyStateSubtext: {
+    marginTop: theme.spacing.sm,
+    textAlign: 'center',
+    color: theme.colors.text.tertiary,
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.none,
+    margin: theme.spacing.lg,
+    maxWidth: 400,
+    width: '90%',
+    ...theme.shadows.large,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: theme.spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+  },
+  modalTitle: {
+    letterSpacing: -0.5,
+  },
+  form: {
+    padding: theme.spacing.lg,
+  },
+  inputGroup: {
+    marginBottom: theme.spacing.md,
+  },
+  label: {
+    marginBottom: theme.spacing.sm,
+    color: theme.colors.text.primary,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.none,
+    padding: theme.spacing.md,
+    backgroundColor: theme.colors.surface,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: theme.spacing.lg,
+  },
+  modalButton: {
+    flex: 1,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.none,
+    alignItems: 'center',
+    marginHorizontal: theme.spacing.sm,
+  },
+  cancelButton: {
+    backgroundColor: theme.colors.background,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  saveButton: {
+    backgroundColor: theme.colors.primary,
+  },
+  cancelButtonText: {
+    color: theme.colors.text.secondary,
+  },
+  saveButtonText: {
+    color: theme.colors.text.inverse,
+  },
+});
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',

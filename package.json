@@ -11,6 +11,13 @@
     "lint": "expo lint"
   },
   "dependencies": {
+    "@expo-google-fonts/dm-sans": "^0.4.1",
+    "@expo-google-fonts/inter": "^0.4.1",
+    "@expo-google-fonts/oswald": "^0.4.1",
+    "@expo-google-fonts/poppins": "^0.4.0",
+    "@expo-google-fonts/roboto-condensed": "^0.4.1",
+    "@expo-google-fonts/source-sans-pro": "^0.2.3",
+    "@expo-google-fonts/space-grotesk": "^0.4.0",
     "@expo/vector-icons": "^14.1.0",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/datetimepicker": "8.4.1",

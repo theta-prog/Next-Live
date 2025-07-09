@@ -8,6 +8,8 @@ import {
 } from 'react-native';
 import { useApp } from '../context/AppContext';
 import { Ionicons } from '@expo/vector-icons';
+import { Card, Button, SectionHeader, IconButton } from '../components/UI';
+import { theme, typography } from '../styles/theme';
 
 const HomeScreen = ({ navigation }: any) => {
   const { upcomingEvents } = useApp();
@@ -35,29 +37,38 @@ const HomeScreen = ({ navigation }: any) => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>ライブスケジュール</Text>
-        <Text style={styles.headerSubtitle}>お気に入りのアーティストを管理</Text>
+        <Text style={[typography.h1, styles.headerTitle]}>Next Live</Text>
+        <Text style={[typography.body2, styles.headerSubtitle]}>お気に入りのアーティストを管理</Text>
       </View>
 
       {nextEvent ? (
-        <View style={styles.nextEventCard}>
+        <Card variant="elevated" style={styles.nextEventCard}>
           <View style={styles.cardHeader}>
-            <Ionicons name="musical-notes" size={24} color="#333" />
-            <Text style={styles.cardTitle}>次のライブ</Text>
+            <View style={styles.cardHeaderLeft}>
+              <Ionicons name="musical-notes" size={24} color={theme.colors.accent} />
+              <Text style={[typography.h3, styles.cardTitle]}>次のライブ</Text>
+            </View>
+            <IconButton
+              onPress={() => navigation.navigate('LiveEventDetail', { eventId: nextEvent.id })}
+              variant="ghost"
+              size="medium"
+            >
+              <Ionicons name="chevron-forward" size={20} color={theme.colors.text.secondary} />
+            </IconButton>
           </View>
           
           <View style={styles.eventInfo}>
-            <Text style={styles.eventTitle}>{nextEvent.title}</Text>
-            <Text style={styles.artistName}>{nextEvent.artist_name}</Text>
-            <Text style={styles.eventDate}>{formatDate(nextEvent.date)}</Text>
-            <Text style={styles.venue}>{nextEvent.venue_name}</Text>
+            <Text style={[typography.h2, styles.eventTitle]}>{nextEvent.title}</Text>
+            <Text style={[typography.body1, styles.artist]}>{nextEvent.artist_name}</Text>
+            <Text style={[typography.body1, styles.date]}>{formatDate(nextEvent.date)}</Text>
+            <Text style={[typography.body2, styles.venue]}>{nextEvent.venue_name}</Text>
             
             <View style={styles.countdown}>
-              <Text style={styles.countdownLabel}>あと</Text>
-              <Text style={styles.countdownDays}>
+              <Text style={[typography.body1, styles.countdownLabel]}>あと</Text>
+              <Text style={[typography.h1, styles.countdownDays]}>
                 {calculateDaysUntil(nextEvent.date)}
               </Text>
-              <Text style={styles.countdownLabel}>日</Text>
+              <Text style={[typography.body1, styles.countdownLabel]}>日</Text>
             </View>
           </View>
           
@@ -65,55 +76,59 @@ const HomeScreen = ({ navigation }: any) => {
             style={styles.detailButton}
             onPress={() => navigation.navigate('LiveEventDetail', { eventId: nextEvent.id })}
           >
-            <Text style={styles.detailButtonText}>詳細を見る</Text>
-            <Ionicons name="chevron-forward" size={20} color="#666" />
+            <Text style={[typography.body1, styles.detailButtonText]}>詳細を見る</Text>
+            <Ionicons name="chevron-forward" size={20} color={theme.colors.text.secondary} />
           </TouchableOpacity>
-        </View>
+        </Card>
       ) : (
-        <View style={styles.noEventCard}>
-          <Ionicons name="calendar-outline" size={48} color="#ccc" />
-          <Text style={styles.noEventText}>予定されているライブがありません</Text>
-          <Text style={styles.noEventSubtext}>新しいライブ予定を追加してみましょう</Text>
-        </View>
+        <Card variant="outlined" style={styles.noEventCard}>
+          <Ionicons name="calendar-outline" size={48} color={theme.colors.text.tertiary} />
+          <Text style={[typography.h3, styles.noEventText]}>予定されているライブがありません</Text>
+          <Text style={[typography.body2, styles.noEventSubtext]}>新しいライブ予定を追加してみましょう</Text>
+        </Card>
       )}
 
       <View style={styles.quickActions}>
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => navigation.navigate('LiveEventForm')}
-        >
-          <Ionicons name="add-circle" size={32} color="#007AFF" />
-          <Text style={styles.actionButtonText}>ライブ追加</Text>
-        </TouchableOpacity>
+        <View style={styles.actionButtonContainer}>
+          <Ionicons name="add-circle" size={24} color={theme.colors.primary} style={styles.actionIcon} />            <Button
+              title="ライブ追加"
+              onPress={() => navigation.navigate('LiveEventForm')}
+              variant="primary"
+              style={styles.actionButton}
+            />
+        </View>
 
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => navigation.navigate('Calendar')}
-        >
-          <Ionicons name="calendar" size={32} color="#007AFF" />
-          <Text style={styles.actionButtonText}>カレンダー</Text>
-        </TouchableOpacity>
+        <View style={styles.actionButtonContainer}>
+          <Ionicons name="calendar" size={24} color={theme.colors.primary} style={styles.actionIcon} />            <Button
+              title="カレンダー"
+              onPress={() => navigation.navigate('Calendar')}
+              variant="outline"
+              style={styles.actionButton}
+            />
+        </View>
 
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => navigation.navigate('Memories')}
-        >
-          <Ionicons name="heart" size={32} color="#007AFF" />
-          <Text style={styles.actionButtonText}>思い出</Text>
-        </TouchableOpacity>
+        <View style={styles.actionButtonContainer}>
+          <Ionicons name="heart" size={24} color={theme.colors.primary} style={styles.actionIcon} />            <Button
+              title="思い出"
+              onPress={() => navigation.navigate('Memories')}
+              variant="outline"
+              style={styles.actionButton}
+            />
+        </View>
 
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => navigation.navigate('Artists')}
-        >
-          <Ionicons name="people" size={32} color="#007AFF" />
-          <Text style={styles.actionButtonText}>アーティスト</Text>
-        </TouchableOpacity>
+        <View style={styles.actionButtonContainer}>
+          <Ionicons name="people" size={24} color={theme.colors.primary} style={styles.actionIcon} />            <Button
+              title="アーティスト"
+              onPress={() => navigation.navigate('Artists')}
+              variant="secondary"
+              style={styles.actionButton}
+            />
+        </View>
       </View>
 
       {upcomingEvents.length > 1 && (
-        <View style={styles.upcomingSection}>
-          <Text style={styles.sectionTitle}>今後の予定</Text>
+        <Card variant="default" style={styles.upcomingSection}>
+          <SectionHeader title="今後の予定" />
           {upcomingEvents.slice(1, 4).map((event) => (
             <TouchableOpacity
               key={event.id}
@@ -121,14 +136,14 @@ const HomeScreen = ({ navigation }: any) => {
               onPress={() => navigation.navigate('LiveEventDetail', { eventId: event.id })}
             >
               <View style={styles.upcomingEventInfo}>
-                <Text style={styles.upcomingEventTitle}>{event.title}</Text>
-                <Text style={styles.upcomingEventArtist}>{event.artist_name}</Text>
-                <Text style={styles.upcomingEventDate}>{formatDate(event.date)}</Text>
+                <Text style={[typography.body1, styles.upcomingEventTitle]}>{event.title}</Text>
+                <Text style={[typography.body2, styles.upcomingEventArtist]}>{event.artist_name}</Text>
+                <Text style={[typography.caption, styles.upcomingEventDate]}>{formatDate(event.date)}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color="#ccc" />
+              <Ionicons name="chevron-forward" size={20} color={theme.colors.text.tertiary} />
             </TouchableOpacity>
           ))}
-        </View>
+        </Card>
       )}
     </ScrollView>
   );
@@ -137,24 +152,21 @@ const HomeScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: theme.colors.background,
   },
   header: {
-    backgroundColor: '#fff',
-    padding: 20,
-    paddingTop: 40,
+    backgroundColor: theme.colors.surface,
+    padding: theme.spacing.lg,
+    paddingTop: theme.spacing.xxl,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: theme.colors.border,
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+    marginBottom: theme.spacing.sm,
+    letterSpacing: -1,
   },
   headerSubtitle: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
+    opacity: 0.8,
   },
   nextEventCard: {
     backgroundColor: '#fff',
@@ -172,6 +184,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
+  cardHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+  },
   cardTitle: {
     fontSize: 18,
     fontWeight: 'bold',
@@ -186,143 +203,102 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 4,
+    letterSpacing: -0.5,
   },
-  artistName: {
-    fontSize: 16,
-    color: '#007AFF',
-    marginBottom: 8,
+  artist: {
+    color: theme.colors.accent,
+    marginBottom: theme.spacing.sm,
   },
-  eventDate: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 4,
+  date: {
+    marginBottom: theme.spacing.sm,
   },
   venue: {
-    fontSize: 14,
-    color: '#666',
+    color: theme.colors.text.secondary,
   },
   countdown: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 16,
-    padding: 12,
-    backgroundColor: '#f8f8f8',
-    borderRadius: 8,
+    marginTop: theme.spacing.md,
+    padding: theme.spacing.md,
+    backgroundColor: theme.colors.background,
+    borderRadius: theme.borderRadius.none,
   },
   countdownLabel: {
-    fontSize: 16,
-    color: '#666',
+    color: theme.colors.text.secondary,
   },
   countdownDays: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#007AFF',
-    marginHorizontal: 8,
+    color: theme.colors.accent,
+    marginHorizontal: theme.spacing.sm,
   },
   detailButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 12,
+    paddingVertical: theme.spacing.md,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopColor: theme.colors.border,
   },
   detailButtonText: {
-    fontSize: 16,
-    color: '#666',
+    color: theme.colors.text.secondary,
   },
   noEventCard: {
-    backgroundColor: '#fff',
-    margin: 16,
-    borderRadius: 12,
-    padding: 40,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    paddingVertical: theme.spacing.xxl,
   },
   noEventText: {
-    fontSize: 18,
-    color: '#666',
-    marginTop: 16,
+    color: theme.colors.text.secondary,
+    marginTop: theme.spacing.md,
+    textAlign: 'center',
   },
   noEventSubtext: {
-    fontSize: 14,
-    color: '#999',
-    marginTop: 8,
+    color: theme.colors.text.tertiary,
+    marginTop: theme.spacing.sm,
     textAlign: 'center',
   },
   quickActions: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    marginBottom: 20,
+    paddingHorizontal: theme.spacing.md,
+    paddingTop: theme.spacing.lg,
   },
   actionButton: {
-    backgroundColor: '#fff',
     width: '48%',
-    padding: 20,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    minHeight: 52,
   },
-  actionButtonText: {
-    fontSize: 14,
-    color: '#333',
-    marginTop: 8,
-    fontWeight: '500',
+  actionButtonContainer: {
+    width: '48%',
+    marginBottom: theme.spacing.md,
+    alignItems: 'center',
+  },
+  actionIcon: {
+    marginBottom: theme.spacing.sm,
   },
   upcomingSection: {
-    backgroundColor: '#fff',
-    margin: 16,
-    borderRadius: 12,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 16,
+    // Card component handles styling
   },
   upcomingEvent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 12,
+    paddingVertical: theme.spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: theme.colors.borderLight,
   },
   upcomingEventInfo: {
     flex: 1,
   },
   upcomingEventTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
+    letterSpacing: -0.2,
+    marginBottom: theme.spacing.xs,
   },
   upcomingEventArtist: {
-    fontSize: 14,
-    color: '#007AFF',
-    marginTop: 2,
+    color: theme.colors.accent,
+    marginBottom: theme.spacing.xs,
   },
   upcomingEventDate: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 2,
+    color: theme.colors.text.tertiary,
   },
 });
 
