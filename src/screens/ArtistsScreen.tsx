@@ -6,13 +6,11 @@ import {
     Modal,
     StyleSheet,
     Text,
-    TextInput,
-    TouchableOpacity,
     View,
 } from 'react-native';
 import { useApp } from '../context/AppContext';
 import { Artist } from '../database/asyncDatabase';
-import { Card, Button, SectionHeader } from '../components/UI';
+import { Card, Button, SectionHeader, IconButton, CustomTextInput } from '../components/UI';
 import { theme, typography } from '../styles/theme';
 
 const ArtistsScreen = ({ navigation }: any) => {
@@ -86,7 +84,7 @@ const ArtistsScreen = ({ navigation }: any) => {
   };
 
   const renderArtist = ({ item }: { item: Artist }) => (
-    <Card sharp style={styles.artistCard}>
+    <Card variant="default" style={styles.artistCard}>
       <View style={styles.artistInfo}>
         <Text style={[typography.h3, styles.artistName]}>{item.name}</Text>
         {item.website && (
@@ -97,18 +95,20 @@ const ArtistsScreen = ({ navigation }: any) => {
         )}
       </View>
       <View style={styles.artistActions}>
-        <TouchableOpacity
-          style={styles.actionButton}
+        <IconButton
           onPress={() => openModal(item)}
+          variant="ghost"
+          size="medium"
         >
-          <Ionicons name="create-outline" size={20} color={theme.colors.accent} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.actionButton}
+          <Ionicons name="pencil" size={18} color={theme.colors.text.secondary} />
+        </IconButton>
+        <IconButton
           onPress={() => handleDelete(item)}
+          variant="ghost"
+          size="medium"
         >
-          <Ionicons name="trash-outline" size={20} color="#FF3B30" />
-        </TouchableOpacity>
+          <Ionicons name="trash" size={18} color={theme.colors.error} />
+        </IconButton>
       </View>
     </Card>
   );
@@ -116,17 +116,18 @@ const ArtistsScreen = ({ navigation }: any) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={[typography.h1, styles.headerTitle]}>推しアーティスト</Text>
-        <TouchableOpacity
-          style={styles.addButton}
+        <SectionHeader title="推しアーティスト" style={styles.headerTitle} />
+        <IconButton
           onPress={() => openModal()}
+          variant="ghost"
+          size="large"
         >
-          <Ionicons name="add" size={24} color={theme.colors.primary} />
-        </TouchableOpacity>
+          <Ionicons name="add" size={24} color={theme.colors.accent} />
+        </IconButton>
       </View>
 
       {artists.length === 0 ? (
-        <Card sharp style={styles.emptyState}>
+        <Card variant="outlined" style={styles.emptyState}>
           <Ionicons name="musical-notes-outline" size={64} color={theme.colors.text.tertiary} />
           <Text style={[typography.h3, styles.emptyStateText]}>まだアーティストが登録されていません</Text>
           <Text style={[typography.body2, styles.emptyStateSubtext]}>右上の「+」ボタンから追加してみましょう</Text>
@@ -149,61 +150,56 @@ const ArtistsScreen = ({ navigation }: any) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
+              <Text style={[typography.h3, styles.modalTitle]}>
                 {editingArtist ? 'アーティスト編集' : 'アーティスト追加'}
               </Text>
-              <TouchableOpacity onPress={closeModal}>
-                <Ionicons name="close" size={24} color="#666" />
-              </TouchableOpacity>
+              <IconButton
+                onPress={closeModal}
+                variant="ghost"
+                size="medium"
+              >
+                <Ionicons name="close" size={24} color={theme.colors.text.secondary} />
+              </IconButton>
             </View>
 
             <View style={styles.form}>
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>アーティスト名 *</Text>
-                <TextInput
-                  style={styles.input}
-                  value={name}
-                  onChangeText={setName}
-                  placeholder="アーティスト名を入力"
-                  autoFocus={true}
-                />
-              </View>
+              <CustomTextInput
+                label="アーティスト名 *"
+                value={name}
+                onChangeText={setName}
+                placeholder="アーティスト名を入力"
+                autoFocus={true}
+              />
 
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>公式サイト</Text>
-                <TextInput
-                  style={styles.input}
-                  value={website}
-                  onChangeText={setWebsite}
-                  placeholder="https://..."
-                  keyboardType="url"
-                />
-              </View>
+              <CustomTextInput
+                label="公式サイト"
+                value={website}
+                onChangeText={setWebsite}
+                placeholder="https://..."
+                keyboardType="url"
+              />
 
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>SNS</Text>
-                <TextInput
-                  style={styles.input}
-                  value={socialMedia}
-                  onChangeText={setSocialMedia}
-                  placeholder="@username"
-                />
-              </View>
+              <CustomTextInput
+                label="SNS"
+                value={socialMedia}
+                onChangeText={setSocialMedia}
+                placeholder="@username"
+              />
             </View>
 
             <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={[styles.button, styles.cancelButton]}
+              <Button
+                title="キャンセル"
                 onPress={closeModal}
-              >
-                <Text style={styles.cancelButtonText}>キャンセル</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.button, styles.saveButton]}
+                variant="outline"
+                style={styles.modalButton}
+              />
+              <Button
+                title={editingArtist ? '更新' : '追加'}
                 onPress={handleSave}
-              >
-                <Text style={styles.saveButtonText}>保存</Text>
-              </TouchableOpacity>
+                variant="primary"
+                style={styles.modalButton}
+              />
             </View>
           </View>
         </View>
@@ -344,156 +340,6 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     color: theme.colors.text.inverse,
-  },
-});
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    padding: 20,
-    paddingTop: 40,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  addButton: {
-    padding: 8,
-  },
-  listContainer: {
-    padding: 16,
-  },
-  artistCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  artistInfo: {
-    flex: 1,
-  },
-  artistName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 4,
-  },
-  artistDetail: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 2,
-  },
-  artistActions: {
-    flexDirection: 'row',
-  },
-  actionButton: {
-    padding: 8,
-    marginLeft: 8,
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  emptyStateText: {
-    fontSize: 18,
-    color: '#666',
-    marginTop: 16,
-    textAlign: 'center',
-  },
-  emptyStateSubtext: {
-    fontSize: 14,
-    color: '#999',
-    marginTop: 8,
-    textAlign: 'center',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 20,
-    width: '90%',
-    maxWidth: 400,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  form: {
-    marginBottom: 20,
-  },
-  inputGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#333',
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: '#fafafa',
-  },
-  modalActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  button: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  cancelButton: {
-    backgroundColor: '#f5f5f5',
-    marginRight: 8,
-  },
-  saveButton: {
-    backgroundColor: '#007AFF',
-    marginLeft: 8,
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    color: '#666',
-  },
-  saveButtonText: {
-    fontSize: 16,
-    color: '#fff',
-    fontWeight: '500',
   },
 });
 
