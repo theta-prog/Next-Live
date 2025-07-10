@@ -1,16 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-    Alert,
-    FlatList,
-    Modal,
-    StyleSheet,
-    Text,
-    View,
+  Alert,
+  FlatList,
+  Modal,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
+import { Button, Card, CustomTextInput, IconButton, SectionHeader } from '../components/UI';
 import { useApp } from '../context/AppContext';
 import { Artist } from '../database/asyncDatabase';
-import { Card, Button, SectionHeader, IconButton, CustomTextInput } from '../components/UI';
 import { theme, typography } from '../styles/theme';
 
 const ArtistsScreen = ({ navigation }: any) => {

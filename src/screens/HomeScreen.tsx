@@ -1,14 +1,14 @@
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
+import { Button, Card, IconButton, SectionHeader } from '../components/UI';
 import { useApp } from '../context/AppContext';
-import { Ionicons } from '@expo/vector-icons';
-import { Card, Button, SectionHeader, IconButton } from '../components/UI';
 import { theme, typography } from '../styles/theme';
 
 const HomeScreen = ({ navigation }: any) => {
@@ -89,40 +89,46 @@ const HomeScreen = ({ navigation }: any) => {
       )}
 
       <View style={styles.quickActions}>
-        <View style={styles.actionButtonContainer}>
-          <Ionicons name="add-circle" size={24} color={theme.colors.primary} style={styles.actionIcon} />            <Button
-              title="ライブ追加"
+        <View style={styles.actionRow}>
+          <View style={styles.actionButtonContainer}>
+            <Button
+              title="+ ライブ"
               onPress={() => navigation.navigate('LiveEventForm')}
               variant="primary"
+              size="medium"
               style={styles.actionButton}
             />
-        </View>
-
-        <View style={styles.actionButtonContainer}>
-          <Ionicons name="calendar" size={24} color={theme.colors.primary} style={styles.actionIcon} />            <Button
-              title="カレンダー"
+          </View>
+          <View style={styles.actionButtonContainer}>
+            <Button
+              title="📅 予定"
               onPress={() => navigation.navigate('Calendar')}
               variant="outline"
+              size="medium"
               style={styles.actionButton}
             />
+          </View>
         </View>
 
-        <View style={styles.actionButtonContainer}>
-          <Ionicons name="heart" size={24} color={theme.colors.primary} style={styles.actionIcon} />            <Button
-              title="思い出"
-              onPress={() => navigation.navigate('Memories')}
-              variant="outline"
-              style={styles.actionButton}
-            />
-        </View>
-
-        <View style={styles.actionButtonContainer}>
-          <Ionicons name="people" size={24} color={theme.colors.primary} style={styles.actionIcon} />            <Button
-              title="アーティスト"
+        <View style={styles.actionRow}>
+          <View style={styles.actionButtonContainer}>
+            <Button
+              title="👤 推し"
               onPress={() => navigation.navigate('Artists')}
-              variant="secondary"
+              variant="outline"
+              size="medium"
               style={styles.actionButton}
             />
+          </View>
+          <View style={styles.actionButtonContainer}>
+            <Button
+              title="📸 思い出"
+              onPress={() => navigation.navigate('Memories')}
+              variant="secondary"
+              size="medium"
+              style={styles.actionButton}
+            />
+          </View>
         </View>
       </View>
 
@@ -257,23 +263,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   quickActions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
     paddingHorizontal: theme.spacing.md,
     paddingTop: theme.spacing.lg,
+    gap: theme.spacing.md,
   },
-  actionButton: {
-    width: '48%',
-    minHeight: 52,
+  actionRow: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
   },
   actionButtonContainer: {
-    width: '48%',
-    marginBottom: theme.spacing.md,
-    alignItems: 'center',
+    flex: 1,
   },
-  actionIcon: {
-    marginBottom: theme.spacing.sm,
+  actionButton: {
+    minHeight: 44,
+    borderRadius: theme.borderRadius.button,
   },
   upcomingSection: {
     // Card component handles styling
