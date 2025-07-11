@@ -6,9 +6,12 @@ import {
   FlatList,
   TouchableOpacity,
   Image,
+  ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useApp } from '../context/AppContext';
 import { Ionicons } from '@expo/vector-icons';
+import { theme, typography } from '../styles/theme';
 
 const MemoriesScreen = ({ navigation }: any) => {
   const { memories } = useApp();
@@ -31,9 +34,11 @@ const MemoriesScreen = ({ navigation }: any) => {
         style={styles.memoryCard}
         onPress={() => navigation.navigate('MemoryDetail', { memoryId: item.id })}
       >
-        {firstPhoto && (
-          <Image source={{ uri: firstPhoto }} style={styles.memoryImage} />
-        )}
+        <View style={styles.imageContainer}>
+          {firstPhoto && (
+            <Image source={{ uri: firstPhoto }} style={styles.memoryImage} />
+          )}
+        </View>
         
         <View style={styles.memoryContent}>
           <View style={styles.memoryHeader}>
@@ -66,77 +71,114 @@ const MemoriesScreen = ({ navigation }: any) => {
           </View>
         </View>
         
-        <Ionicons name="chevron-forward" size={20} color="#ccc" />
+        <View style={styles.chevronContainer}>
+          <Ionicons name="chevron-forward" size={20} color="#ccc" />
+        </View>
       </TouchableOpacity>
     );
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>思い出</Text>
-      </View>
-
-      {memories.length === 0 ? (
-        <View style={styles.emptyState}>
-          <Ionicons name="heart-outline" size={64} color="#ccc" />
-          <Text style={styles.emptyStateText}>まだ思い出が記録されていません</Text>
-          <Text style={styles.emptyStateSubtext}>参加したライブの詳細画面から思い出を追加できます</Text>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <View style={styles.container}>
+        {/* 固定ヘッダー */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>思い出</Text>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => navigation.navigate('MemoryForm')}
+          >
+            <Ionicons name="add" size={24} color={theme.colors.accent} />
+          </TouchableOpacity>
         </View>
-      ) : (
-        <FlatList
-          data={memories}
-          renderItem={renderMemory}
-          keyExtractor={(item) => item.id!.toString()}
-          contentContainerStyle={styles.listContainer}
+
+        {/* スクロール可能なコンテンツ */}
+        <ScrollView
+          style={styles.scrollContent}
+          contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={false}
-        />
-      )}
-    </View>
+        >
+          {memories.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="heart-outline" size={64} color={theme.colors.text.tertiary} />
+              <Text style={styles.emptyStateText}>まだ思い出が記録されていません</Text>
+              <Text style={styles.emptyStateSubtext}>参加したライブの詳細画面から思い出を追加できます</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={memories}
+              renderItem={renderMemory}
+              keyExtractor={(item) => item.id!.toString()}
+              contentContainerStyle={styles.listContainer}
+              showsVerticalScrollIndicator={false}
+              scrollEnabled={false}
+            />
+          )}
+        </ScrollView>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: theme.colors.background,
   },
   header: {
-    backgroundColor: '#fff',
-    padding: 20,
-    paddingTop: 40,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: theme.colors.border,
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+    ...typography.h2,
+    color: theme.colors.text.primary,
+  },
+  addButton: {
+    padding: 8,
+  },
+  scrollContent: {
+    flex: 1,
+  },
+  scrollContainer: {
+    paddingBottom: 100,
   },
   listContainer: {
     padding: 16,
   },
   memoryCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.card,
     marginBottom: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...theme.shadows.medium,
     overflow: 'hidden',
+    paddingVertical: 4,
+  },
+  imageContainer: {
+    paddingLeft: 8,
+    paddingRight: 4,
   },
   memoryImage: {
     width: 80,
     height: 80,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: theme.colors.background,
+    borderRadius: 8,
   },
   memoryContent: {
     flex: 1,
     padding: 16,
+    paddingLeft: 12,
+    paddingRight: 8,
   },
   memoryHeader: {
     flexDirection: 'row',
@@ -145,49 +187,65 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   eventTitle: {
-    fontSize: 16,
+    ...typography.body1,
     fontWeight: 'bold',
-    color: '#333',
+    color: theme.colors.text.primary,
     flex: 1,
     marginRight: 8,
   },
   eventDate: {
-    fontSize: 12,
-    color: '#666',
+    ...typography.caption,
+    color: theme.colors.text.secondary,
   },
   artistName: {
-    fontSize: 14,
-    color: '#007AFF',
-    marginBottom: 8,
+    ...typography.body2,
+    color: theme.colors.accent,
+    marginBottom: 6,
+    fontWeight: '600',
   },
   reviewPreview: {
-    fontSize: 14,
-    color: '#666',
+    ...typography.body2,
+    color: theme.colors.text.secondary,
     lineHeight: 20,
-    marginBottom: 8,
+    marginBottom: 10,
   },
   memoryFooter: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginTop: 4,
   },
   photoCount: {
     flexDirection: 'row',
     alignItems: 'center',
     marginRight: 16,
+    backgroundColor: theme.colors.background,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
   photoCountText: {
-    fontSize: 12,
-    color: '#666',
+    ...typography.caption,
+    color: theme.colors.text.secondary,
     marginLeft: 4,
   },
   setlistIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: theme.colors.background,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
   setlistText: {
-    fontSize: 12,
-    color: '#666',
+    ...typography.caption,
+    color: theme.colors.text.secondary,
     marginLeft: 4,
+  },
+  chevronContainer: {
+    paddingHorizontal: 12,
+    paddingVertical: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   emptyState: {
     flex: 1,
@@ -196,14 +254,14 @@ const styles = StyleSheet.create({
     padding: 40,
   },
   emptyStateText: {
-    fontSize: 18,
-    color: '#666',
+    ...typography.h3,
+    color: theme.colors.text.secondary,
     marginTop: 16,
     textAlign: 'center',
   },
   emptyStateSubtext: {
-    fontSize: 14,
-    color: '#999',
+    ...typography.body2,
+    color: theme.colors.text.tertiary,
     marginTop: 8,
     textAlign: 'center',
     lineHeight: 20,

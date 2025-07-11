@@ -5,6 +5,7 @@ export interface Artist {
   name: string;
   website?: string;
   social_media?: string;
+  photo?: string; // Artist photo URI
   created_at?: string;
 }
 

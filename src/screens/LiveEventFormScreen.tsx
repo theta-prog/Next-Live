@@ -12,8 +12,10 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useApp } from '../context/AppContext';
 import { LiveEvent } from '../database/database';
+import { theme, typography } from '../styles/theme';
 
 const LiveEventFormScreen = ({ navigation, route }: any) => {
   const { artists, addLiveEvent, updateLiveEvent, liveEvents } = useApp();
@@ -114,20 +116,28 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
   ];
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>
-          {editingEvent ? 'ライブ編集' : 'ライブ追加'}
-        </Text>
-        <TouchableOpacity onPress={handleSave}>
-          <Text style={styles.saveButton}>保存</Text>
-        </TouchableOpacity>
-      </View>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <View style={styles.container}>
+        {/* 固定ヘッダー */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color={theme.colors.accent} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>
+            {editingEvent ? 'ライブ編集' : 'ライブ追加'}
+          </Text>
+          <TouchableOpacity onPress={handleSave}>
+            <Text style={styles.saveButton}>保存</Text>
+          </TouchableOpacity>
+        </View>
 
-      <View style={styles.form}>
+        {/* スクロール可能なコンテンツ */}
+        <ScrollView
+          style={styles.scrollContent}
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.form}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>基本情報</Text>
           
@@ -301,72 +311,75 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
             />
           </View>
         </View>
+          </View>
+        </ScrollView>
       </View>
-    </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: theme.colors.background,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    padding: 20,
-    paddingTop: 40,
+    backgroundColor: theme.colors.surface,
+    padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: theme.colors.border,
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
+    ...typography.h3,
+    color: theme.colors.text.primary,
   },
   saveButton: {
-    fontSize: 16,
-    color: '#007AFF',
-    fontWeight: '500',
+    ...typography.button,
+    color: theme.colors.accent,
+  },
+  scrollContent: {
+    flex: 1,
+  },
+  scrollContainer: {
+    paddingBottom: 100,
   },
   form: {
     padding: 16,
   },
   section: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.card,
     padding: 20,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...theme.shadows.medium,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    ...typography.h3,
+    color: theme.colors.text.primary,
     marginBottom: 16,
   },
   inputGroup: {
     marginBottom: 16,
   },
   label: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#333',
+    ...typography.label,
+    color: theme.colors.text.primary,
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.md,
     padding: 12,
-    fontSize: 16,
-    backgroundColor: '#fafafa',
+    ...typography.body1,
+    backgroundColor: theme.colors.background,
   },
   memoInput: {
     height: 100,
@@ -374,9 +387,9 @@ const styles = StyleSheet.create({
   },
   pickerContainer: {
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    backgroundColor: '#fafafa',
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.md,
+    backgroundColor: theme.colors.background,
   },
   picker: {
     height: 50,
@@ -386,35 +399,34 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.md,
     padding: 12,
-    backgroundColor: '#fafafa',
+    backgroundColor: theme.colors.background,
   },
   dateButtonText: {
-    fontSize: 16,
-    color: '#333',
+    ...typography.body1,
+    color: theme.colors.text.primary,
   },
   noArtistContainer: {
     padding: 20,
     alignItems: 'center',
-    backgroundColor: '#f8f8f8',
-    borderRadius: 8,
+    backgroundColor: theme.colors.background,
+    borderRadius: theme.borderRadius.md,
   },
   noArtistText: {
-    fontSize: 16,
-    color: '#666',
+    ...typography.body1,
+    color: theme.colors.text.secondary,
     marginBottom: 12,
   },
   addArtistButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.accent,
     padding: 12,
-    borderRadius: 8,
+    borderRadius: theme.borderRadius.button,
   },
   addArtistButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '500',
+    ...typography.button,
+    color: theme.colors.text.inverse,
   },
 });
 

@@ -8,7 +8,9 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useApp } from '../context/AppContext';
+import { theme, typography } from '../styles/theme';
 
 const LiveEventDetailScreen = ({ navigation, route }: any) => {
   const { liveEvents, deleteLiveEvent, memories } = useApp();
@@ -18,9 +20,11 @@ const LiveEventDetailScreen = ({ navigation, route }: any) => {
 
   if (!event) {
     return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>イベントが見つかりません</Text>
-      </View>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>イベントが見つかりません</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
@@ -87,28 +91,36 @@ const LiveEventDetailScreen = ({ navigation, route }: any) => {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
-        </TouchableOpacity>
-        <View style={styles.headerActions}>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={() => navigation.navigate('LiveEventForm', { eventId: event.id })}
-          >
-            <Ionicons name="create-outline" size={24} color="#007AFF" />
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <View style={styles.container}>
+        {/* 固定ヘッダー */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="#007AFF" />
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={handleDelete}
-          >
-            <Ionicons name="trash-outline" size={24} color="#FF3B30" />
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={styles.headerButton}
+              onPress={() => navigation.navigate('LiveEventForm', { eventId: event.id })}
+            >
+              <Ionicons name="create-outline" size={24} color="#007AFF" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.headerButton}
+              onPress={handleDelete}
+            >
+              <Ionicons name="trash-outline" size={24} color="#FF3B30" />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
 
-      <View style={styles.content}>
+        {/* スクロール可能なコンテンツ */}
+        <ScrollView 
+          style={styles.scrollContent}
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.content}>
         <View style={styles.mainInfo}>
           <Text style={styles.eventTitle}>{event.title}</Text>
           <Text style={styles.artistName}>{event.artist_name}</Text>
@@ -223,25 +235,30 @@ const LiveEventDetailScreen = ({ navigation, route }: any) => {
             )}
           </View>
         )}
+          </View>
+        </ScrollView>
       </View>
-    </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: theme.colors.background,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    padding: 20,
-    paddingTop: 40,
+    backgroundColor: theme.colors.surface,
+    padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: theme.colors.border,
   },
   headerActions: {
     flexDirection: 'row',
@@ -249,70 +266,65 @@ const styles = StyleSheet.create({
   headerButton: {
     marginLeft: 16,
   },
+  scrollContent: {
+    flex: 1,
+  },
+  scrollContainer: {
+    paddingBottom: 100,
+  },
   content: {
     padding: 16,
   },
   mainInfo: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.card,
     padding: 20,
     marginBottom: 16,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...theme.shadows.medium,
   },
   eventTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+    ...typography.h2,
+    color: theme.colors.text.primary,
     textAlign: 'center',
     marginBottom: 8,
   },
   artistName: {
-    fontSize: 18,
-    color: '#007AFF',
+    ...typography.body1,
+    color: theme.colors.accent,
     marginBottom: 8,
   },
   eventDate: {
-    fontSize: 16,
-    color: '#666',
+    ...typography.body2,
+    color: theme.colors.text.secondary,
     marginBottom: 16,
   },
   countdown: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8f8f8',
+    backgroundColor: theme.colors.background,
     padding: 12,
-    borderRadius: 8,
+    borderRadius: theme.borderRadius.md,
   },
   countdownLabel: {
-    fontSize: 16,
-    color: '#666',
+    ...typography.body2,
+    color: theme.colors.text.secondary,
   },
   countdownDays: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#007AFF',
+    ...typography.h2,
+    color: theme.colors.accent,
     marginHorizontal: 8,
   },
   section: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.card,
     padding: 20,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...theme.shadows.medium,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    ...typography.h3,
+    color: theme.colors.text.primary,
     marginBottom: 16,
   },
   infoRow: {
@@ -321,38 +333,34 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   infoLabel: {
-    fontSize: 14,
-    color: '#666',
+    ...typography.body2,
+    color: theme.colors.text.secondary,
     marginLeft: 12,
     minWidth: 60,
   },
   infoValue: {
-    fontSize: 16,
-    color: '#333',
+    ...typography.body1,
+    color: theme.colors.text.primary,
     flex: 1,
     marginLeft: 12,
   },
   ticketStatus: {
-    fontSize: 16,
+    ...typography.body1,
     fontWeight: '500',
     flex: 1,
     marginLeft: 12,
   },
   memoText: {
-    fontSize: 16,
-    color: '#333',
+    ...typography.body1,
+    color: theme.colors.text.primary,
     lineHeight: 24,
   },
   memorySection: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.card,
     padding: 20,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...theme.shadows.medium,
   },
   memorySectionHeader: {
     flexDirection: 'row',
@@ -361,47 +369,46 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   addMemoryButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.accent,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 6,
+    borderRadius: theme.borderRadius.button,
   },
   addMemoryButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '500',
+    ...typography.button,
+    color: theme.colors.text.inverse,
   },
   memoryCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
-    backgroundColor: '#f8f8f8',
-    borderRadius: 8,
+    backgroundColor: theme.colors.background,
+    borderRadius: theme.borderRadius.md,
   },
   memoryCardText: {
-    fontSize: 16,
-    color: '#333',
+    ...typography.body1,
+    color: theme.colors.text.primary,
   },
   noMemoryCard: {
     padding: 16,
-    backgroundColor: '#f8f8f8',
-    borderRadius: 8,
+    backgroundColor: theme.colors.background,
+    borderRadius: theme.borderRadius.md,
     alignItems: 'center',
   },
   noMemoryText: {
-    fontSize: 16,
-    color: '#666',
+    ...typography.body2,
+    color: theme.colors.text.secondary,
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: theme.colors.background,
   },
   errorText: {
-    fontSize: 18,
-    color: '#666',
+    ...typography.body1,
+    color: theme.colors.text.secondary,
   },
 });
 

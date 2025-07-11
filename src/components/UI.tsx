@@ -83,6 +83,8 @@ export const Button: React.FC<ButtonProps> = ({
       onPress={onPress}
       disabled={disabled}
       activeOpacity={0.8}
+      delayPressIn={0}
+      delayPressOut={100}
     >
       <Text style={buttonTextStyle}>{title}</Text>
     </TouchableOpacity>
@@ -149,6 +151,8 @@ export const IconButton: React.FC<IconButtonProps> = ({
       onPress={onPress}
       disabled={disabled}
       activeOpacity={0.8}
+      delayPressIn={0}
+      delayPressOut={100}
     >
       {children}
     </TouchableOpacity>

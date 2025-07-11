@@ -1,13 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import React, { useState } from 'react';
 import {
-  Alert,
-  FlatList,
-  Modal,
-  StyleSheet,
-  Text,
-  View,
+    Alert,
+    FlatList,
+    Image,
+    Modal,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button, Card, CustomTextInput, IconButton, SectionHeader } from '../components/UI';
 import { useApp } from '../context/AppContext';
 import { Artist } from '../database/asyncDatabase';
@@ -20,6 +24,7 @@ const ArtistsScreen = ({ navigation }: any) => {
   const [name, setName] = useState('');
   const [website, setWebsite] = useState('');
   const [socialMedia, setSocialMedia] = useState('');
+  const [photo, setPhoto] = useState('');
 
   const openModal = (artist?: Artist) => {
     if (artist) {
@@ -27,11 +32,13 @@ const ArtistsScreen = ({ navigation }: any) => {
       setName(artist.name);
       setWebsite(artist.website || '');
       setSocialMedia(artist.social_media || '');
+      setPhoto(artist.photo || '');
     } else {
       setEditingArtist(null);
       setName('');
       setWebsite('');
       setSocialMedia('');
+      setPhoto('');
     }
     setModalVisible(true);
   };
@@ -42,6 +49,7 @@ const ArtistsScreen = ({ navigation }: any) => {
     setName('');
     setWebsite('');
     setSocialMedia('');
+    setPhoto('');
   };
 
   const handleSave = async () => {
@@ -54,6 +62,7 @@ const ArtistsScreen = ({ navigation }: any) => {
       name: name.trim(),
       website: website.trim() || undefined,
       social_media: socialMedia.trim() || undefined,
+      photo: photo || undefined,
     };
 
     try {
@@ -65,6 +74,25 @@ const ArtistsScreen = ({ navigation }: any) => {
       closeModal();
     } catch {
       Alert.alert('エラー', 'このアーティスト名は既に登録されています');
+    }
+  };
+
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('権限が必要です', '画像を選択するにはカメラロールへのアクセス権限が必要です');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setPhoto(result.assets[0].uri);
     }
   };
 
@@ -85,14 +113,19 @@ const ArtistsScreen = ({ navigation }: any) => {
 
   const renderArtist = ({ item }: { item: Artist }) => (
     <Card variant="default" style={styles.artistCard}>
-      <View style={styles.artistInfo}>
-        <Text style={[typography.h3, styles.artistName]}>{item.name}</Text>
-        {item.website && (
-          <Text style={[typography.body2, styles.artistDetail]}>🌐 {item.website}</Text>
+      <View style={styles.artistHeader}>
+        {item.photo && (
+          <Image source={{ uri: item.photo }} style={styles.artistPhoto} />
         )}
-        {item.social_media && (
-          <Text style={[typography.body2, styles.artistDetail]}>📱 {item.social_media}</Text>
-        )}
+        <View style={styles.artistInfo}>
+          <Text style={[typography.h3, styles.artistName]}>{item.name}</Text>
+          {item.website && (
+            <Text style={[typography.body2, styles.artistDetail]}>🌐 {item.website}</Text>
+          )}
+          {item.social_media && (
+            <Text style={[typography.body2, styles.artistDetail]}>📱 {item.social_media}</Text>
+          )}
+        </View>
       </View>
       <View style={styles.artistActions}>
         <IconButton
@@ -114,9 +147,10 @@ const ArtistsScreen = ({ navigation }: any) => {
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <SectionHeader title="推しアーティスト" style={styles.headerTitle} />
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <SectionHeader title="推しアーティスト" style={styles.headerTitle} />
         <IconButton
           onPress={() => openModal()}
           variant="ghost"
@@ -148,7 +182,8 @@ const ArtistsScreen = ({ navigation }: any) => {
         onRequestClose={closeModal}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <SafeAreaView style={styles.modalSafeArea} edges={['top', 'bottom']}>
+            <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={[typography.h3, styles.modalTitle]}>
                 {editingArtist ? 'アーティスト編集' : 'アーティスト追加'}
@@ -163,6 +198,23 @@ const ArtistsScreen = ({ navigation }: any) => {
             </View>
 
             <View style={styles.form}>
+              {/* 写真選択 */}
+              <View style={styles.photoSection}>
+                <Text style={[typography.body2, styles.label]}>アーティスト写真 (任意)</Text>
+                <TouchableOpacity style={styles.photoButton} onPress={pickImage}>
+                  {photo ? (
+                    <Image source={{ uri: photo }} style={styles.photoPreview} />
+                  ) : (
+                    <View style={styles.photoPlaceholder}>
+                      <Ionicons name="camera" size={32} color={theme.colors.text.tertiary} />
+                      <Text style={[typography.body2, styles.photoPlaceholderText]}>
+                        タップして写真を選択
+                      </Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              </View>
+
               <CustomTextInput
                 label="アーティスト名 *"
                 value={name}
@@ -201,14 +253,20 @@ const ArtistsScreen = ({ navigation }: any) => {
                 style={styles.modalButton}
               />
             </View>
-          </View>
+            </View>
+          </SafeAreaView>
         </View>
       </Modal>
     </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -236,6 +294,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: theme.spacing.md,
+  },
+  artistHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  artistPhoto: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: theme.spacing.md,
   },
   artistInfo: {
     flex: 1,
@@ -279,12 +348,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  modalSafeArea: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   modalContent: {
     backgroundColor: theme.colors.surface,
     borderRadius: theme.borderRadius.none,
     margin: theme.spacing.lg,
     maxWidth: 400,
     width: '90%',
+    maxHeight: '80%',
     ...theme.shadows.large,
   },
   modalHeader: {
@@ -300,6 +375,32 @@ const styles = StyleSheet.create({
   },
   form: {
     padding: theme.spacing.lg,
+  },
+  photoSection: {
+    marginBottom: theme.spacing.lg,
+  },
+  photoButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 120,
+    borderRadius: theme.borderRadius.none,
+    borderWidth: 2,
+    borderColor: theme.colors.border,
+    borderStyle: 'dashed',
+    backgroundColor: theme.colors.background,
+  },
+  photoPreview: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  photoPlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoPlaceholderText: {
+    color: theme.colors.text.tertiary,
+    marginTop: theme.spacing.sm,
   },
   inputGroup: {
     marginBottom: theme.spacing.md,
@@ -319,6 +420,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: theme.spacing.lg,
+    paddingBottom: theme.spacing.md,
   },
   modalButton: {
     flex: 1,

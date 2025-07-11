@@ -7,6 +7,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button, Card, IconButton, SectionHeader } from '../components/UI';
 import { useApp } from '../context/AppContext';
 import { theme, typography } from '../styles/theme';
@@ -35,11 +36,20 @@ const HomeScreen = ({ navigation }: any) => {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={[typography.h1, styles.headerTitle]}>Next Live</Text>
-        <Text style={[typography.body2, styles.headerSubtitle]}>お気に入りのアーティストを管理</Text>
-      </View>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <View style={styles.container}>
+        {/* 固定ヘッダー */}
+        <View style={styles.header}>
+          <Text style={[typography.h1, styles.headerTitle]}>Next Live</Text>
+          <Text style={[typography.body2, styles.headerSubtitle]}>お気に入りのアーティストを管理</Text>
+        </View>
+
+        {/* スクロール可能なコンテンツ */}
+        <ScrollView 
+          style={styles.scrollContent}
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+        >
 
       {nextEvent ? (
         <Card variant="elevated" style={styles.nextEventCard}>
@@ -151,19 +161,31 @@ const HomeScreen = ({ navigation }: any) => {
           ))}
         </Card>
       )}
-    </ScrollView>
+        </ScrollView>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
   },
+  scrollContent: {
+    flex: 1,
+  },
+  scrollContainer: {
+    paddingBottom: 100, // タブバーの高さを考慮
+  },
   header: {
     backgroundColor: theme.colors.surface,
     padding: theme.spacing.lg,
-    paddingTop: theme.spacing.xxl,
+    paddingTop: theme.spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
   },

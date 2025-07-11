@@ -1,18 +1,20 @@
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import { StatusBar } from 'expo-status-bar';
+import React from 'react';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // Screen imports
-import HomeScreen from '../screens/HomeScreen';
 import ArtistsScreen from '../screens/ArtistsScreen';
 import CalendarScreen from '../screens/CalendarScreen';
-import MemoriesScreen from '../screens/MemoriesScreen';
-import LiveEventFormScreen from '../screens/LiveEventFormScreen';
+import HomeScreen from '../screens/HomeScreen';
 import LiveEventDetailScreen from '../screens/LiveEventDetailScreen';
-import MemoryFormScreen from '../screens/MemoryFormScreen';
+import LiveEventFormScreen from '../screens/LiveEventFormScreen';
+import MemoriesScreen from '../screens/MemoriesScreen';
 import MemoryDetailScreen from '../screens/MemoryDetailScreen';
+import MemoryFormScreen from '../screens/MemoryFormScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -45,8 +47,12 @@ const TabNavigator = () => {
           borderTopWidth: 1,
           borderTopColor: '#eee',
           paddingTop: 5,
-          paddingBottom: 5,
-          height: 60,
+          paddingBottom: 25, // Pixel 7の下部余白を追加
+          height: 85,
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
         },
         tabBarLabelStyle: {
           fontSize: 12,
@@ -81,46 +87,49 @@ const TabNavigator = () => {
 
 const AppNavigator = () => {
   return (
-    <NavigationContainer>
-      <Stack.Navigator 
-        screenOptions={{
-          headerShown: false,
-          cardStyle: { backgroundColor: '#f5f5f5' },
-        }}
-      >
-        <Stack.Screen name="Main" component={TabNavigator} />
-        <Stack.Screen 
-          name="LiveEventForm" 
-          component={LiveEventFormScreen}
-          options={{
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <StatusBar style="auto" />
+        <Stack.Navigator 
+          screenOptions={{
             headerShown: false,
-            presentation: 'modal',
+            cardStyle: { backgroundColor: '#f5f5f5' },
           }}
-        />
-        <Stack.Screen 
-          name="LiveEventDetail" 
-          component={LiveEventDetailScreen}
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen 
-          name="MemoryForm" 
-          component={MemoryFormScreen}
-          options={{
-            headerShown: false,
-            presentation: 'modal',
-          }}
-        />
-        <Stack.Screen 
-          name="MemoryDetail" 
-          component={MemoryDetailScreen}
-          options={{
-            headerShown: false,
-          }}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+        >
+          <Stack.Screen name="Main" component={TabNavigator} />
+          <Stack.Screen 
+            name="LiveEventForm" 
+            component={LiveEventFormScreen}
+            options={{
+              headerShown: false,
+              presentation: 'modal',
+            }}
+          />
+          <Stack.Screen 
+            name="LiveEventDetail" 
+            component={LiveEventDetailScreen}
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen 
+            name="MemoryForm" 
+            component={MemoryFormScreen}
+            options={{
+              headerShown: false,
+              presentation: 'modal',
+            }}
+          />
+          <Stack.Screen 
+            name="MemoryDetail" 
+            component={MemoryDetailScreen}
+            options={{
+              headerShown: false,
+            }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 };
 
