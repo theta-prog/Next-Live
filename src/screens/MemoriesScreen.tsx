@@ -1,16 +1,16 @@
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  Image,
-  ScrollView,
+    FlatList,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useApp } from '../context/AppContext';
-import { Ionicons } from '@expo/vector-icons';
 import { theme, typography } from '../styles/theme';
 
 const MemoriesScreen = ({ navigation }: any) => {

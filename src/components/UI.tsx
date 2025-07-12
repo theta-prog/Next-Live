@@ -7,13 +7,15 @@ interface CardProps {
   style?: ViewStyle;
   variant?: 'default' | 'elevated' | 'outlined';
   noPadding?: boolean;
+  testID?: string;
 }
 
 export const Card: React.FC<CardProps> = ({ 
   children, 
   style, 
   variant = 'default',
-  noPadding = false 
+  noPadding = false,
+  testID 
 }) => {
   const cardStyle = [
     styles.card,
@@ -24,7 +26,7 @@ export const Card: React.FC<CardProps> = ({
   ];
 
   return (
-    <View style={cardStyle}>
+    <View style={cardStyle} testID={testID}>
       {children}
     </View>
   );
@@ -39,6 +41,7 @@ interface ButtonProps {
   style?: ViewStyle;
   textStyle?: TextStyle;
   disabled?: boolean;
+  testID?: string;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -50,6 +53,7 @@ export const Button: React.FC<ButtonProps> = ({
   style,
   textStyle,
   disabled = false,
+  testID,
 }) => {
   const buttonStyle = [
     styles.button,
@@ -85,6 +89,8 @@ export const Button: React.FC<ButtonProps> = ({
       activeOpacity={0.8}
       delayPressIn={0}
       delayPressOut={100}
+      testID={testID}
+      accessibilityState={{ disabled: disabled }}
     >
       <Text style={buttonTextStyle}>{title}</Text>
     </TouchableOpacity>
@@ -95,22 +101,35 @@ interface SectionHeaderProps {
   title: string;
   subtitle?: string;
   style?: TextStyle;
+  action?: string;
+  onActionPress?: () => void;
 }
 
 export const SectionHeader: React.FC<SectionHeaderProps> = ({ 
   title, 
   subtitle, 
-  style 
+  style,
+  action,
+  onActionPress 
 }) => {
   return (
     <View style={styles.sectionHeaderContainer}>
-      <Text style={[typography.h2, styles.sectionHeader, style]}>
-        {title}
-      </Text>
-      {subtitle && (
-        <Text style={[typography.body2, styles.sectionSubtitle]}>
-          {subtitle}
+      <View style={{ flex: 1 }}>
+        <Text style={[typography.h2, styles.sectionHeader, style]}>
+          {title}
         </Text>
+        {subtitle && (
+          <Text style={[typography.body2, styles.sectionSubtitle]}>
+            {subtitle}
+          </Text>
+        )}
+      </View>
+      {action && onActionPress && (
+        <TouchableOpacity onPress={onActionPress}>
+          <Text style={[typography.button, { color: theme.colors.primary }]}>
+            {action}
+          </Text>
+        </TouchableOpacity>
       )}
     </View>
   );
@@ -123,6 +142,7 @@ interface IconButtonProps {
   size?: 'small' | 'medium' | 'large';
   style?: ViewStyle;
   disabled?: boolean;
+  testID?: string;
 }
 
 export const IconButton: React.FC<IconButtonProps> = ({
@@ -132,6 +152,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
   size = 'medium',
   style,
   disabled = false,
+  testID,
 }) => {
   const buttonStyle = [
     styles.iconButton,
@@ -153,6 +174,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
       activeOpacity={0.8}
       delayPressIn={0}
       delayPressOut={100}
+      testID={testID}
     >
       {children}
     </TouchableOpacity>
@@ -163,6 +185,7 @@ interface CustomTextInputProps extends TextInputProps {
   label?: string;
   error?: string;
   containerStyle?: ViewStyle;
+  testID?: string;
 }
 
 export const CustomTextInput: React.FC<CustomTextInputProps> = ({
@@ -170,6 +193,7 @@ export const CustomTextInput: React.FC<CustomTextInputProps> = ({
   error,
   containerStyle,
   style,
+  testID,
   ...props
 }) => {
   return (
@@ -186,6 +210,7 @@ export const CustomTextInput: React.FC<CustomTextInputProps> = ({
           style,
         ]}
         placeholderTextColor={theme.colors.text.tertiary}
+        testID={testID}
         {...props}
       />
       {error && (
@@ -282,6 +307,8 @@ const styles = StyleSheet.create({
   // Section Header Styles
   sectionHeaderContainer: {
     marginBottom: theme.spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   sectionHeader: {
     letterSpacing: -0.3,

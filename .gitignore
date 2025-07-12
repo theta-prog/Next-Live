@@ -36,4 +36,26 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+# Test coverage
+coverage/
+*.lcov
+
+# Jest
+.nyc_output
+
+# Logs
+*.log
+logs/
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
 app-example
