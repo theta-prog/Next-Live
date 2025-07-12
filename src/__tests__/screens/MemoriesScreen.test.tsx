@@ -1,6 +1,7 @@
 import { render } from '@testing-library/react-native';
 import React from 'react';
 import { useApp } from '../../context/AppContext';
+import { Memory } from '../../database/database';
 import MemoriesScreen from '../../screens/MemoriesScreen';
 
 // Mock the useApp hook
@@ -15,7 +16,7 @@ const mockNavigation = {
 };
 
 describe('MemoriesScreen', () => {
-  const mockMemories = [
+  const mockMemories: (Memory & { event_title: string; artist_name: string; event_date: string })[] = [
     {
       id: 1,
       live_event_id: 1,
@@ -178,9 +179,9 @@ describe('MemoriesScreen', () => {
   });
 
   it('handles memories without photos correctly', () => {
-    const memoriesWithoutPhotos = [
+    const memoriesWithoutPhotos: (Memory & { event_title: string; artist_name: string; event_date: string })[] = [
       {
-        ...mockMemories[0],
+        ...mockMemories[0]!,
         photos: JSON.stringify([]),
       },
     ];

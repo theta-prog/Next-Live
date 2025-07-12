@@ -2,6 +2,7 @@ import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
 import { Alert } from 'react-native';
 import { useApp } from '../../context/AppContext';
+import { Memory } from '../../database/database';
 import MemoryDetailScreen from '../../screens/MemoryDetailScreen';
 
 // Mock the useApp hook
@@ -26,7 +27,7 @@ const mockRoute = {
 jest.spyOn(Alert, 'alert').mockImplementation(() => {});
 
 describe('MemoryDetailScreen', () => {
-  const mockMemories = [
+  const mockMemories: (Memory & { event_title: string; artist_name: string; event_date: string })[] = [
     {
       id: 1,
       live_event_id: 1,
@@ -168,9 +169,9 @@ describe('MemoryDetailScreen', () => {
   });
 
   it('handles memory without photos', () => {
-    const memoryWithoutPhotos = [
+    const memoryWithoutPhotos: (Memory & { event_title: string; artist_name: string; event_date: string })[] = [
       {
-        ...mockMemories[0],
+        ...mockMemories[0]!,
         photos: JSON.stringify([]),
       },
     ];
@@ -200,9 +201,9 @@ describe('MemoryDetailScreen', () => {
   });
 
   it('handles memory without setlist', () => {
-    const memoryWithoutSetlist = [
+    const memoryWithoutSetlist: (Memory & { event_title: string; artist_name: string; event_date: string })[] = [
       {
-        ...mockMemories[0],
+        ...mockMemories[0]!,
         setlist: '',
       },
     ];

@@ -2,6 +2,7 @@ import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
 import { Alert } from 'react-native';
 import { useApp } from '../../context/AppContext';
+import { LiveEvent } from '../../database/database';
 import LiveEventDetailScreen from '../../screens/LiveEventDetailScreen';
 
 // Mock the useApp hook
@@ -26,7 +27,7 @@ const mockRoute = {
 jest.spyOn(Alert, 'alert').mockImplementation(() => {});
 
 describe('LiveEventDetailScreen', () => {
-  const mockLiveEvents = [
+  const mockLiveEvents: (LiveEvent & { artist_name: string })[] = [
     {
       id: 1,
       title: 'Test Concert',
@@ -36,7 +37,7 @@ describe('LiveEventDetailScreen', () => {
       artist_name: 'Test Artist',
       ticket_status: 'won' as const,
       ticket_price: 5000,
-      notes: 'Looking forward to this concert!',
+      memo: 'Looking forward to this concert!',
       created_at: '2023-01-01T00:00:00.000Z',
     },
   ];
@@ -129,7 +130,7 @@ describe('LiveEventDetailScreen', () => {
     fireEvent.press(editButton);
 
     expect(mockNavigation.navigate).toHaveBeenCalledWith('MemoryForm', {
-      eventId: mockLiveEvents[0].id,
+      eventId: mockLiveEvents[0]!.id,
     });
   });
 
@@ -152,8 +153,8 @@ describe('LiveEventDetailScreen', () => {
   });
 
   it('handles different ticket statuses correctly', () => {
-    const eventsWithDifferentStatuses = [
-      { ...mockLiveEvents[0], ticket_status: 'lost' as const },
+    const eventsWithDifferentStatuses: (LiveEvent & { artist_name: string })[] = [
+      { ...mockLiveEvents[0]!, ticket_status: 'lost' as const },
     ];
 
     mockUseApp.mockReturnValue({

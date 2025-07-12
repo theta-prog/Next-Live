@@ -91,7 +91,7 @@ const ArtistsScreen = ({ navigation }: any) => {
       quality: 0.8,
     });
 
-    if (!result.canceled) {
+    if (!result.canceled && result.assets && result.assets[0]) {
       setPhoto(result.assets[0].uri);
     }
   };

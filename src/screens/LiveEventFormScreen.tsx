@@ -68,7 +68,7 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
     const eventData: Omit<LiveEvent, 'id' | 'created_at'> = {
       title: title.trim(),
       artist_id: artistId,
-      date: date.toISOString().split('T')[0],
+      date: date.toISOString().split('T')[0]!,
       doors_open: doorsOpen.trim() || undefined,
       show_start: showStart.trim() || undefined,
       venue_name: venueName.trim(),

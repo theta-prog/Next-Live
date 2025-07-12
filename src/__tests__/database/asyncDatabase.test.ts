@@ -191,7 +191,7 @@ describe('Database', () => {
 
       expect(result[0]).toEqual({
         ...mockEvents[0],
-        artist_name: mockArtists[0].name,
+        artist_name: mockArtists[0]!.name,
       });
     });
 
@@ -236,7 +236,7 @@ describe('Database', () => {
       expect(result).toHaveLength(2);
       expect(result[0]).toEqual({
         ...mockEvents[0],
-        artist_name: mockArtists[0].name,
+        artist_name: mockArtists[0]!.name,
       });
     });
   });
@@ -310,9 +310,9 @@ describe('Database', () => {
 
       expect(result[0]).toEqual({
         ...mockMemories[0],
-        event_title: mockEvents[0].title,
-        artist_name: mockArtists[0].name,
-        event_date: mockEvents[0].date,
+        event_title: mockEvents[0]!.title,
+        artist_name: mockArtists[0]!.name,
+        event_date: mockEvents[0]!.date,
       });
     });
   });

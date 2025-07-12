@@ -109,7 +109,10 @@ class Database {
 
   updateArtist(id: number, artist: Partial<Artist>): void {
     const fields = Object.keys(artist).filter(key => key !== 'id' && key !== 'created_at');
-    const values = fields.map(field => artist[field as keyof Artist]);
+    const values = fields.map(field => {
+      const value = artist[field as keyof Artist];
+      return value ?? null;
+    });
     const setClause = fields.map(field => `${field} = ?`).join(', ');
     
     this.db.runSync(`UPDATE artists SET ${setClause} WHERE id = ?`, [...values, id]);
@@ -163,7 +166,7 @@ class Database {
   }
 
   getUpcomingLiveEvents(): (LiveEvent & { artist_name: string })[] {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0]!;
     const result = this.db.getAllSync(`
       SELECT le.*, a.name as artist_name 
       FROM live_events le 
@@ -176,7 +179,10 @@ class Database {
 
   updateLiveEvent(id: number, event: Partial<LiveEvent>): void {
     const fields = Object.keys(event).filter(key => key !== 'id' && key !== 'created_at');
-    const values = fields.map(field => event[field as keyof LiveEvent]);
+    const values = fields.map(field => {
+      const value = event[field as keyof LiveEvent];
+      return value ?? null;
+    });
     const setClause = fields.map(field => `${field} = ?`).join(', ');
     
     this.db.runSync(`UPDATE live_events SET ${setClause} WHERE id = ?`, [...values, id]);
@@ -224,7 +230,10 @@ class Database {
 
   updateMemory(id: number, memory: Partial<Memory>): void {
     const fields = Object.keys(memory).filter(key => key !== 'id' && key !== 'created_at');
-    const values = fields.map(field => memory[field as keyof Memory]);
+    const values = fields.map(field => {
+      const value = memory[field as keyof Memory];
+      return value ?? null;
+    });
     const setClause = fields.map(field => `${field} = ?`).join(', ');
     
     this.db.runSync(`UPDATE memories SET ${setClause} WHERE id = ?`, [...values, id]);

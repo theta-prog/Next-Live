@@ -101,7 +101,8 @@ class Database {
     const artists = await this.getStoredData<Artist>(STORAGE_KEYS.ARTISTS);
     const index = artists.findIndex(artist => artist.id === id);
     if (index !== -1) {
-      artists[index] = { ...artists[index], ...artistData };
+      const currentArtist = artists[index]!;
+      artists[index] = { ...currentArtist, ...artistData };
       await this.setStoredData(STORAGE_KEYS.ARTISTS, artists);
     }
   }
@@ -151,7 +152,7 @@ class Database {
 
   async getUpcomingLiveEvents(): Promise<(LiveEvent & { artist_name: string })[]> {
     const eventsWithArtists = await this.getLiveEventsWithArtists();
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0]!;
     
     return eventsWithArtists
       .filter(event => event.date >= today)
@@ -162,7 +163,8 @@ class Database {
     const events = await this.getStoredData<LiveEvent>(STORAGE_KEYS.LIVE_EVENTS);
     const index = events.findIndex(event => event.id === id);
     if (index !== -1) {
-      events[index] = { ...events[index], ...eventData };
+      const currentEvent = events[index]!;
+      events[index] = { ...currentEvent, ...eventData };
       await this.setStoredData(STORAGE_KEYS.LIVE_EVENTS, events);
     }
   }
@@ -226,7 +228,8 @@ class Database {
     const memories = await this.getStoredData<Memory>(STORAGE_KEYS.MEMORIES);
     const index = memories.findIndex(memory => memory.id === id);
     if (index !== -1) {
-      memories[index] = { ...memories[index], ...memoryData };
+      const currentMemory = memories[index]!;
+      memories[index] = { ...currentMemory, ...memoryData };
       await this.setStoredData(STORAGE_KEYS.MEMORIES, memories);
     }
   }

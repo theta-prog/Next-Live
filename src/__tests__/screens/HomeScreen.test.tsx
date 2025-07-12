@@ -135,7 +135,7 @@ describe('HomeScreen', () => {
     fireEvent.press(detailButton);
 
     expect(mockNavigation.navigate).toHaveBeenCalledWith('LiveEventDetail', { 
-      eventId: mockUpcomingEvents[0].id 
+      eventId: mockUpcomingEvents[0]!.id 
     });
   });
 
