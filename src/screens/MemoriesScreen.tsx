@@ -26,13 +26,20 @@ const MemoriesScreen = ({ navigation }: any) => {
   };
 
   const renderMemory = ({ item }: any) => {
-    const photos = item.photos ? JSON.parse(item.photos) : [];
+    let photos: string[] = [];
+    try {
+      photos = item.photos ? JSON.parse(item.photos) : [];
+    } catch {
+      console.warn('Invalid JSON in photos field:', item.photos);
+      photos = [];
+    }
     const firstPhoto = photos[0];
 
     return (
       <TouchableOpacity
         style={styles.memoryCard}
         onPress={() => navigation.navigate('MemoryDetail', { memoryId: item.id })}
+        testID={`memory-card-${item.id}`}
       >
         <View style={styles.imageContainer}>
           {firstPhoto && (
@@ -87,6 +94,7 @@ const MemoriesScreen = ({ navigation }: any) => {
           <TouchableOpacity
             style={styles.addButton}
             onPress={() => navigation.navigate('MemoryForm')}
+            testID="add-memory-button"
           >
             <Ionicons name="add" size={24} color={theme.colors.accent} />
           </TouchableOpacity>

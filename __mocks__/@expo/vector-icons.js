@@ -1,9 +1,12 @@
 const React = require('react');
 
-const createMockComponent = (name) => 
-  React.forwardRef((props, ref) => {
+const createMockComponent = (name) => {
+  const component = React.forwardRef((props, ref) => {
     return React.createElement('Text', { ...props, ref, testID: props.testID || name });
   });
+  component.displayName = name;
+  return component;
+};
 
 module.exports = {
   Ionicons: createMockComponent('Ionicons'),

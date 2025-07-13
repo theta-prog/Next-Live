@@ -112,7 +112,7 @@ const ArtistsScreen = ({ navigation }: any) => {
   };
 
   const renderArtist = ({ item }: { item: Artist }) => (
-    <Card variant="default" style={styles.artistCard}>
+    <Card variant="default" style={styles.artistCard} testID={`artist-card-${item.id}`}>
       <View style={styles.artistHeader}>
         {item.photo && (
           <Image source={{ uri: item.photo }} style={styles.artistPhoto} />
@@ -132,6 +132,7 @@ const ArtistsScreen = ({ navigation }: any) => {
           onPress={() => openModal(item)}
           variant="ghost"
           size="medium"
+          testID={`edit-artist-button-${item.id}`}
         >
           <Ionicons name="pencil" size={18} color={theme.colors.text.secondary} />
         </IconButton>
@@ -139,6 +140,7 @@ const ArtistsScreen = ({ navigation }: any) => {
           onPress={() => handleDelete(item)}
           variant="ghost"
           size="medium"
+          testID={`delete-artist-button-${item.id}`}
         >
           <Ionicons name="trash" size={18} color={theme.colors.error} />
         </IconButton>
@@ -155,6 +157,7 @@ const ArtistsScreen = ({ navigation }: any) => {
           onPress={() => openModal()}
           variant="ghost"
           size="large"
+          testID="add-artist-button"
         >
           <Ionicons name="add" size={24} color={theme.colors.accent} />
         </IconButton>
@@ -172,6 +175,7 @@ const ArtistsScreen = ({ navigation }: any) => {
           renderItem={renderArtist}
           keyExtractor={(item) => item.id!.toString()}
           contentContainerStyle={styles.listContainer}
+          testID="artists-flatlist"
         />
       )}
 
@@ -192,6 +196,7 @@ const ArtistsScreen = ({ navigation }: any) => {
                 onPress={closeModal}
                 variant="ghost"
                 size="medium"
+                testID="modal-close-button"
               >
                 <Ionicons name="close" size={24} color={theme.colors.text.secondary} />
               </IconButton>
@@ -201,7 +206,7 @@ const ArtistsScreen = ({ navigation }: any) => {
               {/* 写真選択 */}
               <View style={styles.photoSection}>
                 <Text style={[typography.body2, styles.label]}>アーティスト写真 (任意)</Text>
-                <TouchableOpacity style={styles.photoButton} onPress={pickImage}>
+                <TouchableOpacity style={styles.photoButton} onPress={pickImage} testID="photo-picker-button">
                   {photo ? (
                     <Image source={{ uri: photo }} style={styles.photoPreview} />
                   ) : (
@@ -221,6 +226,7 @@ const ArtistsScreen = ({ navigation }: any) => {
                 onChangeText={setName}
                 placeholder="アーティスト名を入力"
                 autoFocus={true}
+                testID="artist-name-input"
               />
 
               <CustomTextInput
@@ -229,6 +235,7 @@ const ArtistsScreen = ({ navigation }: any) => {
                 onChangeText={setWebsite}
                 placeholder="https://..."
                 keyboardType="url"
+                testID="artist-website-input"
               />
 
               <CustomTextInput
@@ -236,6 +243,7 @@ const ArtistsScreen = ({ navigation }: any) => {
                 value={socialMedia}
                 onChangeText={setSocialMedia}
                 placeholder="@username"
+                testID="artist-social-input"
               />
             </View>
 

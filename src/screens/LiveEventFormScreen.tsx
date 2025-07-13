@@ -148,6 +148,7 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
               value={title}
               onChangeText={setTitle}
               placeholder="ライブツアー名など"
+              testID="title-input"
             />
           </View>
 
@@ -213,6 +214,7 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
               value={doorsOpen}
               onChangeText={setDoorsOpen}
               placeholder="例: 18:00"
+              testID="doors-open-input"
             />
           </View>
 
@@ -223,6 +225,7 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
               value={showStart}
               onChangeText={setShowStart}
               placeholder="例: 19:00"
+              testID="show-start-input"
             />
           </View>
         </View>
@@ -237,6 +240,7 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
               value={venueName}
               onChangeText={setVenueName}
               placeholder="例: 東京ドーム"
+              testID="venue-name-input"
             />
           </View>
 
@@ -249,6 +253,7 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
               placeholder="例: 東京都文京区後楽1-3-61"
               multiline
               numberOfLines={2}
+              testID="venue-address-input"
             />
           </View>
         </View>
@@ -283,6 +288,7 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
               onChangeText={setTicketPrice}
               placeholder="例: 8000"
               keyboardType="numeric"
+              testID="ticket-price-input"
             />
           </View>
 
@@ -293,6 +299,7 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
               value={seatNumber}
               onChangeText={setSeatNumber}
               placeholder="例: アリーナ A1 列 10 番"
+              testID="seat-number-input"
             />
           </View>
         </View>
@@ -308,6 +315,7 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
               placeholder="その他のメモ"
               multiline
               numberOfLines={4}
+              testID="memo-input"
             />
           </View>
         </View>

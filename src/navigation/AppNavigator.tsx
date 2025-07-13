@@ -85,6 +85,9 @@ const TabNavigator = () => {
   );
 };
 
+// Export TabNavigator for testing
+export { TabNavigator };
+
 const AppNavigator = () => {
   return (
     <SafeAreaProvider>

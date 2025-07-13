@@ -1,18 +1,24 @@
 const React = require('react');
 
-const createMockComponent = (name) => 
-  React.forwardRef((props, ref) => {
+const createMockComponent = (name) => {
+  const component = React.forwardRef((props, ref) => {
     return React.createElement('View', { ...props, ref, testID: props.testID || name });
   });
+  component.displayName = name;
+  return component;
+};
 
-const createMockTextComponent = (name) =>
-  React.forwardRef((props, ref) => {
+const createMockTextComponent = (name) => {
+  const component = React.forwardRef((props, ref) => {
     const children = props.children || props.title;
     return React.createElement('Text', { ...props, ref, testID: props.testID || name }, children);
   });
+  component.displayName = name;
+  return component;
+};
 
-const createMockTouchableComponent = (name) =>
-  React.forwardRef((props, ref) => {
+const createMockTouchableComponent = (name) => {
+  const component = React.forwardRef((props, ref) => {
     const children = props.children || props.title;
     return React.createElement('TouchableOpacity', { 
       ...props, 
@@ -21,6 +27,9 @@ const createMockTouchableComponent = (name) =>
       onPress: props.disabled ? undefined : props.onPress
     }, children);
   });
+  component.displayName = name;
+  return component;
+};
 
 const mockModal = React.forwardRef((props, ref) => {
   if (props.visible) {
@@ -28,6 +37,7 @@ const mockModal = React.forwardRef((props, ref) => {
   }
   return null;
 });
+mockModal.displayName = 'Modal';
 
 module.exports = {
   // Core components

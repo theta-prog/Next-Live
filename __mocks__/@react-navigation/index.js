@@ -1,13 +1,30 @@
+/* global jest */
+
 const React = require('react');
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockReset = jest.fn();
 
-const createMockComponent = (name) => 
-  React.forwardRef((props, ref) => {
+const createMockComponent = (name) => {
+  const component = React.forwardRef((props, ref) => {
     return React.createElement('View', { ...props, ref, testID: props.testID || name });
   });
+  component.displayName = name;
+  return component;
+};
+
+// Bottom Tabs
+const createBottomTabNavigator = () => ({
+  Navigator: createMockComponent('TabNavigator'),
+  Screen: createMockComponent('TabScreen'),
+});
+
+// Stack
+const createStackNavigator = () => ({
+  Navigator: createMockComponent('StackNavigator'),
+  Screen: createMockComponent('StackScreen'),
+});
 
 module.exports = {
   // Navigation
@@ -27,22 +44,20 @@ module.exports = {
   }),
   useFocusEffect: jest.fn(),
   
-  // Bottom Tabs
-  createBottomTabNavigator: () => ({
-    Navigator: createMockComponent('TabNavigator'),
-    Screen: createMockComponent('TabScreen'),
-  }),
-  
-  // Stack
-  createStackNavigator: () => ({
-    Navigator: createMockComponent('StackNavigator'),
-    Screen: createMockComponent('StackScreen'),
-  }),
-  
   // Common Actions
   CommonActions: {
     navigate: jest.fn(),
     reset: jest.fn(),
     goBack: jest.fn(),
   },
+};
+
+exports.createBottomTabNavigator = createBottomTabNavigator;
+exports.createStackNavigator = createStackNavigator;
+module.exports.createBottomTabNavigator = createBottomTabNavigator;
+module.exports.createStackNavigator = createStackNavigator;
+module.exports.default = {
+  ...module.exports,
+  createBottomTabNavigator,
+  createStackNavigator,
 };

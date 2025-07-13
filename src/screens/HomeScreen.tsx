@@ -73,7 +73,7 @@ const HomeScreen = ({ navigation }: any) => {
             <Text style={[typography.body1, styles.date]}>{formatDate(nextEvent.date)}</Text>
             <Text style={[typography.body2, styles.venue]}>{nextEvent.venue_name}</Text>
             
-            <View style={styles.countdown}>
+            <View style={styles.countdown} testID="countdown-view">
               <Text style={[typography.body1, styles.countdownLabel]}>あと</Text>
               <Text style={[typography.h1, styles.countdownDays]}>
                 {calculateDaysUntil(nextEvent.date)}
@@ -85,6 +85,7 @@ const HomeScreen = ({ navigation }: any) => {
           <TouchableOpacity
             style={styles.detailButton}
             onPress={() => navigation.navigate('LiveEventDetail', { eventId: nextEvent.id })}
+            testID="countdown-button"
           >
             <Text style={[typography.body1, styles.detailButtonText]}>詳細を見る</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.colors.text.secondary} />
@@ -107,6 +108,7 @@ const HomeScreen = ({ navigation }: any) => {
               variant="primary"
               size="medium"
               style={styles.actionButton}
+              testID="add-event-button"
             />
           </View>
           <View style={styles.actionButtonContainer}>
@@ -137,6 +139,7 @@ const HomeScreen = ({ navigation }: any) => {
               variant="secondary"
               size="medium"
               style={styles.actionButton}
+              testID="add-memory-button"
             />
           </View>
         </View>

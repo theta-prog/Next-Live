@@ -593,4 +593,116 @@ describe('Database', () => {
       );
     });
   });
+
+  // Error handling and edge case tests
+  describe('Error handling and edge cases', () => {
+    it('handles AsyncStorage errors in createArtist', async () => {
+      // Mock AsyncStorage to throw error on setItem
+      const mockSetItem = jest.spyOn(AsyncStorage, 'setItem').mockRejectedValueOnce(new Error('Storage error'));
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      const artist = await database.createArtist({
+        name: 'Test Artist',
+      });
+      
+      // Should still create artist but log error
+      expect(artist.name).toBe('Test Artist');
+      expect(consoleSpy).toHaveBeenCalled();
+
+      mockSetItem.mockRestore();
+      consoleSpy.mockRestore();
+    });
+
+    it('handles AsyncStorage getItem errors', async () => {
+      const mockGetItem = jest.spyOn(AsyncStorage, 'getItem').mockRejectedValueOnce(new Error('Storage error'));
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      const artists = await database.getAllArtists();
+      
+      // Should return empty array when error occurs
+      expect(artists).toEqual([]);
+      expect(consoleSpy).toHaveBeenCalled();
+
+      mockGetItem.mockRestore();
+      consoleSpy.mockRestore();
+    });
+
+    it('handles JSON parse errors', async () => {
+      const mockGetItem = jest.spyOn(AsyncStorage, 'getItem').mockResolvedValueOnce('invalid-json');
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      const artists = await database.getAllArtists();
+      
+      // Should return empty array when JSON parse fails
+      expect(artists).toEqual([]);
+      expect(consoleSpy).toHaveBeenCalled();
+
+      mockGetItem.mockRestore();
+      consoleSpy.mockRestore();
+    });
+
+    it('handles missing memory in getMemory', async () => {
+      const result = await database.getMemory(999999);
+      expect(result).toBeNull();
+    });
+
+    it('handles missing memory in getMemoryByLiveEventId', async () => {
+      const result = await database.getMemoryByLiveEventId(999999);
+      expect(result).toBeNull();
+    });
+
+    it('handles memory with missing event details', async () => {
+      // Simply test that getMemoriesWithEventDetails doesn't crash with non-existent events
+      const memories = await database.getMemoriesWithEventDetails();
+      expect(Array.isArray(memories)).toBe(true);
+    });
+
+    it('handles date filtering in upcoming events', async () => {
+      // Simply test that getUpcomingLiveEvents doesn't crash and returns an array
+      const upcomingEvents = await database.getUpcomingLiveEvents();
+      expect(Array.isArray(upcomingEvents)).toBe(true);
+    });
+
+    it('handles AsyncStorage errors during setItem operations', async () => {
+      // Mock AsyncStorage setItem to fail
+      const originalSetItem = AsyncStorage.setItem;
+      const mockSetItem = jest.fn().mockRejectedValue(new Error('Storage error'));
+      AsyncStorage.setItem = mockSetItem;
+      
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      // Call setStoredData indirectly through createArtist which uses setStoredData internally
+      try {
+        await database.createArtist({ name: 'Test Artist' });
+      } catch {
+        // Expected to fail silently due to error handling in setStoredData
+      }
+      
+      expect(consoleSpy).toHaveBeenCalled();
+
+      // Restore original method
+      AsyncStorage.setItem = originalSetItem;
+      consoleSpy.mockRestore();
+    });
+
+    it('tests getNextId fallback behavior', async () => {
+      // This test indirectly tests the getNextId fallback by causing storage errors during creation
+      const mockGetItem = jest.spyOn(AsyncStorage, 'getItem')
+        .mockRejectedValueOnce(new Error('Counter error'))
+        .mockResolvedValueOnce(null); // Allow artist storage to work
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      const artist = await database.createArtist({
+        name: 'Test Artist',
+      });
+
+      // Should have created artist with timestamp-based ID
+      expect(artist.id).toBeDefined();
+      expect(artist.id).toBeGreaterThan(0);
+      expect(consoleSpy).toHaveBeenCalledWith('Error getting stored data for artists:', expect.any(Error));
+
+      mockGetItem.mockRestore();
+      consoleSpy.mockRestore();
+    });
+  });
 });

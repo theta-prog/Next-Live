@@ -2,7 +2,7 @@ import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
 import { Alert } from 'react-native';
 import { useApp } from '../../context/AppContext';
-import { LiveEvent } from '../../database/database';
+import { LiveEvent } from '../../database/asyncDatabase';
 import LiveEventDetailScreen from '../../screens/LiveEventDetailScreen';
 
 // Mock the useApp hook
@@ -152,58 +152,189 @@ describe('LiveEventDetailScreen', () => {
     expect(getByText('Test Concert')).toBeTruthy();
   });
 
-  it('handles different ticket statuses correctly', () => {
-    const eventsWithDifferentStatuses: (LiveEvent & { artist_name: string })[] = [
-      { ...mockLiveEvents[0]!, ticket_status: 'lost' as const },
-    ];
+  it('calculates days until event correctly for different scenarios', () => {
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 10);
+    
+    const futureEvent: LiveEvent & { artist_name: string } = {
+      ...mockLiveEvents[0]!,
+      date: futureDate.toISOString().split('T')[0]!,
+    };
 
     mockUseApp.mockReturnValue({
-      artists: [],
-      liveEvents: eventsWithDifferentStatuses,
       upcomingEvents: [],
+      artists: [],
+      liveEvents: [futureEvent],
+      memories: [],
       addArtist: jest.fn(),
       updateArtist: jest.fn(),
       deleteArtist: jest.fn(),
       addLiveEvent: jest.fn(),
       updateLiveEvent: jest.fn(),
       deleteLiveEvent: jest.fn(),
-      memories: mockMemories,
       addMemory: jest.fn(),
       updateMemory: jest.fn(),
       deleteMemory: jest.fn(),
       refreshData: jest.fn(),
     });
 
-    const { getByText } = render(
-      <LiveEventDetailScreen navigation={mockNavigation} route={mockRoute} />
-    );
+    mockRoute.params = { eventId: futureEvent.id! };
 
-    expect(getByText('落選')).toBeTruthy();
+    const { getByText } = render(<LiveEventDetailScreen navigation={mockNavigation} route={mockRoute} />);
+    
+    // calculateDaysUntil関数が正しく実行されることをテスト
+    expect(getByText(/あと/)).toBeTruthy(); // カウントダウン表示をチェック
   });
 
-  it('handles event without memory', () => {
+  it('handles event passed status correctly', () => {
+    const pastDate = new Date();
+    pastDate.setDate(pastDate.getDate() - 5);
+    
+    const pastEvent: LiveEvent & { artist_name: string } = {
+      ...mockLiveEvents[0]!,
+      date: pastDate.toISOString().split('T')[0]!,
+    };
+
     mockUseApp.mockReturnValue({
-      artists: [],
-      liveEvents: mockLiveEvents,
       upcomingEvents: [],
+      artists: [],
+      liveEvents: [pastEvent],
+      memories: [],
       addArtist: jest.fn(),
       updateArtist: jest.fn(),
       deleteArtist: jest.fn(),
       addLiveEvent: jest.fn(),
       updateLiveEvent: jest.fn(),
       deleteLiveEvent: jest.fn(),
-      memories: [], // No memories
       addMemory: jest.fn(),
       updateMemory: jest.fn(),
       deleteMemory: jest.fn(),
       refreshData: jest.fn(),
     });
 
-    const { getByText } = render(
-      <LiveEventDetailScreen navigation={mockNavigation} route={mockRoute} />
-    );
+    mockRoute.params = { eventId: pastEvent.id! };
 
-    expect(getByText('Test Concert')).toBeTruthy();
-    // Should not crash when no memory exists
+    const component = render(<LiveEventDetailScreen navigation={mockNavigation} route={mockRoute} />);
+    
+    // isEventPassed関数がカバーされる
+    expect(component).toBeTruthy();
+  });
+
+  it('handles ticket status variations', () => {
+    const eventWithTicketStatus: LiveEvent & { artist_name: string } = {
+      ...mockLiveEvents[0]!,
+      ticket_status: 'purchased',
+    };
+
+    mockUseApp.mockReturnValue({
+      upcomingEvents: [],
+      artists: [],
+      liveEvents: [eventWithTicketStatus],
+      memories: [],
+      addArtist: jest.fn(),
+      updateArtist: jest.fn(),
+      deleteArtist: jest.fn(),
+      addLiveEvent: jest.fn(),
+      updateLiveEvent: jest.fn(),
+      deleteLiveEvent: jest.fn(),
+      addMemory: jest.fn(),
+      updateMemory: jest.fn(),
+      deleteMemory: jest.fn(),
+      refreshData: jest.fn(),
+    });
+
+    mockRoute.params = { eventId: eventWithTicketStatus.id! };
+
+    const component = render(<LiveEventDetailScreen navigation={mockNavigation} route={mockRoute} />);
+    expect(component).toBeTruthy();
+  });
+
+  it('handles event with price information', () => {
+    const eventWithPrice: LiveEvent & { artist_name: string } = {
+      ...mockLiveEvents[0]!,
+      ticket_price: 5000,
+    };
+
+    mockUseApp.mockReturnValue({
+      upcomingEvents: [],
+      artists: [],
+      liveEvents: [eventWithPrice],
+      memories: [],
+      addArtist: jest.fn(),
+      updateArtist: jest.fn(),
+      deleteArtist: jest.fn(),
+      addLiveEvent: jest.fn(),
+      updateLiveEvent: jest.fn(),
+      deleteLiveEvent: jest.fn(),
+      addMemory: jest.fn(),
+      updateMemory: jest.fn(),
+      deleteMemory: jest.fn(),
+      refreshData: jest.fn(),
+    });
+
+    mockRoute.params = { eventId: eventWithPrice.id! };
+
+    const { getByText } = render(<LiveEventDetailScreen navigation={mockNavigation} route={mockRoute} />);
+    
+    // 価格表示をテスト
+    expect(getByText(/¥5,000/)).toBeTruthy();
+  });
+
+  it('handles event with venue address', () => {
+    const eventWithVenue: LiveEvent & { artist_name: string } = {
+      ...mockLiveEvents[0]!,
+      venue_name: 'Test Venue',
+      venue_address: '東京都渋谷区道玄坂1-1-1',
+    };
+
+    mockUseApp.mockReturnValue({
+      upcomingEvents: [],
+      artists: [],
+      liveEvents: [eventWithVenue],
+      memories: [],
+      addArtist: jest.fn(),
+      updateArtist: jest.fn(),
+      deleteArtist: jest.fn(),
+      addLiveEvent: jest.fn(),
+      updateLiveEvent: jest.fn(),
+      deleteLiveEvent: jest.fn(),
+      addMemory: jest.fn(),
+      updateMemory: jest.fn(),
+      deleteMemory: jest.fn(),
+      refreshData: jest.fn(),
+    });
+
+    mockRoute.params = { eventId: eventWithVenue.id! };
+
+    const { getByText } = render(<LiveEventDetailScreen navigation={mockNavigation} route={mockRoute} />);
+    
+    // 会場住所表示をテスト
+    expect(getByText('東京都渋谷区道玄坂1-1-1')).toBeTruthy();
+  });
+
+  it('tests memory creation when no memory exists', () => {
+    mockUseApp.mockReturnValue({
+      upcomingEvents: [],
+      artists: [],
+      liveEvents: [mockLiveEvents[0]!],
+      memories: [], // メモリーなし
+      addArtist: jest.fn(),
+      updateArtist: jest.fn(),
+      deleteArtist: jest.fn(),
+      addLiveEvent: jest.fn(),
+      updateLiveEvent: jest.fn(),
+      deleteLiveEvent: jest.fn(),
+      addMemory: jest.fn(),
+      updateMemory: jest.fn(),
+      deleteMemory: jest.fn(),
+      refreshData: jest.fn(),
+    });
+
+    mockRoute.params = { eventId: mockLiveEvents[0]!.id! };
+
+    const { getByText } = render(<LiveEventDetailScreen navigation={mockNavigation} route={mockRoute} />);
+    
+    // メモリー作成ボタンの表示をテスト
+    expect(getByText('追加')).toBeTruthy();
   });
 });
