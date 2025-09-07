@@ -52,7 +52,7 @@ describe('HomeScreen', () => {
       <HomeScreen navigation={mockNavigation} />
     );
 
-    expect(getByText('Next Live')).toBeTruthy();
+    expect(getByText('次のライブ')).toBeTruthy();
   });
 
   it('displays upcoming events', () => {
@@ -96,7 +96,7 @@ describe('HomeScreen', () => {
     );
 
     // Just check that the screen renders without errors
-    expect(getByText('Next Live')).toBeTruthy();
+    expect(getByText('次のライブ')).toBeTruthy();
   });
 
   it('calculates and displays countdown correctly', () => {
@@ -164,7 +164,7 @@ describe('HomeScreen', () => {
       <HomeScreen navigation={mockNavigation} />
     );
 
-    expect(getByText('Next Live')).toBeTruthy();
+    expect(getByText('次のライブ')).toBeTruthy();
     expect(getByText('お気に入りのアーティストを管理')).toBeTruthy();
   });
 
@@ -488,13 +488,13 @@ describe('HomeScreen', () => {
   it('tests SafeAreaView edges configuration', () => {
     // SafeAreaViewのedges設定をテスト
     const { getByText } = render(<HomeScreen navigation={mockNavigation} />);
-    expect(getByText('Next Live')).toBeTruthy();
+    expect(getByText('次のライブ')).toBeTruthy();
   });
 
   it('tests ScrollView showsVerticalScrollIndicator configuration', () => {
     // ScrollViewの設定をテスト
     const { getByText } = render(<HomeScreen navigation={mockNavigation} />);
-    expect(getByText('Next Live')).toBeTruthy();
+    expect(getByText('次のライブ')).toBeTruthy();
   });
 
   it('handles event detail navigation through chevron button', () => {
@@ -676,5 +676,256 @@ describe('HomeScreen', () => {
     // primary, outline, secondaryバリアントが正しく動作することを確認
     expect(getByTestId('add-event-button')).toBeTruthy();
     expect(getByTestId('add-memory-button')).toBeTruthy();
+  });
+});
+// Append-only tests
+
+describe('HomeScreen - additional coverage', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('navigates via quick action buttons', () => {
+    mockUseApp.mockReturnValue({
+      upcomingEvents: [],
+      artists: [],
+      liveEvents: [],
+      memories: [],
+      addArtist: jest.fn(),
+      updateArtist: jest.fn(),
+      deleteArtist: jest.fn(),
+      addLiveEvent: jest.fn(),
+      updateLiveEvent: jest.fn(),
+      deleteLiveEvent: jest.fn(),
+      addMemory: jest.fn(),
+      updateMemory: jest.fn(),
+      deleteMemory: jest.fn(),
+      refreshData: jest.fn(),
+    });
+
+    const { getByTestId, getByText } = render(<HomeScreen navigation={mockNavigation} />);
+
+    fireEvent.press(getByTestId('add-event-button'));
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('LiveEventForm');
+
+    fireEvent.press(getByText('📅 予定'));
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('Calendar');
+
+    fireEvent.press(getByText('👤 推し'));
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('Artists');
+
+    fireEvent.press(getByTestId('add-memory-button'));
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('Memories');
+  });
+
+  it('renders header title and subtitle', () => {
+    mockUseApp.mockReturnValue({
+      upcomingEvents: [],
+      artists: [],
+      liveEvents: [],
+      memories: [],
+      addArtist: jest.fn(),
+      updateArtist: jest.fn(),
+      deleteArtist: jest.fn(),
+      addLiveEvent: jest.fn(),
+      updateLiveEvent: jest.fn(),
+      deleteLiveEvent: jest.fn(),
+      addMemory: jest.fn(),
+      updateMemory: jest.fn(),
+      deleteMemory: jest.fn(),
+      refreshData: jest.fn(),
+    });
+
+    const { getByText } = render(<HomeScreen navigation={mockNavigation} />);
+    expect(getByText('MEMOLive')).toBeTruthy();
+    expect(getByText('お気に入りのアーティストを管理')).toBeTruthy();
+  });
+
+  it('shows countdown view and 0 days when event is today', () => {
+    const realDate = Date as unknown as jest.Mocked<typeof Date>;
+    const mockToday = new Date('2025-01-10T09:00:00');
+
+    // Mock Date
+    const RealDateCtor = Date;
+    // @ts-expect-error override Date for test
+    global.Date = function Date(dateInput?: any) {
+      return dateInput ? new RealDateCtor(dateInput) : mockToday;
+    } as any;
+    // @ts-expect-error assign now
+    global.Date.now = () => mockToday.getTime();
+
+    const event = {
+      id: 1,
+      title: 'Today Concert',
+      date: '2025-01-10',
+      venue_name: 'Today Venue',
+      artist_id: 1,
+      artist_name: 'Today Artist',
+      created_at: '2025-01-01T00:00:00.000Z',
+    };
+
+    mockUseApp.mockReturnValue({
+      upcomingEvents: [event],
+      artists: [],
+      liveEvents: [],
+      memories: [],
+      addArtist: jest.fn(),
+      updateArtist: jest.fn(),
+      deleteArtist: jest.fn(),
+      addLiveEvent: jest.fn(),
+      updateLiveEvent: jest.fn(),
+      deleteLiveEvent: jest.fn(),
+      addMemory: jest.fn(),
+      updateMemory: jest.fn(),
+      deleteMemory: jest.fn(),
+      refreshData: jest.fn(),
+    });
+
+    const { getByTestId } = render(<HomeScreen navigation={mockNavigation} />);
+    expect(getByTestId('countdown-view')).toBeTruthy();
+
+    // Restore Date
+    global.Date = RealDateCtor as any;
+  });
+
+  it('shows negative countdown for a past event', () => {
+    const RealDateCtor = Date;
+    const mockToday = new Date('2025-01-10T09:00:00');
+    // @ts-expect-error override Date for test
+    global.Date = function Date(dateInput?: any) {
+      return dateInput ? new RealDateCtor(dateInput) : mockToday;
+    } as any;
+    // @ts-expect-error assign now
+    global.Date.now = () => mockToday.getTime();
+
+    const pastEvent = {
+      id: 2,
+      title: 'Past Event',
+      date: '2025-01-09',
+      venue_name: 'Past Venue',
+      artist_id: 2,
+      artist_name: 'Past Artist',
+      created_at: '2025-01-01T00:00:00.000Z',
+    };
+
+    mockUseApp.mockReturnValue({
+      upcomingEvents: [pastEvent],
+      artists: [],
+      liveEvents: [],
+      memories: [],
+      addArtist: jest.fn(),
+      updateArtist: jest.fn(),
+      deleteArtist: jest.fn(),
+      addLiveEvent: jest.fn(),
+      updateLiveEvent: jest.fn(),
+      deleteLiveEvent: jest.fn(),
+      addMemory: jest.fn(),
+      updateMemory: jest.fn(),
+      deleteMemory: jest.fn(),
+      refreshData: jest.fn(),
+    });
+
+    const { getByText } = render(<HomeScreen navigation={mockNavigation} />);
+    expect(getByText('-1')).toBeTruthy();
+
+    global.Date = RealDateCtor as any;
+  });
+
+  it('does not render empty state when nextEvent exists', () => {
+    const event = {
+      id: 3,
+      title: 'With Event',
+      date: '2030-12-25',
+      venue_name: 'Big Venue',
+      artist_id: 1,
+      artist_name: 'Famous Artist',
+      created_at: '2024-01-01T00:00:00.000Z',
+    };
+
+    mockUseApp.mockReturnValue({
+      upcomingEvents: [event],
+      artists: [],
+      liveEvents: [],
+      memories: [],
+      addArtist: jest.fn(),
+      updateArtist: jest.fn(),
+      deleteArtist: jest.fn(),
+      addLiveEvent: jest.fn(),
+      updateLiveEvent: jest.fn(),
+      deleteLiveEvent: jest.fn(),
+      addMemory: jest.fn(),
+      updateMemory: jest.fn(),
+      deleteMemory: jest.fn(),
+      refreshData: jest.fn(),
+    });
+
+    const { queryByText } = render(<HomeScreen navigation={mockNavigation} />);
+    expect(queryByText('予定されているライブがありません')).toBeNull();
+  });
+
+  it('renders up to 3 upcoming events and hides the 5th', () => {
+    const events = [
+      { id: 1, title: 'First', date: '2030-01-01', venue_name: 'V1', artist_id: 1, artist_name: 'A1', created_at: '2024-01-01T00:00:00.000Z' },
+      { id: 2, title: 'Second', date: '2030-01-02', venue_name: 'V2', artist_id: 2, artist_name: 'A2', created_at: '2024-01-01T00:00:00.000Z' },
+      { id: 3, title: 'Third', date: '2030-01-03', venue_name: 'V3', artist_id: 3, artist_name: 'A3', created_at: '2024-01-01T00:00:00.000Z' },
+      { id: 4, title: 'Fourth', date: '2030-01-04', venue_name: 'V4', artist_id: 4, artist_name: 'A4', created_at: '2024-01-01T00:00:00.000Z' },
+      { id: 5, title: 'Fifth', date: '2030-01-05', venue_name: 'V5', artist_id: 5, artist_name: 'A5', created_at: '2024-01-01T00:00:00.000Z' },
+    ] as any[];
+
+    mockUseApp.mockReturnValue({
+      upcomingEvents: events,
+      artists: [],
+      liveEvents: [],
+      memories: [],
+      addArtist: jest.fn(),
+      updateArtist: jest.fn(),
+      deleteArtist: jest.fn(),
+      addLiveEvent: jest.fn(),
+      updateLiveEvent: jest.fn(),
+      deleteLiveEvent: jest.fn(),
+      addMemory: jest.fn(),
+      updateMemory: jest.fn(),
+      deleteMemory: jest.fn(),
+      refreshData: jest.fn(),
+    });
+
+    const { getByText, queryByText } = render(<HomeScreen navigation={mockNavigation} />);
+
+    expect(getByText('今後の予定')).toBeTruthy();
+    expect(getByText('Second')).toBeTruthy();
+    expect(getByText('Third')).toBeTruthy();
+    expect(getByText('Fourth')).toBeTruthy();
+    expect(queryByText('Fifth')).toBeNull(); // not rendered because slice(1,4)
+  });
+
+  it('navigates to event detail when tapping an upcoming list item', () => {
+    const events = [
+      { id: 1, title: 'First', date: '2030-01-01', venue_name: 'V1', artist_id: 1, artist_name: 'A1', created_at: '2024-01-01T00:00:00.000Z' },
+      { id: 2, title: 'Second', date: '2030-01-02', venue_name: 'V2', artist_id: 2, artist_name: 'A2', created_at: '2024-01-01T00:00:00.000Z' },
+      { id: 3, title: 'Third', date: '2030-01-03', venue_name: 'V3', artist_id: 3, artist_name: 'A3', created_at: '2024-01-01T00:00:00.000Z' },
+    ] as any[];
+
+    mockUseApp.mockReturnValue({
+      upcomingEvents: events,
+      artists: [],
+      liveEvents: [],
+      memories: [],
+      addArtist: jest.fn(),
+      updateArtist: jest.fn(),
+      deleteArtist: jest.fn(),
+      addLiveEvent: jest.fn(),
+      updateLiveEvent: jest.fn(),
+      deleteLiveEvent: jest.fn(),
+      addMemory: jest.fn(),
+      updateMemory: jest.fn(),
+      deleteMemory: jest.fn(),
+      refreshData: jest.fn(),
+    });
+
+    const { getByText } = render(<HomeScreen navigation={mockNavigation} />);
+
+    // Tap on the second event text (inside TouchableOpacity)
+    fireEvent.press(getByText('Second'));
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('LiveEventDetail', { eventId: 2 });
   });
 });

@@ -19,25 +19,28 @@ import MemoryFormScreen from '../screens/MemoryFormScreen';
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
+export const getTabIconName = (
+  routeName: string,
+  focused: boolean
+): keyof typeof Ionicons.glyphMap => {
+  if (routeName === 'Home') {
+    return (focused ? 'home' : 'home-outline') as keyof typeof Ionicons.glyphMap;
+  } else if (routeName === 'Calendar') {
+    return (focused ? 'calendar' : 'calendar-outline') as keyof typeof Ionicons.glyphMap;
+  } else if (routeName === 'Memories') {
+    return (focused ? 'heart' : 'heart-outline') as keyof typeof Ionicons.glyphMap;
+  } else if (routeName === 'Artists') {
+    return (focused ? 'people' : 'people-outline') as keyof typeof Ionicons.glyphMap;
+  }
+  return 'help-outline';
+};
+
 const TabNavigator = () => {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName: keyof typeof Ionicons.glyphMap;
-
-          if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Calendar') {
-            iconName = focused ? 'calendar' : 'calendar-outline';
-          } else if (route.name === 'Memories') {
-            iconName = focused ? 'heart' : 'heart-outline';
-          } else if (route.name === 'Artists') {
-            iconName = focused ? 'people' : 'people-outline';
-          } else {
-            iconName = 'help-outline';
-          }
-
+          const iconName = getTabIconName(route.name, focused);
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: '#007AFF',

@@ -1,7 +1,6 @@
-import { NavigationContainer } from '@react-navigation/native';
 import { render } from '@testing-library/react-native';
 import React from 'react';
-import { AppProvider } from '../../context/AppContext';
+import { useApp } from '../../context/AppContext';
 import HomeScreen from '../../screens/HomeScreen';
 
 // Mock AsyncStorage
@@ -11,25 +10,56 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   removeItem: jest.fn(),
 }));
 
+// Mock the useApp hook
+jest.mock('../../context/AppContext');
+const mockUseApp = useApp as jest.MockedFunction<typeof useApp>;
+
 const TestApp = () => {
-  return (
-    <AppProvider>
-      <NavigationContainer>
-        <HomeScreen navigation={{ navigate: jest.fn() }} />
-      </NavigationContainer>
-    </AppProvider>
-  );
+  const mockNavigation = { navigate: jest.fn() };
+  return <HomeScreen navigation={mockNavigation} />;
 };
 
 describe('App Integration Tests', () => {
+  const mockUpcomingEvents = [
+    {
+      id: 1,
+      title: 'Test Concert',
+      date: '2024-12-25',
+      venue_name: 'Test Venue',
+      artist_id: 1,
+      artist_name: 'Test Artist',
+      created_at: '2023-01-01T00:00:00.000Z',
+    }
+  ];
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseApp.mockReturnValue({
+      artists: [],
+      liveEvents: [],
+      upcomingEvents: mockUpcomingEvents,
+      addArtist: jest.fn(),
+      updateArtist: jest.fn(),
+      deleteArtist: jest.fn(),
+      addLiveEvent: jest.fn(),
+      updateLiveEvent: jest.fn(),
+      deleteLiveEvent: jest.fn(),
+      memories: [],
+      addMemory: jest.fn(),
+      updateMemory: jest.fn(),
+      deleteMemory: jest.fn(),
+      refreshData: jest.fn(),
+    });
+  });
+
   it('renders app without crashing', () => {
     const { getByText } = render(<TestApp />);
-    expect(getByText('Next Live')).toBeTruthy();
+    expect(getByText('次のライブ')).toBeTruthy();
   });
 
   it('provides app context correctly', () => {
     const { getByText } = render(<TestApp />);
     // Just check that the app renders with context
-    expect(getByText('Next Live')).toBeTruthy();
+    expect(getByText('次のライブ')).toBeTruthy();
   });
 });

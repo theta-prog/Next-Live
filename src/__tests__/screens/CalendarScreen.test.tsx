@@ -217,4 +217,79 @@ describe('CalendarScreen', () => {
 
     expect(getByText('カレンダー')).toBeTruthy();
   });
+
+  it('handles event navigation correctly', () => {
+    const mockEvent = {
+      id: 1,
+      title: 'Nav Test Concert',
+      date: '2024-12-25',
+      venue_name: 'Nav Test Venue',
+      artist_id: 1,
+      artist_name: 'Nav Test Artist',
+      created_at: '2024-01-01T00:00:00.000Z',
+    };
+
+    mockUseApp.mockReturnValue({
+      upcomingEvents: [mockEvent],
+      artists: [],
+      liveEvents: [mockEvent],
+      memories: [],
+      addArtist: jest.fn(),
+      updateArtist: jest.fn(),
+      deleteArtist: jest.fn(),
+      addLiveEvent: jest.fn(),
+      updateLiveEvent: jest.fn(),
+      deleteLiveEvent: jest.fn(),
+      addMemory: jest.fn(),
+      updateMemory: jest.fn(),
+      deleteMemory: jest.fn(),
+      refreshData: jest.fn(),
+    });
+
+    const { getByText } = render(<CalendarScreen navigation={mockNavigation} />);
+    expect(getByText('カレンダー')).toBeTruthy();
+  });
+
+  it('displays multiple events correctly', () => {
+    const mockEvents = [
+      {
+        id: 1,
+        title: 'Event 1',
+        date: '2024-12-25',
+        venue_name: 'Venue 1',
+        artist_id: 1,
+        artist_name: 'Artist 1',
+        created_at: '2024-01-01T00:00:00.000Z',
+      },
+      {
+        id: 2,
+        title: 'Event 2',
+        date: '2024-12-26',
+        venue_name: 'Venue 2',
+        artist_id: 2,
+        artist_name: 'Artist 2',
+        created_at: '2024-01-01T00:00:00.000Z',
+      }
+    ];
+
+    mockUseApp.mockReturnValue({
+      upcomingEvents: mockEvents,
+      artists: [],
+      liveEvents: mockEvents,
+      memories: [],
+      addArtist: jest.fn(),
+      updateArtist: jest.fn(),
+      deleteArtist: jest.fn(),
+      addLiveEvent: jest.fn(),
+      updateLiveEvent: jest.fn(),
+      deleteLiveEvent: jest.fn(),
+      addMemory: jest.fn(),
+      updateMemory: jest.fn(),
+      deleteMemory: jest.fn(),
+      refreshData: jest.fn(),
+    });
+
+    const { getByText } = render(<CalendarScreen navigation={mockNavigation} />);
+    expect(getByText('カレンダー')).toBeTruthy();
+  });
 });

@@ -1,11 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button, Card, IconButton, SectionHeader } from '../components/UI';
@@ -40,7 +40,7 @@ const HomeScreen = ({ navigation }: any) => {
       <View style={styles.container}>
         {/* 固定ヘッダー */}
         <View style={styles.header}>
-          <Text style={[typography.h1, styles.headerTitle]}>Next Live</Text>
+          <Text style={[typography.h1, styles.headerTitle]}>MEMOLive</Text>
           <Text style={[typography.body2, styles.headerSubtitle]}>お気に入りのアーティストを管理</Text>
         </View>
 
