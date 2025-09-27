@@ -10,6 +10,9 @@
     "allowUnreachableCode": false,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
+    "jsx": "react-native",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "paths": {
       "@/*": [
         "./*"

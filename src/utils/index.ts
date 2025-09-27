@@ -29,11 +29,32 @@ export const formatTime = (timeString: string): string => {
 };
 
 export const calculateDaysUntil = (dateString: string): number => {
-  const eventDate = new Date(dateString);
+  if (!dateString) return 0;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateString);
   const today = new Date();
-  const diffTime = eventDate.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays;
+  const DAY_MS = 24 * 60 * 60 * 1000;
+
+  if (m) {
+    // UTC 0:00 同士で比較（toISOString().split('T')[0] との相性が良い）
+    const y = Number(m[1]);
+    const mo = Number(m[2]) - 1;
+    const d = Number(m[3]);
+    if ([y, mo, d].some((n) => Number.isNaN(n))) return 0;
+    const eventUTC = Date.UTC(y, mo, d);
+    const todayUTC = Date.UTC(
+      today.getUTCFullYear(),
+      today.getUTCMonth(),
+      today.getUTCDate()
+    );
+    return Math.round((eventUTC - todayUTC) / DAY_MS);
+  }
+
+  // フォールバック: ローカル 0:00 同士で比較
+  const event = new Date(dateString);
+  if (Number.isNaN(event.getTime())) return 0;
+  const eventLocal = new Date(event.getFullYear(), event.getMonth(), event.getDate()).getTime();
+  const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+  return Math.round((eventLocal - todayLocal) / DAY_MS);
 };
 
 export const isEventPast = (dateString: string): boolean => {
@@ -43,9 +64,41 @@ export const isEventPast = (dateString: string): boolean => {
 };
 
 export const isEventToday = (dateString: string): boolean => {
-  const eventDate = new Date(dateString);
+  if (!dateString) return false;
+  // 'YYYY-MM-DD' 形式は UTC として解釈されローカル日付とズレることがあるため、
+  // ローカルの年月日で直接比較する
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateString);
   const today = new Date();
-  return eventDate.toDateString() === today.toDateString();
+
+  if (m) {
+    const [, ys, ms, ds] = m;
+    const y = Number(ys);
+    const mo = Number(ms);
+    const d = Number(ds);
+    if ([y, mo, d].some((n) => Number.isNaN(n))) return false;
+    // ローカル日付での比較
+    const isLocalToday = (
+      y === today.getFullYear() &&
+      mo === today.getMonth() + 1 &&
+      d === today.getDate()
+    );
+    // UTC 基準の today との比較（toISOString().split('T')[0] の期待に合わせる）
+    const isUtcToday = (
+      y === today.getUTCFullYear() &&
+      mo === today.getUTCMonth() + 1 &&
+      d === today.getUTCDate()
+    );
+    return isLocalToday || isUtcToday;
+  }
+
+  // フォールバック: 非標準文字列は Date パースし、ローカルの年月日で比較
+  const eventDate = new Date(dateString);
+  if (Number.isNaN(eventDate.getTime())) return false;
+  return (
+    eventDate.getFullYear() === today.getFullYear() &&
+    eventDate.getMonth() === today.getMonth() &&
+    eventDate.getDate() === today.getDate()
+  );
 };
 
 export const isEventThisMonth = (dateString: string): boolean => {

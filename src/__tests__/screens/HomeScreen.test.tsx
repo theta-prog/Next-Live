@@ -742,17 +742,22 @@ describe('HomeScreen - additional coverage', () => {
   });
 
   it('shows countdown view and 0 days when event is today', () => {
-    const realDate = Date as unknown as jest.Mocked<typeof Date>;
     const mockToday = new Date('2025-01-10T09:00:00');
-
-    // Mock Date
-    const RealDateCtor = Date;
-    // @ts-expect-error override Date for test
-    global.Date = function Date(dateInput?: any) {
-      return dateInput ? new RealDateCtor(dateInput) : mockToday;
-    } as any;
-    // @ts-expect-error assign now
-    global.Date.now = () => mockToday.getTime();
+    const RealDateCtor = global.Date;
+    // 型安全に Date をモック（コンストラクタ呼び出しと Date.now を上書き）
+    const MockDate: typeof Date = class extends Date {
+      constructor(dateInput?: any) {
+        if (dateInput !== undefined) {
+          super(dateInput);
+          return;
+        }
+        super(mockToday.getTime());
+      }
+      static override now() {
+        return mockToday.getTime();
+      }
+    } as unknown as typeof Date;
+    global.Date = MockDate as unknown as DateConstructor;
 
     const event = {
       id: 1,
@@ -785,18 +790,25 @@ describe('HomeScreen - additional coverage', () => {
     expect(getByTestId('countdown-view')).toBeTruthy();
 
     // Restore Date
-    global.Date = RealDateCtor as any;
+  global.Date = RealDateCtor as unknown as DateConstructor;
   });
 
   it('shows negative countdown for a past event', () => {
-    const RealDateCtor = Date;
-    const mockToday = new Date('2025-01-10T09:00:00');
-    // @ts-expect-error override Date for test
-    global.Date = function Date(dateInput?: any) {
-      return dateInput ? new RealDateCtor(dateInput) : mockToday;
-    } as any;
-    // @ts-expect-error assign now
-    global.Date.now = () => mockToday.getTime();
+    const RealDateCtor2 = global.Date;
+    const mockToday2 = new Date('2025-01-10T09:00:00');
+    const MockDate2: typeof Date = class extends Date {
+      constructor(dateInput?: any) {
+        if (dateInput !== undefined) {
+          super(dateInput);
+          return;
+        }
+        super(mockToday2.getTime());
+      }
+      static override now() {
+        return mockToday2.getTime();
+      }
+    } as unknown as typeof Date;
+    global.Date = MockDate2 as unknown as DateConstructor;
 
     const pastEvent = {
       id: 2,
@@ -828,7 +840,7 @@ describe('HomeScreen - additional coverage', () => {
     const { getByText } = render(<HomeScreen navigation={mockNavigation} />);
     expect(getByText('-1')).toBeTruthy();
 
-    global.Date = RealDateCtor as any;
+  global.Date = RealDateCtor2 as unknown as DateConstructor;
   });
 
   it('does not render empty state when nextEvent exists', () => {

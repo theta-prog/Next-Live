@@ -1,21 +1,21 @@
 import {
-    calculateDaysUntil,
-    capitalizeFirst,
-    formatDate,
-    formatDateShort,
-    formatPrice,
-    formatTime,
-    groupBy,
-    isEventPast,
-    isEventThisMonth,
-    isEventToday,
-    isValidDate,
-    isValidEmail,
-    isValidUrl,
-    parsePhotoArray,
-    sortBy,
-    stringifyPhotoArray,
-    truncateText,
+  calculateDaysUntil,
+  capitalizeFirst,
+  formatDate,
+  formatDateShort,
+  formatPrice,
+  formatTime,
+  groupBy,
+  isEventPast,
+  isEventThisMonth,
+  isEventToday,
+  isValidDate,
+  isValidEmail,
+  isValidUrl,
+  parsePhotoArray,
+  sortBy,
+  stringifyPhotoArray,
+  truncateText,
 } from '../../utils/index';
 
 describe('Utility Functions', () => {
@@ -127,6 +127,50 @@ describe('Utility Functions', () => {
 
     it('returns false for dates in other months', () => {
       expect(isEventThisMonth('2020-01-01')).toBe(false);
+    });
+  });
+
+  describe('date utilities (fixed today: 2025-01-10)', () => {
+    const fixed = new Date('2025-01-10T09:00:00.000Z');
+    let RealDate: typeof Date;
+
+    beforeAll(() => {
+      RealDate = global.Date;
+      const FixedDate: typeof Date = class extends Date {
+        constructor(dateInput?: any) {
+          if (dateInput !== undefined) {
+            super(dateInput as any);
+            return;
+          }
+          super(fixed.getTime());
+        }
+        static override now() {
+          return fixed.getTime();
+        }
+      } as unknown as typeof Date;
+  global.Date = FixedDate as unknown as DateConstructor;
+    });
+
+    afterAll(() => {
+  global.Date = RealDate as unknown as DateConstructor;
+    });
+
+    it('isEventToday returns true for YYYY-MM-DD (today)', () => {
+      expect(isEventToday('2025-01-10')).toBe(true);
+    });
+
+    it('isEventToday returns false for non-today', () => {
+      expect(isEventToday('2025-01-09')).toBe(false);
+      expect(isEventToday('2025-01-11')).toBe(false);
+    });
+
+    it('calculateDaysUntil returns 0 for today', () => {
+      expect(calculateDaysUntil('2025-01-10')).toBe(0);
+    });
+
+    it('calculateDaysUntil handles yesterday/tomorrow as -1/+1', () => {
+      expect(calculateDaysUntil('2025-01-09')).toBe(-1);
+      expect(calculateDaysUntil('2025-01-11')).toBe(1);
     });
   });
 

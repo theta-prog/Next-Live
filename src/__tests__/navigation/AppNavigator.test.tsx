@@ -135,13 +135,11 @@ describe('AppNavigator', () => {
   });
 
   it('renders AppNavigator without crashing', () => {
-    const { getByTestId } = render(<AppNavigator />);
     expect(() => render(<AppNavigator />)).not.toThrow();
   });
 
   it('renders all tab screens', () => {
     
-    const { getByTestId } = render(<AppNavigator />);
     
     // Stack Navigator should be present
     expect(() => render(<AppNavigator />)).not.toThrow();
@@ -152,7 +150,6 @@ describe('AppNavigator', () => {
 
   it('configures all stack screens correctly', () => {
     
-    const { getByTestId } = render(<AppNavigator />);
     
     // All stack screens should be present
     expect(() => render(<AppNavigator />)).not.toThrow();
@@ -171,9 +168,7 @@ describe('AppNavigator', () => {
   });
 
   it('renders SafeAreaProvider wrapper', () => {
-    
-    const { getByTestId } = render(<AppNavigator />);
-    
+        
     // SafeAreaProvider should wrap the navigation structure
     expect(() => render(<AppNavigator />)).not.toThrow();
   });
