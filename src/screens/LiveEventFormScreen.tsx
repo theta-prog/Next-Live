@@ -3,14 +3,14 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useApp } from '../context/AppContext';
@@ -34,6 +34,7 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
   const [seatNumber, setSeatNumber] = useState('');
   const [memo, setMemo] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
+  // インライン新規アーティストフォームはUX要件変更により削除
 
   useEffect(() => {
     if (editingEvent) {
@@ -154,17 +155,18 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>アーティスト *</Text>
-            {artists.length === 0 ? (
+            {artists.length === 0 && (
               <View style={styles.noArtistContainer}>
                 <Text style={styles.noArtistText}>アーティストが登録されていません</Text>
                 <TouchableOpacity
                   style={styles.addArtistButton}
-                  onPress={() => navigation.navigate('Artists')}
+                  onPress={() => navigation.navigate('Main', { screen: 'Artists', params: { openAdd: true } })}
                 >
-                  <Text style={styles.addArtistButtonText}>アーティストを追加</Text>
+                  <Text style={styles.addArtistButtonText}>登録画面を開く</Text>
                 </TouchableOpacity>
               </View>
-            ) : (
+            )}
+            {artists.length > 0 && (
               <View style={styles.pickerContainer}>
                 <Picker
                   selectedValue={artistId}
@@ -180,6 +182,10 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
                     />
                   ))}
                 </Picker>
+                <TouchableOpacity style={styles.inlineAddButton} onPress={() => navigation.navigate('Main', { screen: 'Artists', params: { openAdd: true } })}>
+                  <Ionicons name="add-circle-outline" size={20} color={theme.colors.accent} />
+                  <Text style={styles.inlineAddButtonText}>追加</Text>
+                </TouchableOpacity>
               </View>
             )}
           </View>
@@ -398,6 +404,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
     borderRadius: theme.borderRadius.md,
     backgroundColor: theme.colors.background,
+    position: 'relative',
   },
   picker: {
     height: 50,
@@ -435,6 +442,71 @@ const styles = StyleSheet.create({
   addArtistButtonText: {
     ...typography.button,
     color: theme.colors.text.inverse,
+  },
+  inlineAddButton: {
+    position: 'absolute',
+    right: 8,
+    top: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    ...theme.shadows.small,
+  },
+  inlineAddButtonText: {
+    marginLeft: 4,
+    fontSize: 12,
+    color: theme.colors.accent,
+    fontWeight: '600',
+  },
+  inlineArtistForm: {
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.md,
+    backgroundColor: theme.colors.background,
+    padding: 12,
+  },
+  inlineArtistLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+    color: theme.colors.text.primary,
+  },
+  inlineArtistActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 8,
+  },
+  inlineArtistCancel: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    marginRight: 8,
+  },
+  inlineArtistCancelText: {
+    color: '#666',
+    fontSize: 14,
+  },
+  inlineArtistSave: {
+    backgroundColor: theme.colors.accent,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 6,
+  },
+  inlineArtistSaveText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  gotoArtistFull: {
+    marginTop: 8,
+    alignSelf: 'flex-start',
+  },
+  gotoArtistFullText: {
+    fontSize: 12,
+    color: theme.colors.accent,
+    textDecorationLine: 'underline',
   },
 });
 

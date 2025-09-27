@@ -110,7 +110,12 @@ const MemoryFormScreen = ({ navigation, route }: any) => {
   if (!event) {
     return (
       <View style={styles.errorContainer}>
+        <TouchableOpacity style={styles.errorBackButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="close" size={28} color="#333" />
+        </TouchableOpacity>
+        <Ionicons name="alert-circle-outline" size={64} color="#bbb" style={{ marginBottom: 24 }} />
         <Text style={styles.errorText}>イベントが見つかりません</Text>
+        <Text style={styles.errorSubText}>元の画面に戻ってもう一度操作してください。</Text>
       </View>
     );
   }
@@ -350,6 +355,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#f5f5f5',
+    paddingHorizontal: 24,
+  },
+  errorBackButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    padding: 8,
+  },
+  errorSubText: {
+    fontSize: 14,
+    color: '#888',
+    marginTop: 8,
+    textAlign: 'center',
+    lineHeight: 20,
   },
   errorText: {
     fontSize: 18,

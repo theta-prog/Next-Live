@@ -1,23 +1,31 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
-    Alert,
-    FlatList,
-    Image,
-    Modal,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  FlatList,
+  Image,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button, Card, CustomTextInput, IconButton, SectionHeader } from '../components/UI';
+import { Button, Card, CustomTextInput, IconButton } from '../components/UI';
 import { useApp } from '../context/AppContext';
 import { Artist } from '../database/asyncDatabase';
 import { theme, typography } from '../styles/theme';
 
-const ArtistsScreen = ({ navigation }: any) => {
+const ArtistsScreen = ({ navigation, route }: any) => {
+  // route.params.openAdd が true の場合初回レンダー後にモーダルを開く
+  useEffect(() => {
+    if (route?.params?.openAdd) {
+      // 一度開いたら再度開かないようにフラグをクリア
+      openModal();
+      navigation.setParams({ openAdd: undefined });
+    }
+  }, [route?.params?.openAdd, navigation]);
   const { artists, addArtist, updateArtist, deleteArtist } = useApp();
   const [modalVisible, setModalVisible] = useState(false);
   const [editingArtist, setEditingArtist] = useState<Artist | null>(null);
@@ -149,19 +157,19 @@ const ArtistsScreen = ({ navigation }: any) => {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+  <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <SectionHeader title="推しアーティスト" style={styles.headerTitle} />
-        <IconButton
-          onPress={() => openModal()}
-          variant="ghost"
-          size="large"
-          testID="add-artist-button"
-        >
-          <Ionicons name="add" size={24} color={theme.colors.accent} />
-        </IconButton>
-      </View>
+          <Text style={styles.headerTitle}>推しアーティスト</Text>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => openModal()}
+            testID="add-artist-button"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons name="add" size={24} color={theme.colors.accent} />
+          </TouchableOpacity>
+        </View>
 
       {artists.length === 0 ? (
         <Card variant="outlined" style={styles.emptyState}>
@@ -283,13 +291,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: theme.spacing.lg,
     backgroundColor: theme.colors.surface,
+    padding: theme.spacing.md, // 他ページと統一（16）
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
   },
   headerTitle: {
-    letterSpacing: -1,
+    ...typography.h2,
+    color: theme.colors.text.primary,
   },
   addButton: {
     padding: theme.spacing.sm,

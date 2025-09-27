@@ -115,7 +115,11 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
   return (
     <View style={styles.sectionHeaderContainer}>
       <View style={{ flex: 1 }}>
-        <Text style={[typography.h2, styles.sectionHeader, style]}>
+        <Text
+          style={[typography.h2, styles.sectionHeader, style]}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
           {title}
         </Text>
         {subtitle && (
@@ -309,10 +313,12 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
+    minWidth: 0, // 子の Text が収縮できるように
   },
   sectionHeader: {
     letterSpacing: -0.3,
     marginBottom: theme.spacing.xs,
+    flexShrink: 1, // 長いタイトルで右側のアクションを押し出さない
   },
   sectionSubtitle: {
     marginTop: theme.spacing.xs,

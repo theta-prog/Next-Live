@@ -4,7 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Screen imports
 import ArtistsScreen from '../screens/ArtistsScreen';
@@ -36,6 +36,8 @@ export const getTabIconName = (
 };
 
 const TabNavigator = () => {
+  const insets = useSafeAreaInsets();
+  const bottomPad = Math.max(insets.bottom, 12); // ensure a minimum padding for devices without inset
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -48,22 +50,22 @@ const TabNavigator = () => {
         tabBarStyle: {
           backgroundColor: '#fff',
           borderTopWidth: 1,
-          borderTopColor: '#eee',
-          paddingTop: 5,
-          paddingBottom: 25, // Pixel 7の下部余白を追加
-          height: 85,
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '500',
-        },
-        headerShown: false,
-      })}
-    >
+            borderTopColor: '#eee',
+            paddingTop: 6,
+            paddingBottom: bottomPad,
+            height: 62 + bottomPad, // dynamic height based on inset
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: 0,
+          },
+          tabBarLabelStyle: {
+            fontSize: 11,
+            fontWeight: '500',
+          },
+          headerShown: false,
+        })}
+      >
       <Tab.Screen 
         name="Home" 
         component={HomeScreen} 
