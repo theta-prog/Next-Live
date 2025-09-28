@@ -2,26 +2,29 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    FlatList,
-    Image,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  FlatList,
+  Image,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useApp } from '../context/AppContext';
 import { Memory } from '../database/database';
+import { calculateDaysUntil } from '../utils/index';
 
 const MemoryFormScreen = ({ navigation, route }: any) => {
   const { addMemory, updateMemory, memories, liveEvents } = useApp();
-  const eventId = route.params?.eventId;
+  const initialEventId = route.params?.eventId as number | undefined;
   const memoryId = route.params?.memoryId;
   const editingMemory = memoryId ? memories.find(m => m.id === memoryId) : null;
-  const event = liveEvents.find(e => e.id === eventId);
+  const [selectedEventId, setSelectedEventId] = useState<number | null>(initialEventId ?? null);
+  const [query, setQuery] = useState('');
+  const event = liveEvents.find(e => e.id === (selectedEventId ?? -1));
 
   const [review, setReview] = useState('');
   const [setlist, setSetlist] = useState('');
@@ -71,13 +74,17 @@ const MemoryFormScreen = ({ navigation, route }: any) => {
   };
 
   const handleSave = async () => {
+    if (!selectedEventId) {
+      Alert.alert('イベント未選択', 'まず対象のライブイベントを選んでください');
+      return;
+    }
     if (!review.trim() && !setlist.trim() && photos.length === 0) {
       Alert.alert('エラー', '感想、セットリスト、写真のうち少なくとも一つは入力してください');
       return;
     }
 
     const memoryData: Omit<Memory, 'id' | 'created_at'> = {
-      live_event_id: eventId,
+      live_event_id: selectedEventId,
       review: review.trim() || undefined,
       setlist: setlist.trim() || undefined,
       photos: photos.length > 0 ? JSON.stringify(photos) : undefined,
@@ -108,15 +115,140 @@ const MemoryFormScreen = ({ navigation, route }: any) => {
   );
 
   if (!event) {
+    // イベント未選択: イベント選択画面を表示
+    // 検索・グルーピング
+    const normalized = query.trim().toLowerCase();
+    const filtered = liveEvents.filter((ev) => {
+      if (!normalized) return true;
+      const title = (ev.title || '').toLowerCase();
+      const artist = (ev.artist_name || '').toLowerCase();
+      const venue = (ev.venue_name || '').toLowerCase();
+      return title.includes(normalized) || artist.includes(normalized) || venue.includes(normalized);
+    });
+    const upcoming = filtered
+      .filter((ev) => calculateDaysUntil(ev.date) >= 0)
+      .sort((a, b) => calculateDaysUntil(a.date) - calculateDaysUntil(b.date));
+    const past = filtered
+      .filter((ev) => calculateDaysUntil(ev.date) < 0)
+      .sort((a, b) => calculateDaysUntil(b.date) - calculateDaysUntil(a.date));
+
     return (
-      <View style={styles.errorContainer}>
-        <TouchableOpacity style={styles.errorBackButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="close" size={28} color="#333" />
-        </TouchableOpacity>
-        <Ionicons name="alert-circle-outline" size={64} color="#bbb" style={{ marginBottom: 24 }} />
-        <Text style={styles.errorText}>イベントが見つかりません</Text>
-        <Text style={styles.errorSubText}>元の画面に戻ってもう一度操作してください。</Text>
-      </View>
+      <ScrollView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>思い出追加</Text>
+          <View style={{ width: 40 }} />
+        </View>
+
+        <View style={styles.content}>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>対象のライブを選択</Text>
+            {/* 検索バー */}
+            <View style={styles.searchBar}>
+              <Ionicons name="search" size={18} color="#999" />
+              <TextInput
+                style={styles.searchInput}
+                value={query}
+                onChangeText={setQuery}
+                placeholder="イベント名 / アーティスト / 会場 で検索"
+                placeholderTextColor="#aaa"
+                testID="event-search-input"
+              />
+              {query.length > 0 && (
+                <TouchableOpacity onPress={() => setQuery('')}>
+                  <Ionicons name="close-circle" size={18} color="#bbb" />
+                </TouchableOpacity>
+              )}
+            </View>
+            {liveEvents.length === 0 ? (
+              <View style={styles.noEventsContainer}>
+                <Ionicons name="calendar-outline" size={48} color="#bbb" />
+                <Text style={styles.noEventsText}>ライブイベントがありません</Text>
+                <Text style={styles.noEventsSubtext}>先にライブ予定を追加してください</Text>
+                <TouchableOpacity
+                  style={styles.createEventButton}
+                  onPress={() => navigation.navigate('LiveEventForm')}
+                >
+                  <Ionicons name="add" size={20} color="#fff" />
+                  <Text style={styles.createEventButtonText}>ライブを追加</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View>
+                {normalized && filtered.length === 0 && (
+                  <Text style={styles.emptyFilterText}>該当するイベントがありません</Text>
+                )}
+                {/* 今後のイベント */}
+                {upcoming.length > 0 && (
+                  <View style={styles.eventSelectList}>
+                    <Text style={styles.sectionLabel}>今後のイベント</Text>
+                    {upcoming.map((ev) => {
+                      const d = new Date(ev.date);
+                      const month = String(d.getMonth() + 1).padStart(2, '0');
+                      const day = String(d.getDate()).padStart(2, '0');
+                      return (
+                        <TouchableOpacity
+                          key={ev.id}
+                          style={styles.eventItem}
+                          onPress={() => setSelectedEventId(ev.id!)}
+                          testID={`select-event-${ev.id}`}
+                        >
+                          <View style={styles.dateBadge}>
+                            <Text style={styles.dateBadgeMonth}>{month}</Text>
+                            <Text style={styles.dateBadgeDay}>{day}</Text>
+                          </View>
+                          <View style={{ flex: 1 }}>
+                            <Text style={styles.eventItemTitle}>{ev.title}</Text>
+                            <Text style={styles.eventItemArtist}>{ev.artist_name}</Text>
+                            {!!ev.venue_name && (
+                              <Text style={styles.eventItemMeta}>{ev.venue_name}</Text>
+                            )}
+                          </View>
+                          <Ionicons name="chevron-forward" size={20} color="#ccc" />
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                )}
+                {/* 過去のイベント */}
+                {past.length > 0 && (
+                  <View style={styles.eventSelectList}>
+                    <Text style={styles.sectionLabel}>過去のイベント</Text>
+                    {past.map((ev) => {
+                      const d = new Date(ev.date);
+                      const month = String(d.getMonth() + 1).padStart(2, '0');
+                      const day = String(d.getDate()).padStart(2, '0');
+                      return (
+                        <TouchableOpacity
+                          key={ev.id}
+                          style={styles.eventItem}
+                          onPress={() => setSelectedEventId(ev.id!)}
+                          testID={`select-event-${ev.id}`}
+                        >
+                          <View style={styles.dateBadgePast}>
+                            <Text style={styles.dateBadgeMonth}>{month}</Text>
+                            <Text style={styles.dateBadgeDay}>{day}</Text>
+                          </View>
+                          <View style={{ flex: 1 }}>
+                            <Text style={styles.eventItemTitle}>{ev.title}</Text>
+                            <Text style={styles.eventItemArtist}>{ev.artist_name}</Text>
+                            {!!ev.venue_name && (
+                              <Text style={styles.eventItemMeta}>{ev.venue_name}</Text>
+                            )}
+                          </View>
+                          <Ionicons name="chevron-forward" size={20} color="#ccc" />
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                )}
+              </View>
+            )}
+          </View>
+        </View>
+      </ScrollView>
     );
   }
 
@@ -350,6 +482,120 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 12,
   },
+  // Event select styles
+  eventSelectList: {
+    gap: 8,
+  },
+  sectionLabel: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 8,
+  },
+  eventItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 16,
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  eventItemTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+  eventItemArtist: {
+    fontSize: 14,
+    color: '#007AFF',
+    marginBottom: 2,
+  },
+  eventItemMeta: {
+    fontSize: 13,
+    color: '#666',
+  },
+  noEventsContainer: {
+    alignItems: 'center',
+    paddingVertical: 24,
+    gap: 8,
+  },
+  noEventsText: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 8,
+  },
+  noEventsSubtext: {
+    fontSize: 14,
+    color: '#999',
+  },
+  createEventButton: {
+    marginTop: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  createEventButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 12,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: '#333',
+    paddingVertical: 0,
+  },
+  emptyFilterText: {
+    color: '#888',
+    marginBottom: 8,
+  },
+  dateBadge: {
+    width: 52,
+    height: 52,
+    borderRadius: 10,
+    backgroundColor: '#e8f1ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  dateBadgePast: {
+    width: 52,
+    height: 52,
+    borderRadius: 10,
+    backgroundColor: '#f1f5f9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  dateBadgeMonth: {
+    fontSize: 12,
+    color: '#007AFF',
+    marginBottom: -4,
+  },
+  dateBadgeDay: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#007AFF',
+  },
+  
   errorContainer: {
     flex: 1,
     justifyContent: 'center',

@@ -160,7 +160,7 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
                 <Text style={styles.noArtistText}>アーティストが登録されていません</Text>
                 <TouchableOpacity
                   style={styles.addArtistButton}
-                  onPress={() => navigation.navigate('Main', { screen: 'Artists', params: { openAdd: true } })}
+                  onPress={() => navigation.navigate('ArtistForm')}
                 >
                   <Text style={styles.addArtistButtonText}>登録画面を開く</Text>
                 </TouchableOpacity>
@@ -182,7 +182,7 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
                     />
                   ))}
                 </Picker>
-                <TouchableOpacity style={styles.inlineAddButton} onPress={() => navigation.navigate('Main', { screen: 'Artists', params: { openAdd: true } })}>
+                <TouchableOpacity style={styles.inlineAddButton} onPress={() => navigation.navigate('ArtistForm')}>
                   <Ionicons name="add-circle-outline" size={20} color={theme.colors.accent} />
                   <Text style={styles.inlineAddButtonText}>追加</Text>
                 </TouchableOpacity>

@@ -12,6 +12,7 @@ import CalendarScreen from '../screens/CalendarScreen';
 import HomeScreen from '../screens/HomeScreen';
 import LiveEventDetailScreen from '../screens/LiveEventDetailScreen';
 import LiveEventFormScreen from '../screens/LiveEventFormScreen';
+import ArtistFormScreen from '../screens/ArtistFormScreen';
 import MemoriesScreen from '../screens/MemoriesScreen';
 import MemoryDetailScreen from '../screens/MemoryDetailScreen';
 import MemoryFormScreen from '../screens/MemoryFormScreen';
@@ -105,6 +106,14 @@ const AppNavigator = () => {
           }}
         >
           <Stack.Screen name="Main" component={TabNavigator} />
+          <Stack.Screen 
+            name="ArtistForm" 
+            component={ArtistFormScreen}
+            options={{
+              headerShown: false,
+              presentation: 'modal',
+            }}
+          />
           <Stack.Screen 
             name="LiveEventForm" 
             component={LiveEventFormScreen}
