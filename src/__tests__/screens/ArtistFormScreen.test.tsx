@@ -60,7 +60,7 @@ describe('ArtistFormScreen', () => {
         <ArtistFormScreen navigation={mockNavigation} route={newArtistRoute} />
       );
 
-      expect(getByText('新規アーティスト')).toBeTruthy();
+  expect(getByText('アーティスト追加')).toBeTruthy();
       expect(getByTestId('artist-name-input')).toBeTruthy();
       expect(getByTestId('artist-website-input')).toBeTruthy();
       expect(getByTestId('artist-social-input')).toBeTruthy();
@@ -89,7 +89,7 @@ describe('ArtistFormScreen', () => {
         <ArtistFormScreen navigation={mockNavigation} route={newArtistRoute} />
       );
 
-      const saveButton = getByText('保存');
+  const saveButton = getByText('追加');
       fireEvent.press(saveButton);
 
       await waitFor(() => {
@@ -111,7 +111,7 @@ describe('ArtistFormScreen', () => {
   fireEvent.changeText(getByTestId('artist-social-input'), '@newartist');
 
       // 保存ボタンを押す
-      const saveButton = getByText('保存');
+  const saveButton = getByText('追加');
       fireEvent.press(saveButton);
 
       await waitFor(() => {
@@ -148,7 +148,7 @@ describe('ArtistFormScreen', () => {
       fireEvent.changeText(nameInput, '更新されたアーティスト');
 
       // 保存ボタンを押す
-      const saveButton = getByText('保存');
+  const saveButton = getByText('更新');
       fireEvent.press(saveButton);
 
       await waitFor(() => {
@@ -183,7 +183,7 @@ describe('ArtistFormScreen', () => {
   fireEvent.changeText(getByTestId('artist-name-input'), '新しいアーティスト');
   fireEvent.changeText(getByTestId('artist-website-input'), '無効なURL');
 
-      const saveButton = getByText('保存');
+  const saveButton = getByText('追加');
       fireEvent.press(saveButton);
 
       await waitFor(() => {
@@ -201,7 +201,7 @@ describe('ArtistFormScreen', () => {
 
   fireEvent.changeText(getByTestId('artist-name-input'), '   ');
 
-      const saveButton = getByText('保存');
+  const saveButton = getByText('追加');
       fireEvent.press(saveButton);
 
       await waitFor(() => {
@@ -219,7 +219,7 @@ describe('ArtistFormScreen', () => {
 
   fireEvent.changeText(getByTestId('artist-name-input'), '既存アーティスト');
 
-      const saveButton = getByText('保存');
+  const saveButton = getByText('追加');
       fireEvent.press(saveButton);
 
       await waitFor(() => {
@@ -286,7 +286,7 @@ describe('ArtistFormScreen', () => {
 
   fireEvent.changeText(getByTestId('artist-name-input'), '新しいアーティスト');
 
-      const saveButton = getByText('保存');
+  const saveButton = getByText('追加');
       fireEvent.press(saveButton);
 
       await waitFor(() => {
@@ -306,7 +306,7 @@ describe('ArtistFormScreen', () => {
 
   fireEvent.changeText(getByTestId('artist-name-input'), '新しいアーティスト');
 
-      const saveButton = getByText('保存');
+  const saveButton = getByText('追加');
       fireEvent.press(saveButton);
 
       await waitFor(() => {
@@ -329,7 +329,7 @@ describe('ArtistFormScreen', () => {
 
   fireEvent.changeText(getByTestId('artist-name-input'), '新しいアーティスト');
 
-      const saveButton = getByText('保存');
+  const saveButton = getByText('追加');
       fireEvent.press(saveButton);
 
       await waitFor(() => {

@@ -7,12 +7,12 @@ import React from 'react';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Screen imports
+import ArtistFormScreen from '../screens/ArtistFormScreen';
 import ArtistsScreen from '../screens/ArtistsScreen';
 import CalendarScreen from '../screens/CalendarScreen';
 import HomeScreen from '../screens/HomeScreen';
 import LiveEventDetailScreen from '../screens/LiveEventDetailScreen';
 import LiveEventFormScreen from '../screens/LiveEventFormScreen';
-import ArtistFormScreen from '../screens/ArtistFormScreen';
 import MemoriesScreen from '../screens/MemoriesScreen';
 import MemoryDetailScreen from '../screens/MemoryDetailScreen';
 import MemoryFormScreen from '../screens/MemoryFormScreen';

@@ -274,8 +274,8 @@ describe('MemoryFormScreen', () => {
         <MemoryFormScreen navigation={mockNavigation} route={routeWithInvalidEvent} />
       );
 
-      // Should render error message
-      expect(getByText('イベントが見つかりません')).toBeTruthy();
+  // イベント選択UIが表示される（新仕様ではエラー文言ではなく選択セクションが出る）
+  expect(getByText('対象のライブを選択')).toBeTruthy();
     });
   });
 

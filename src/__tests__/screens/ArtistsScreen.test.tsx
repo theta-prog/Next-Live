@@ -96,15 +96,15 @@ describe('ArtistsScreen', () => {
     expect(getByTestId('add-artist-button')).toBeTruthy();
   });
 
-  it('アーティスト追加ボタンを押すとモーダルが開く', () => {
-    const { getByTestId, getByText } = render(
+  it('アーティスト追加ボタンを押すと ArtistForm に遷移する', () => {
+    const { getByTestId } = render(
       <ArtistsScreen navigation={mockNavigation} />
     );
 
     const addButton = getByTestId('add-artist-button');
     fireEvent.press(addButton);
 
-    expect(getByText('アーティスト追加')).toBeTruthy();
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('ArtistForm');
   });
 
   it('アーティストタップで詳細画面に遷移する（FlatListモックのためスキップ相当）', () => {

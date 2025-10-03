@@ -1,13 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect } from 'react';
 import {
-  Alert,
-  FlatList,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    FlatList,
+    Image,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Card, IconButton } from '../components/UI';
