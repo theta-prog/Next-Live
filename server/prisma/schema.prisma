@@ -1,0 +1,76 @@
+// Datasource & generator
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Core user (federated auth only)
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  displayName   String
+  provider      String         // 'google'
+  providerSub   String         @unique
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  artists       Artist[]
+  refreshTokens RefreshToken[]
+  liveEvents    LiveEvent[]
+  memories      Memory[]
+}
+
+model RefreshToken {
+  id         String   @id @default(uuid())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String
+  tokenHash  String   @unique
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  lastUsedAt DateTime?
+}
+
+model Artist {
+  id          String   @id @default(uuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  name        String
+  website     String?
+  socialMedia String?
+  photoUrl    String?
+  version     Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  liveEvents  LiveEvent[]
+}
+
+model LiveEvent {
+  id          String   @id @default(uuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  artist      Artist?  @relation(fields: [artistId], references: [id])
+  artistId    String?
+  title       String
+  date        DateTime
+  venue       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  memories    Memory[]
+}
+
+model Memory {
+  id          String    @id @default(uuid())
+  user        User      @relation(fields: [userId], references: [id])
+  userId      String
+  event       LiveEvent @relation(fields: [eventId], references: [id])
+  eventId     String
+  review      String?
+  setlist     String?
+  photos      Json?     // array of urls
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
