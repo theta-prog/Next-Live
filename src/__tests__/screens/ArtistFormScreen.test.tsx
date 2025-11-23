@@ -20,11 +20,13 @@ jest.spyOn(Alert, 'alert').mockImplementation(() => {});
 
 const mockArtists = [
   {
-    id: 1,
+    id: '1',
     name: '既存アーティスト',
     website: 'https://example.com',
     social_media: '@existing',
     created_at: '2023-01-01T00:00:00.000Z',
+    updated_at: '2023-01-01T00:00:00.000Z',
+    sync_status: 'synced' as const,
   },
 ];
 
@@ -125,7 +127,7 @@ describe('ArtistFormScreen', () => {
   });
 
   describe('既存アーティスト編集', () => {
-    const editArtistRoute = { params: { artistId: 1 } };
+    const editArtistRoute = { params: { artistId: '1' } };
 
     it('既存アーティストデータが正しく表示される', () => {
   const { getByText, getByTestId } = render(
@@ -153,7 +155,7 @@ describe('ArtistFormScreen', () => {
 
       await waitFor(() => {
         expect(mockUpdateArtist).toHaveBeenCalledWith(
-          1,
+          '1',
           expect.objectContaining({
             name: '更新されたアーティスト',
           })
@@ -162,7 +164,7 @@ describe('ArtistFormScreen', () => {
     });
 
     it('存在しないアーティストIDの場合エラーが表示される', () => {
-      const invalidRoute = { params: { artistId: 999 } };
+      const invalidRoute = { params: { artistId: '999' } };
 
       const { getByText } = render(
         <ArtistFormScreen navigation={mockNavigation} route={invalidRoute} />
@@ -321,7 +323,7 @@ describe('ArtistFormScreen', () => {
   describe('ナビゲーション', () => {
     it('保存成功後に前の画面に戻る', async () => {
       const newArtistRoute = { params: {} };
-      mockAddArtist.mockResolvedValueOnce({ insertId: 2 });
+      mockAddArtist.mockResolvedValueOnce({ id: '2', name: '新しいアーティスト' });
 
   const { getByTestId, getByText } = render(
         <ArtistFormScreen navigation={mockNavigation} route={newArtistRoute} />

@@ -72,7 +72,7 @@ describe('AppContext Error Handling Tests', () => {
 
     await result.current.addLiveEvent({
       title: 'Test Event',
-      artist_id: 1,
+      artist_id: '1',
       venue_name: 'Test Venue',
       date: '2024-01-01'
     });
@@ -92,8 +92,9 @@ describe('AppContext Error Handling Tests', () => {
     mockDatabase.createMemory.mockRejectedValueOnce(new Error('Memory creation failed'));
 
     await result.current.addMemory({
-      live_event_id: 1,
-      review: 'Test memory content'
+      live_event_id: '1',
+      review: 'Test memory content',
+      photos: '[]'
     });
 
     // Should log the error

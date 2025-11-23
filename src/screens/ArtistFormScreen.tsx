@@ -7,7 +7,7 @@ import { theme, typography } from '../styles/theme';
 
 type Props = {
   navigation: { goBack: () => void };
-  route: { params?: { artistId?: number } };
+  route: { params?: { artistId?: string } };
 };
 
 const isValidUrl = (value: string) => {

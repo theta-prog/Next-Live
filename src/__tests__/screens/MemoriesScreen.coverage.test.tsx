@@ -72,8 +72,8 @@ describe('MemoriesScreen Coverage Focused Tests', () => {
   it('renders component with memories data', () => {
     const memoriesData = [
       {
-        id: 1,
-        live_event_id: 1,
+        id: '1',
+        live_event_id: '1',
         review: 'Test review',
         setlist: 'Test setlist',
         photos: JSON.stringify(['photo1.jpg']),
@@ -81,6 +81,8 @@ describe('MemoriesScreen Coverage Focused Tests', () => {
         artist_name: 'Test Artist',
         event_date: '2024-01-15',
         created_at: '2024-01-15T00:00:00.000Z',
+        updated_at: '2024-01-15T00:00:00.000Z',
+        sync_status: 'synced' as const,
       }
     ];
 
@@ -130,8 +132,8 @@ describe('MemoriesScreen Coverage Focused Tests', () => {
 
     testCases.forEach((testCase, index) => {
       const memory = {
-        id: index + 1,
-        live_event_id: index + 1,
+        id: (index + 1).toString(),
+        live_event_id: (index + 1).toString(),
         review: `Review for ${testCase.name}`,
         setlist: `Setlist for ${testCase.name}`,
         photos: testCase.photos,
@@ -139,6 +141,8 @@ describe('MemoriesScreen Coverage Focused Tests', () => {
         artist_name: `Artist ${testCase.name}`,
         event_date: '2024-01-15',
         created_at: '2024-01-15T00:00:00.000Z',
+        updated_at: '2024-01-15T00:00:00.000Z',
+        sync_status: 'synced' as const,
       };
 
       mockUseApp.mockReturnValue({
@@ -190,8 +194,8 @@ describe('MemoriesScreen Coverage Focused Tests', () => {
 
     testCases.forEach((testCase, index) => {
       const memory = {
-        id: index + 1,
-        live_event_id: index + 1,
+        id: (index + 1).toString(),
+        live_event_id: (index + 1).toString(),
         review: testCase.review,
         setlist: testCase.setlist,
         photos: JSON.stringify(['photo.jpg']),
@@ -199,6 +203,8 @@ describe('MemoriesScreen Coverage Focused Tests', () => {
         artist_name: `Artist ${testCase.name}`,
         event_date: '2024-01-15',
         created_at: '2024-01-15T00:00:00.000Z',
+        updated_at: '2024-01-15T00:00:00.000Z',
+        sync_status: 'synced' as const,
       };
 
       mockUseApp.mockReturnValue({
@@ -233,8 +239,8 @@ describe('MemoriesScreen Coverage Focused Tests', () => {
 
     dates.forEach((date, index) => {
       const memory = {
-        id: index + 1,
-        live_event_id: index + 1,
+        id: (index + 1).toString(),
+        live_event_id: (index + 1).toString(),
         review: `Review for date ${date}`,
         setlist: `Setlist for date ${date}`,
         photos: JSON.stringify(['photo.jpg']),
@@ -242,6 +248,8 @@ describe('MemoriesScreen Coverage Focused Tests', () => {
         artist_name: `Artist ${index + 1}`,
         event_date: date,
         created_at: `${date}T00:00:00.000Z`,
+        updated_at: `${date}T00:00:00.000Z`,
+        sync_status: 'synced' as const,
       };
 
       mockUseApp.mockReturnValue({
@@ -270,8 +278,8 @@ describe('MemoriesScreen Coverage Focused Tests', () => {
   it('handles multiple memories at once', () => {
     const multipleMemories = [
       {
-        id: 1,
-        live_event_id: 1,
+        id: '1',
+        live_event_id: '1',
         review: 'First memory',
         setlist: 'First setlist',
         photos: JSON.stringify(['photo1.jpg']),
@@ -279,10 +287,12 @@ describe('MemoriesScreen Coverage Focused Tests', () => {
         artist_name: 'First Artist',
         event_date: '2024-01-01',
         created_at: '2024-01-01T00:00:00.000Z',
+        updated_at: '2024-01-01T00:00:00.000Z',
+        sync_status: 'synced' as const,
       },
       {
-        id: 2,
-        live_event_id: 2,
+        id: '2',
+        live_event_id: '2',
         review: undefined,
         setlist: undefined,
         photos: undefined,
@@ -290,10 +300,12 @@ describe('MemoriesScreen Coverage Focused Tests', () => {
         artist_name: 'Second Artist',
         event_date: '2024-02-01',
         created_at: '2024-02-01T00:00:00.000Z',
+        updated_at: '2024-02-01T00:00:00.000Z',
+        sync_status: 'synced' as const,
       },
       {
-        id: 3,
-        live_event_id: 3,
+        id: '3',
+        live_event_id: '3',
         review: 'Third memory',
         setlist: 'Third setlist',
         photos: 'invalid json',
@@ -301,6 +313,8 @@ describe('MemoriesScreen Coverage Focused Tests', () => {
         artist_name: 'Third Artist',
         event_date: '2024-03-01',
         created_at: '2024-03-01T00:00:00.000Z',
+        updated_at: '2024-03-01T00:00:00.000Z',
+        sync_status: 'synced' as const,
       }
     ];
 
@@ -327,8 +341,8 @@ describe('MemoriesScreen Coverage Focused Tests', () => {
 
   it('tries to interact with memory cards if rendered', () => {
     const memory = {
-      id: 1,
-      live_event_id: 1,
+      id: '1',
+      live_event_id: '1',
       review: 'Test memory for interaction',
       setlist: 'Interactive setlist',
       photos: JSON.stringify(['photo1.jpg']),
@@ -336,6 +350,8 @@ describe('MemoriesScreen Coverage Focused Tests', () => {
       artist_name: 'Interactive Artist',
       event_date: '2024-01-15',
       created_at: '2024-01-15T00:00:00.000Z',
+      updated_at: '2024-01-15T00:00:00.000Z',
+      sync_status: 'synced' as const,
     };
 
     mockUseApp.mockReturnValue({
@@ -363,7 +379,7 @@ describe('MemoriesScreen Coverage Focused Tests', () => {
       const memoryCard = queryByTestId('memory-card-1');
       if (memoryCard) {
         fireEvent.press(memoryCard);
-        expect(mockNavigation.navigate).toHaveBeenCalledWith('MemoryDetail', { memoryId: 1 });
+        expect(mockNavigation.navigate).toHaveBeenCalledWith('MemoryDetail', { memoryId: '1' });
       }
     } catch {
       // FlatListが描画されない場合は基本レンダリングのみ確認

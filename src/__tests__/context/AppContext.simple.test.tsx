@@ -152,7 +152,7 @@ describe('AppContext', () => {
     });
 
     // Test updating an artist
-    await contextValue.updateArtist(1, {
+    await contextValue.updateArtist('1', {
       name: 'Updated Artist',
     });
 
@@ -179,7 +179,7 @@ describe('AppContext', () => {
     });
 
     // Test deleting an artist
-    await contextValue.deleteArtist(1);
+    await contextValue.deleteArtist('1');
 
     expect(typeof contextValue.deleteArtist).toBe('function');
   });
@@ -206,18 +206,18 @@ describe('AppContext', () => {
     // Test adding a live event
     await contextValue.addLiveEvent({
       title: 'Test Concert',
-      artist_id: 1,
+      artist_id: '1',
       date: '2024-12-25',
       venue_name: 'Test Venue',
     });
 
     // Test updating a live event
-    await contextValue.updateLiveEvent(1, {
+    await contextValue.updateLiveEvent('1', {
       title: 'Updated Concert',
     });
 
     // Test deleting a live event
-    await contextValue.deleteLiveEvent(1);
+    await contextValue.deleteLiveEvent('1');
 
     expect(typeof contextValue.addLiveEvent).toBe('function');
     expect(typeof contextValue.updateLiveEvent).toBe('function');
@@ -245,18 +245,18 @@ describe('AppContext', () => {
 
     // Test adding a memory
     await contextValue.addMemory({
-      live_event_id: 1,
+      live_event_id: '1',
       review: 'Great concert!',
       setlist: 'Song 1, Song 2',
     });
 
     // Test updating a memory
-    await contextValue.updateMemory(1, {
+    await contextValue.updateMemory('1', {
       review: 'Updated review',
     });
 
     // Test deleting a memory
-    await contextValue.deleteMemory(1);
+    await contextValue.deleteMemory('1');
 
     expect(typeof contextValue.addMemory).toBe('function');
     expect(typeof contextValue.updateMemory).toBe('function');
@@ -325,7 +325,7 @@ describe('AppContext', () => {
       const { updateArtist } = useApp();
       
       React.useEffect(() => {
-        updateArtist(1, { name: 'Updated Artist' });
+        updateArtist('1', { name: 'Updated Artist' });
       }, [updateArtist]);
 
       return <Text>Test</Text>;
@@ -353,7 +353,7 @@ describe('AppContext', () => {
       const { deleteArtist } = useApp();
       
       React.useEffect(() => {
-        deleteArtist(1);
+        deleteArtist('1');
       }, [deleteArtist]);
 
       return <Text>Test</Text>;
@@ -383,7 +383,7 @@ describe('AppContext', () => {
       React.useEffect(() => {
         addLiveEvent({
           title: 'Test Event',
-          artist_id: 1,
+          artist_id: '1',
           date: '2024-12-25',
           venue_name: 'Test Venue',
         });
@@ -414,7 +414,7 @@ describe('AppContext', () => {
       const { updateLiveEvent } = useApp();
       
       React.useEffect(() => {
-        updateLiveEvent(1, { title: 'Updated Event' });
+        updateLiveEvent('1', { title: 'Updated Event' });
       }, [updateLiveEvent]);
 
       return <Text>Test</Text>;
@@ -442,7 +442,7 @@ describe('AppContext', () => {
       const { deleteLiveEvent } = useApp();
       
       React.useEffect(() => {
-        deleteLiveEvent(1);
+        deleteLiveEvent('1');
       }, [deleteLiveEvent]);
 
       return <Text>Test</Text>;
@@ -499,7 +499,7 @@ describe('AppContext', () => {
     const TestComponentWithUpdateArtist = () => {
       const { updateArtist } = useApp();
       React.useEffect(() => {
-        updateArtist(1, { name: 'Updated Artist' });
+        updateArtist('1', { name: 'Updated Artist' });
       }, [updateArtist]);
       return <Text testID="test-update-artist">Test Update Artist</Text>;
     };
@@ -527,7 +527,7 @@ describe('AppContext', () => {
     const TestComponentWithDeleteArtist = () => {
       const { deleteArtist } = useApp();
       React.useEffect(() => {
-        deleteArtist(1);
+        deleteArtist('1');
       }, [deleteArtist]);
       return <Text testID="test-delete-artist">Test Delete Artist</Text>;
     };
@@ -557,7 +557,7 @@ describe('AppContext', () => {
       React.useEffect(() => {
         addLiveEvent({
           title: 'Test Event',
-          artist_id: 1,
+          artist_id: '1',
           date: '2024-01-01',
           venue_name: 'Test Location'
         });
@@ -588,7 +588,7 @@ describe('AppContext', () => {
     const TestComponentWithUpdateLiveEvent = () => {
       const { updateLiveEvent } = useApp();
       React.useEffect(() => {
-        updateLiveEvent(1, { title: 'Updated Event' });
+        updateLiveEvent('1', { title: 'Updated Event' });
       }, [updateLiveEvent]);
       return <Text testID="test-update-live-event">Test Update Live Event</Text>;
     };
@@ -616,7 +616,7 @@ describe('AppContext', () => {
     const TestComponentWithDeleteLiveEvent = () => {
       const { deleteLiveEvent } = useApp();
       React.useEffect(() => {
-        deleteLiveEvent(1);
+        deleteLiveEvent('1');
       }, [deleteLiveEvent]);
       return <Text testID="test-delete-live-event">Test Delete Live Event</Text>;
     };
@@ -645,9 +645,8 @@ describe('AppContext', () => {
       const { addMemory } = useApp();
       React.useEffect(() => {
         addMemory({
-          live_event_id: 1,
+          live_event_id: '1',
           review: 'Test review',
-          setlist: 'Test setlist',
           photos: '[]'
         });
       }, [addMemory]);
@@ -677,7 +676,7 @@ describe('AppContext', () => {
     const TestComponentWithUpdateMemory = () => {
       const { updateMemory } = useApp();
       React.useEffect(() => {
-        updateMemory(1, { review: 'Updated review' });
+        updateMemory('1', { review: 'Updated review' });
       }, [updateMemory]);
       return <Text testID="test-update-memory">Test Update Memory</Text>;
     };
@@ -705,7 +704,7 @@ describe('AppContext', () => {
     const TestComponentWithDeleteMemory = () => {
       const { deleteMemory } = useApp();
       React.useEffect(() => {
-        deleteMemory(1);
+        deleteMemory('1');
       }, [deleteMemory]);
       return <Text testID="test-delete-memory">Test Delete Memory</Text>;
     };

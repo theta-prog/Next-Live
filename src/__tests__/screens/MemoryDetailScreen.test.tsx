@@ -2,7 +2,7 @@ import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
 import { Alert } from 'react-native';
 import { useApp } from '../../context/AppContext';
-import { Memory } from '../../database/database';
+import { Memory } from '../../database/asyncDatabase';
 import MemoryDetailScreen from '../../screens/MemoryDetailScreen';
 
 // Mock the useApp hook
@@ -19,7 +19,7 @@ const mockNavigation = {
 // Mock route params
 const mockRoute = {
   params: {
-    memoryId: 1,
+    memoryId: '1',
   },
 };
 
@@ -29,8 +29,8 @@ jest.spyOn(Alert, 'alert').mockImplementation(() => {});
 describe('MemoryDetailScreen', () => {
   const mockMemories: (Memory & { event_title: string; artist_name: string; event_date: string })[] = [
     {
-      id: 1,
-      live_event_id: 1,
+      id: '1',
+      live_event_id: '1',
       review: 'Amazing concert experience!',
       setlist: 'Song 1\nSong 2\nSong 3',
       photos: JSON.stringify(['photo1.jpg', 'photo2.jpg']),
@@ -38,18 +38,22 @@ describe('MemoryDetailScreen', () => {
       artist_name: 'Test Artist',
       event_date: '2024-12-25',
       created_at: '2023-01-01T00:00:00.000Z',
+      updated_at: '2023-01-01T00:00:00.000Z',
+      sync_status: 'synced',
     },
   ];
 
   const mockLiveEvents = [
     {
-      id: 1,
+      id: '1',
       title: 'Test Concert',
       date: '2024-12-25',
       venue_name: 'Test Venue',
-      artist_id: 1,
+      artist_id: '1',
       artist_name: 'Test Artist',
       created_at: '2023-01-01T00:00:00.000Z',
+      updated_at: '2023-01-01T00:00:00.000Z',
+      sync_status: 'synced' as const,
     },
   ];
 
@@ -102,7 +106,7 @@ describe('MemoryDetailScreen', () => {
   });
 
   it('shows error message when memory not found', () => {
-    const invalidRoute = { params: { memoryId: 999 } };
+    const invalidRoute = { params: { memoryId: '999' } };
     
     const { getByText } = render(
       <MemoryDetailScreen navigation={mockNavigation} route={invalidRoute} />
@@ -136,8 +140,8 @@ describe('MemoryDetailScreen', () => {
     // Try pressing the second button (edit button)
     fireEvent.press(touchableElements[1]);
     expect(mockNavigation.navigate).toHaveBeenCalledWith('MemoryForm', {
-      eventId: 1,
-      memoryId: 1,
+      eventId: '1',
+      memoryId: '1',
     });
   });
 

@@ -1,0 +1,126 @@
+import axios from 'axios';
+import { makeRedirectUri } from 'expo-auth-session';
+import * as Google from 'expo-auth-session/providers/google';
+import * as SecureStore from 'expo-secure-store';
+import * as WebBrowser from 'expo-web-browser';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import client from '../api/client';
+import { API_BASE_URL } from '../config';
+
+WebBrowser.maybeCompleteAuthSession();
+
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  picture?: string;
+}
+
+interface AuthContextType {
+  user: User | null;
+  isLoading: boolean;
+  login: () => Promise<void>;
+  logout: () => Promise<void>;
+  isAuthenticated: boolean;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // TODO: Replace with actual Client IDs from Google Cloud Console
+  const [, response, promptAsync] = Google.useAuthRequest({
+    androidClientId: 'YOUR_ANDROID_CLIENT_ID',
+    iosClientId: 'YOUR_IOS_CLIENT_ID',
+    webClientId: 'YOUR_WEB_CLIENT_ID',
+    redirectUri: makeRedirectUri({
+        scheme: 'livesch'
+    }),
+  });
+
+  useEffect(() => {
+    checkLoginStatus();
+  }, []);
+
+  useEffect(() => {
+    if (response?.type === 'success') {
+      const { id_token } = response.params;
+      if (id_token) {
+        handleGoogleLogin(id_token);
+      }
+    }
+  }, [response]);
+
+  const checkLoginStatus = async () => {
+    try {
+      const accessToken = await SecureStore.getItemAsync('accessToken');
+      if (accessToken) {
+        const userInfo = await SecureStore.getItemAsync('userInfo');
+        if (userInfo) {
+            setUser(JSON.parse(userInfo));
+        }
+      }
+    } catch (error) {
+      console.error('Check login status error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async (idToken: string) => {
+    setIsLoading(true);
+    try {
+      const res = await axios.post(`${API_BASE_URL}/v1/auth/google`, {
+        idToken,
+      });
+
+      const { accessToken, refreshToken, user: userData } = res.data;
+
+      await SecureStore.setItemAsync('accessToken', accessToken);
+      await SecureStore.setItemAsync('refreshToken', refreshToken);
+      await SecureStore.setItemAsync('userInfo', JSON.stringify(userData));
+
+      setUser(userData);
+    } catch (error) {
+      console.error('Login error:', error);
+      alert('Login failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const login = async () => {
+    await promptAsync();
+  };
+
+  const logout = async () => {
+    setIsLoading(true);
+    try {
+        await client.post('/v1/auth/logout');
+    } catch {
+        // Ignore error
+    }
+    
+    await SecureStore.deleteItemAsync('accessToken');
+    await SecureStore.deleteItemAsync('refreshToken');
+    await SecureStore.deleteItemAsync('userInfo');
+    setUser(null);
+    setIsLoading(false);
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, isLoading, login, logout, isAuthenticated: !!user }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};

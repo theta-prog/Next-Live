@@ -3,6 +3,7 @@ import * as ExpoImagePicker from 'expo-image-picker';
 import React from 'react';
 import { Alert } from 'react-native';
 import { useApp } from '../../context/AppContext';
+import { SyncStatus } from '../../database/asyncDatabase';
 import MemoryFormScreen from '../../screens/MemoryFormScreen';
 
 // Mock the useApp hook
@@ -19,15 +20,15 @@ const mockNavigation = {
 // Mock route params for new memory
 const mockRouteNew = {
   params: {
-    eventId: 1,
+    eventId: '1',
   },
 };
 
 // Mock route params for editing memory
 const mockRouteEdit = {
   params: {
-    eventId: 1,
-    memoryId: 1,
+    eventId: '1',
+    memoryId: '1',
   },
 };
 
@@ -53,8 +54,8 @@ jest.mock('expo-image-picker', () => ({
 describe('MemoryFormScreen', () => {
   const mockMemories = [
     {
-      id: 1,
-      live_event_id: 1,
+      id: '1',
+      live_event_id: '1',
       review: 'Amazing concert experience!',
       setlist: 'Song 1\nSong 2\nSong 3',
       photos: JSON.stringify(['photo1.jpg', 'photo2.jpg']),
@@ -62,18 +63,22 @@ describe('MemoryFormScreen', () => {
       artist_name: 'Test Artist',
       event_date: '2024-12-25',
       created_at: '2023-01-01T00:00:00.000Z',
+      updated_at: '2023-01-01T00:00:00.000Z',
+      sync_status: 'synced' as SyncStatus,
     },
   ];
 
   const mockLiveEvents = [
     {
-      id: 1,
+      id: '1',
       title: 'Test Concert',
       date: '2024-12-25',
       venue_name: 'Test Venue',
-      artist_id: 1,
+      artist_id: '1',
       artist_name: 'Test Artist',
       created_at: '2023-01-01T00:00:00.000Z',
+      updated_at: '2023-01-01T00:00:00.000Z',
+      sync_status: 'synced' as SyncStatus,
     },
   ];
 
@@ -190,8 +195,8 @@ describe('MemoryFormScreen', () => {
     it('handles memory not found for editing', () => {
       const invalidRoute = {
         params: {
-          eventId: 1,
-          memoryId: 999,
+          eventId: '1',
+          memoryId: '999',
         },
       };
 
@@ -266,7 +271,7 @@ describe('MemoryFormScreen', () => {
     it('handles missing event information', () => {
       const routeWithInvalidEvent = {
         params: {
-          eventId: 999,
+          eventId: '999',
         },
       };
 

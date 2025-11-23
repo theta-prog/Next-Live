@@ -218,8 +218,8 @@ describe('AppNavigator', () => {
 
     it('works with populated app state', () => {
       mockUseApp.mockReturnValue({
-        artists: [{ id: 1, name: 'Test Artist', website: '', social_media: '', created_at: '' }],
-        liveEvents: [{ id: 1, title: 'Test Event', date: '2024-01-01', venue_name: 'Test Venue', artist_id: 1, artist_name: 'Test Artist', created_at: '' }],
+        artists: [{ id: '1', name: 'Test Artist', website: '', social_media: '', created_at: '', updated_at: '', sync_status: 'synced' as const }],
+        liveEvents: [{ id: '1', title: 'Test Event', date: '2024-01-01', venue_name: 'Test Venue', artist_id: '1', artist_name: 'Test Artist', created_at: '', updated_at: '', sync_status: 'synced' as const }],
         upcomingEvents: [],
         addArtist: jest.fn(),
         updateArtist: jest.fn(),

@@ -17,18 +17,22 @@ const mockNavigation = {
 
 const mockArtists = [
   {
-    id: 1,
+    id: '1',
     name: 'テストアーティスト1',
     website: 'https://example1.com',
     social_media: '@artist1',
     created_at: '2023-01-01T00:00:00.000Z',
+    updated_at: '2023-01-01T00:00:00.000Z',
+    sync_status: 'synced' as const,
   },
   {
-    id: 2,
+    id: '2',
     name: 'テストアーティスト2',
     website: 'https://example2.com',
     social_media: '@artist2',
     created_at: '2023-01-02T00:00:00.000Z',
+    updated_at: '2023-01-02T00:00:00.000Z',
+    sync_status: 'synced' as const,
   },
 ];
 
@@ -188,7 +192,7 @@ describe('ArtistsScreen', () => {
       const deleteButtons = getAllByTestId('delete-artist-button');
       fireEvent.press(deleteButtons[0]);
 
-      expect(mockDeleteArtist).toHaveBeenCalledWith(1);
+      expect(mockDeleteArtist).toHaveBeenCalledWith('1');
     } catch {
       // 削除ボタンが実装されていない場合はスキップ
       expect(true).toBe(true);
@@ -298,11 +302,13 @@ describe('ArtistsScreen', () => {
   describe('スクロール動作', () => {
   it('多数のアーティストでもスクロールが正しく動作する（モック制約のため存在確認のみ）', () => {
       const manyArtists = Array.from({ length: 50 }, (_, i) => ({
-        id: i + 1,
+        id: String(i + 1),
         name: `アーティスト${i + 1}`,
         website: `https://example${i + 1}.com`,
         social_media: `@artist${i + 1}`,
         created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
+        sync_status: 'synced' as const,
       }));
 
       mockUseApp.mockReturnValue({

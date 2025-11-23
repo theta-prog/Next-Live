@@ -17,13 +17,15 @@ const mockNavigation = {
 describe('HomeScreen', () => {
   const mockUpcomingEvents = [
     {
-      id: 1,
+      id: '1',
       title: 'Test Concert',
       date: '2024-12-25',
       venue_name: 'Test Venue',
-      artist_id: 1,
+      artist_id: '1',
       artist_name: 'Test Artist',
       created_at: '2023-01-01T00:00:00.000Z',
+      updated_at: '2023-01-01T00:00:00.000Z',
+      sync_status: 'synced' as const,
     }
   ];
 
@@ -172,13 +174,15 @@ describe('HomeScreen', () => {
     const multipleEvents = [
       ...mockUpcomingEvents,
       {
-        id: 2,
+        id: '2',
         title: 'Second Concert',
         date: '2024-12-26',
         venue_name: 'Second Venue',
-        artist_id: 2,
+        artist_id: '2',
         artist_name: 'Second Artist',
         created_at: '2023-01-02T00:00:00.000Z',
+        updated_at: '2023-01-02T00:00:00.000Z',
+        sync_status: 'synced' as const,
       }
     ];
 
@@ -268,22 +272,26 @@ describe('HomeScreen', () => {
     const multipleEvents = [
       mockUpcomingEvents[0],
       {
-        id: 2,
+        id: '2',
         title: 'Second Concert',
         date: '2024-12-30',
         venue_name: 'Another Venue',
-        artist_id: 2,
+        artist_id: '2',
         artist_name: 'Another Artist',
         created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
+        sync_status: 'synced' as const,
       },
       {
-        id: 3,
+        id: '3',
         title: 'Third Concert',
         date: '2025-01-05',
         venue_name: 'Third Venue',
-        artist_id: 3,
+        artist_id: '3',
         artist_name: 'Third Artist',
         created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
+        sync_status: 'synced' as const,
       }
     ] as any[];
 
@@ -366,13 +374,15 @@ describe('HomeScreen', () => {
   it('tests calculateDaysUntil function with past date', () => {
     // 過去の日付を含むイベントでテスト
     const pastEvent = {
-      id: 2,
+      id: '2',
       title: 'Past Concert',
       artist_name: 'Past Artist',
       venue_name: 'Past Venue',
       date: '2020-01-01', // 過去の日付
-      artist_id: 1,
+      artist_id: '1',
       created_at: '2023-01-01T00:00:00.000Z',
+      updated_at: '2023-01-01T00:00:00.000Z',
+      sync_status: 'synced' as const,
     } as any;
 
     mockUseApp.mockReturnValue({
@@ -399,13 +409,15 @@ describe('HomeScreen', () => {
   it('tests calculateDaysUntil function with future date', () => {
     // 将来の日付を含むイベントでテスト
     const futureEvent = {
-      id: 3,
+      id: '3',
       title: 'Future Concert',
       artist_name: 'Future Artist',
       venue_name: 'Future Venue',
       date: '2030-12-25', // 将来の日付
-      artist_id: 1,
+      artist_id: '1',
       created_at: '2023-01-01T00:00:00.000Z',
+      updated_at: '2023-01-01T00:00:00.000Z',
+      sync_status: 'synced' as const,
     } as any;
 
     mockUseApp.mockReturnValue({
@@ -441,22 +453,26 @@ describe('HomeScreen', () => {
     const multipleEvents = [
       mockUpcomingEvents[0],
       {
-        id: 4,
+        id: '4',
         title: 'Second Concert',
         artist_name: 'Second Artist',
         venue_name: 'Second Venue',
         date: '2025-01-15',
-        artist_id: 1,
+        artist_id: '1',
         created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
+        sync_status: 'synced' as const,
       },
       {
-        id: 5,
+        id: '5',
         title: 'Third Concert',
         artist_name: 'Third Artist',
         venue_name: 'Third Venue',
         date: '2025-02-10',
-        artist_id: 1,
+        artist_id: '1',
         created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
+        sync_status: 'synced' as const,
       }
     ] as any;
 
@@ -524,40 +540,48 @@ describe('HomeScreen', () => {
     const manyEvents = [
       mockUpcomingEvents[0],
       {
-        id: 4,
+        id: '4',
         title: 'Event 2',
         artist_name: 'Artist 2',
         venue_name: 'Venue 2',
         date: '2025-01-15',
-        artist_id: 2,
+        artist_id: '2',
         created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
+        sync_status: 'synced' as const,
       },
       {
-        id: 5,
+        id: '5',
         title: 'Event 3',
         artist_name: 'Artist 3',
         venue_name: 'Venue 3',
         date: '2025-02-10',
-        artist_id: 3,
+        artist_id: '3',
         created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
+        sync_status: 'synced' as const,
       },
       {
-        id: 6,
+        id: '6',
         title: 'Event 4',
         artist_name: 'Artist 4',
         venue_name: 'Venue 4',
         date: '2025-03-15',
-        artist_id: 4,
+        artist_id: '4',
         created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
+        sync_status: 'synced' as const,
       },
       {
-        id: 7,
+        id: '7',
         title: 'Event 5',
         artist_name: 'Artist 5',
         venue_name: 'Venue 5',
         date: '2025-04-20',
-        artist_id: 5,
+        artist_id: '5',
         created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
+        sync_status: 'synced' as const,
       }
     ] as any;
 
@@ -590,13 +614,15 @@ describe('HomeScreen', () => {
     const multipleEvents = [
       mockUpcomingEvents[0],
       {
-        id: 4,
+        id: '4',
         title: 'Second Event',
         artist_name: 'Second Artist',
         venue_name: 'Second Venue',
         date: '2025-01-15',
-        artist_id: 2,
+        artist_id: '2',
         created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
+        sync_status: 'synced' as const,
       }
     ] as any;
 
@@ -636,13 +662,15 @@ describe('HomeScreen', () => {
     const multipleEvents = [
       mockUpcomingEvents[0],
       {
-        id: 4,
+        id: '4',
         title: 'Another Event',
         artist_name: 'Another Artist',
         venue_name: 'Another Venue',
         date: '2025-01-15',
-        artist_id: 2,
+        artist_id: '2',
         created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
+        sync_status: 'synced' as const,
       }
     ] as any;
 
@@ -760,13 +788,15 @@ describe('HomeScreen - additional coverage', () => {
     global.Date = MockDate as unknown as DateConstructor;
 
     const event = {
-      id: 1,
+      id: '1',
       title: 'Today Concert',
       date: '2025-01-10',
       venue_name: 'Today Venue',
-      artist_id: 1,
+      artist_id: '1',
       artist_name: 'Today Artist',
       created_at: '2025-01-01T00:00:00.000Z',
+      updated_at: '2025-01-01T00:00:00.000Z',
+      sync_status: 'synced' as const,
     };
 
     mockUseApp.mockReturnValue({
@@ -811,13 +841,15 @@ describe('HomeScreen - additional coverage', () => {
     global.Date = MockDate2 as unknown as DateConstructor;
 
     const pastEvent = {
-      id: 2,
+      id: '2',
       title: 'Past Event',
       date: '2025-01-09',
       venue_name: 'Past Venue',
-      artist_id: 2,
+      artist_id: '2',
       artist_name: 'Past Artist',
       created_at: '2025-01-01T00:00:00.000Z',
+      updated_at: '2025-01-01T00:00:00.000Z',
+      sync_status: 'synced' as const,
     };
 
     mockUseApp.mockReturnValue({
@@ -845,13 +877,15 @@ describe('HomeScreen - additional coverage', () => {
 
   it('does not render empty state when nextEvent exists', () => {
     const event = {
-      id: 3,
+      id: '3',
       title: 'With Event',
       date: '2030-12-25',
       venue_name: 'Big Venue',
-      artist_id: 1,
+      artist_id: '1',
       artist_name: 'Famous Artist',
       created_at: '2024-01-01T00:00:00.000Z',
+      updated_at: '2024-01-01T00:00:00.000Z',
+      sync_status: 'synced' as const,
     };
 
     mockUseApp.mockReturnValue({
@@ -877,11 +911,11 @@ describe('HomeScreen - additional coverage', () => {
 
   it('renders up to 3 upcoming events and hides the 5th', () => {
     const events = [
-      { id: 1, title: 'First', date: '2030-01-01', venue_name: 'V1', artist_id: 1, artist_name: 'A1', created_at: '2024-01-01T00:00:00.000Z' },
-      { id: 2, title: 'Second', date: '2030-01-02', venue_name: 'V2', artist_id: 2, artist_name: 'A2', created_at: '2024-01-01T00:00:00.000Z' },
-      { id: 3, title: 'Third', date: '2030-01-03', venue_name: 'V3', artist_id: 3, artist_name: 'A3', created_at: '2024-01-01T00:00:00.000Z' },
-      { id: 4, title: 'Fourth', date: '2030-01-04', venue_name: 'V4', artist_id: 4, artist_name: 'A4', created_at: '2024-01-01T00:00:00.000Z' },
-      { id: 5, title: 'Fifth', date: '2030-01-05', venue_name: 'V5', artist_id: 5, artist_name: 'A5', created_at: '2024-01-01T00:00:00.000Z' },
+      { id: '1', title: 'First', date: '2030-01-01', venue_name: 'V1', artist_id: '1', artist_name: 'A1', created_at: '2024-01-01T00:00:00.000Z', updated_at: '2024-01-01T00:00:00.000Z', sync_status: 'synced' as const },
+      { id: '2', title: 'Second', date: '2030-01-02', venue_name: 'V2', artist_id: '2', artist_name: 'A2', created_at: '2024-01-01T00:00:00.000Z', updated_at: '2024-01-01T00:00:00.000Z', sync_status: 'synced' as const },
+      { id: '3', title: 'Third', date: '2030-01-03', venue_name: 'V3', artist_id: '3', artist_name: 'A3', created_at: '2024-01-01T00:00:00.000Z', updated_at: '2024-01-01T00:00:00.000Z', sync_status: 'synced' as const },
+      { id: '4', title: 'Fourth', date: '2030-01-04', venue_name: 'V4', artist_id: '4', artist_name: 'A4', created_at: '2024-01-01T00:00:00.000Z', updated_at: '2024-01-01T00:00:00.000Z', sync_status: 'synced' as const },
+      { id: '5', title: 'Fifth', date: '2030-01-05', venue_name: 'V5', artist_id: '5', artist_name: 'A5', created_at: '2024-01-01T00:00:00.000Z', updated_at: '2024-01-01T00:00:00.000Z', sync_status: 'synced' as const },
     ] as any[];
 
     mockUseApp.mockReturnValue({
@@ -912,9 +946,9 @@ describe('HomeScreen - additional coverage', () => {
 
   it('navigates to event detail when tapping an upcoming list item', () => {
     const events = [
-      { id: 1, title: 'First', date: '2030-01-01', venue_name: 'V1', artist_id: 1, artist_name: 'A1', created_at: '2024-01-01T00:00:00.000Z' },
-      { id: 2, title: 'Second', date: '2030-01-02', venue_name: 'V2', artist_id: 2, artist_name: 'A2', created_at: '2024-01-01T00:00:00.000Z' },
-      { id: 3, title: 'Third', date: '2030-01-03', venue_name: 'V3', artist_id: 3, artist_name: 'A3', created_at: '2024-01-01T00:00:00.000Z' },
+      { id: '1', title: 'First', date: '2030-01-01', venue_name: 'V1', artist_id: '1', artist_name: 'A1', created_at: '2024-01-01T00:00:00.000Z', updated_at: '2024-01-01T00:00:00.000Z', sync_status: 'synced' as const },
+      { id: '2', title: 'Second', date: '2030-01-02', venue_name: 'V2', artist_id: '2', artist_name: 'A2', created_at: '2024-01-01T00:00:00.000Z', updated_at: '2024-01-01T00:00:00.000Z', sync_status: 'synced' as const },
+      { id: '3', title: 'Third', date: '2030-01-03', venue_name: 'V3', artist_id: '3', artist_name: 'A3', created_at: '2024-01-01T00:00:00.000Z', updated_at: '2024-01-01T00:00:00.000Z', sync_status: 'synced' as const },
     ] as any[];
 
     mockUseApp.mockReturnValue({
@@ -938,6 +972,6 @@ describe('HomeScreen - additional coverage', () => {
 
     // Tap on the second event text (inside TouchableOpacity)
     fireEvent.press(getByText('Second'));
-    expect(mockNavigation.navigate).toHaveBeenCalledWith('LiveEventDetail', { eventId: 2 });
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('LiveEventDetail', { eventId: '2' });
   });
 });

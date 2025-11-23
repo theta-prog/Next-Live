@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useApp } from '../context/AppContext';
-import { LiveEvent } from '../database/database';
+import { BaseEntity, LiveEvent } from '../database/asyncDatabase';
 import { theme, typography } from '../styles/theme';
 
 const LiveEventFormScreen = ({ navigation, route }: any) => {
@@ -23,7 +23,7 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
   const editingEvent = editingEventId ? liveEvents.find(e => e.id === editingEventId) : null;
 
   const [title, setTitle] = useState('');
-  const [artistId, setArtistId] = useState<number | null>(null);
+  const [artistId, setArtistId] = useState<string | null>(null);
   const [date, setDate] = useState(new Date());
   const [doorsOpen, setDoorsOpen] = useState('');
   const [showStart, setShowStart] = useState('');
@@ -66,7 +66,7 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
       return;
     }
 
-    const eventData: Omit<LiveEvent, 'id' | 'created_at'> = {
+    const eventData: Omit<LiveEvent, keyof BaseEntity> = {
       title: title.trim(),
       artist_id: artistId,
       date: date.toISOString().split('T')[0]!,
