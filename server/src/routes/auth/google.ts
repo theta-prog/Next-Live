@@ -11,7 +11,7 @@ export async function authGoogleRoute(app: FastifyInstance) {
     const parsed = bodySchema.safeParse(req.body);
     if (!parsed.success) return reply.code(400).send({ code: 'VALIDATION_ERROR', errors: parsed.error.errors });
 
-    // 進捗ログ（開発時デバッグ用）
+    // Progress logging (for development debugging)
     req.log.info({ mock: process.env.MOCK_GOOGLE, skipDb: process.env.SKIP_DB }, 'auth.google:start');
     try {
       const profile = await verifyGoogleIdToken(parsed.data.idToken);
