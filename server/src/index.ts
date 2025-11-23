@@ -16,7 +16,7 @@ async function build() {
   const app = Fastify({
     logger: true,
     requestTimeout: 15_000,      // 15s request timeout
-    connectionTimeout: 5_000     // 接続確立待ちタイムアウト
+    connectionTimeout: 5_000     // Connection timeout
   });
 
   await app.register(cors, { origin: true, credentials: true });
