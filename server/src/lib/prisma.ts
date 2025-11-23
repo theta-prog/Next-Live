@@ -4,7 +4,6 @@ import { PrismaClient } from '@prisma/client';
 let prisma: PrismaClient;
 
 declare global {
-   
   var __prisma__: PrismaClient | undefined;
 }
 

@@ -15,7 +15,7 @@ dotenv.config();
 async function build() {
   const app = Fastify({
     logger: true,
-    requestTimeout: 15_000,      // 15s でリクエスト強制終了
+    requestTimeout: 15_000,      // 15s request timeout
     connectionTimeout: 5_000     // 接続確立待ちタイムアウト
   });
 

@@ -262,7 +262,7 @@ describe('Database', () => {
         live_event_id: '1',
         review: 'Great concert!',
         setlist: 'Song 1, Song 2, Song 3',
-        image_uris: ['photo1.jpg', 'photo2.jpg'],
+        photos: JSON.stringify(['photo1.jpg', 'photo2.jpg']),
       };
 
       // Mock: getStoredData for existing memories

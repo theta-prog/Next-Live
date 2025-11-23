@@ -18,7 +18,7 @@ export async function storageRoutes(app: FastifyInstance) {
     }
 
     const userId = req.user.sub;
-    const { filename, contentType, size } = parsed.data;
+    const { filename, contentType } = parsed.data;
 
     if (!contentType.startsWith('image/')) {
       return reply.code(400).send({ code: 'INVALID_CONTENT_TYPE', message: 'Only images are allowed' });
@@ -56,8 +56,7 @@ export async function storageRoutes(app: FastifyInstance) {
         key,
         accessKeyId: r2AccessKeyId,
         secretAccessKey: r2SecretAccessKey,
-        expiresIn,
-        contentType
+        expiresIn
       });
 
       return reply.send({
@@ -104,14 +103,12 @@ interface PresignedUrlParams {
   accessKeyId: string;
   secretAccessKey: string;
   expiresIn: number;
-  contentType: string;
 }
 
 function generatePresignedUrl(params: PresignedUrlParams): string {
-  const { endpoint, bucket, key, accessKeyId, secretAccessKey, expiresIn, contentType } = params;
+  const { endpoint, bucket, key, accessKeyId, secretAccessKey, expiresIn } = params;
   
   const now = new Date();
-  const expiresAt = Math.floor(now.getTime() / 1000) + expiresIn;
   const dateStamp = now.toISOString().slice(0, 10).replace(/-/g, '');
   const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, '');
   
