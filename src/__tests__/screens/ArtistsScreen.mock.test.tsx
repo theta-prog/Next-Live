@@ -49,11 +49,14 @@ describe('ArtistsScreen Mock Tests', () => {
 
   it('tests renderArtist function with complete artist data', () => {
     const artistWithAllFields: Artist = {
-      id: 1,
+      id: '1',
       name: 'Complete Artist',
       website: 'https://complete-artist.com',
       social_media: '@completeartist',
       photo: 'complete-artist-photo.jpg',
+      created_at: '2023-01-01T00:00:00.000Z',
+      updated_at: '2023-01-01T00:00:00.000Z',
+      sync_status: 'synced',
     };
 
     mockUseApp.mockReturnValue({
@@ -83,11 +86,14 @@ describe('ArtistsScreen Mock Tests', () => {
 
   it('tests renderArtist function with minimal artist data', () => {
     const minimalArtist: Artist = {
-      id: 2,
+      id: '2',
       name: 'Minimal Artist',
       website: undefined,
       social_media: undefined,
       photo: undefined,
+      created_at: '2023-01-01T00:00:00.000Z',
+      updated_at: '2023-01-01T00:00:00.000Z',
+      sync_status: 'synced',
     };
 
     mockUseApp.mockReturnValue({
@@ -118,11 +124,14 @@ describe('ArtistsScreen Mock Tests', () => {
 
   it('tests renderArtist function with photo rendering', () => {
     const artistWithPhoto: Artist = {
-      id: 3,
+      id: '3',
       name: 'Photo Artist',
       website: undefined,
       social_media: undefined,
       photo: 'artist-photo.jpg',
+      created_at: '2023-01-01T00:00:00.000Z',
+      updated_at: '2023-01-01T00:00:00.000Z',
+      sync_status: 'synced',
     };
 
     mockUseApp.mockReturnValue({
@@ -150,11 +159,14 @@ describe('ArtistsScreen Mock Tests', () => {
 
   it('tests renderArtist function without photo', () => {
     const artistWithoutPhoto: Artist = {
-      id: 4,
+      id: '4',
       name: 'No Photo Artist',
       website: 'https://nophoto.com',
       social_media: '@nophoto',
       photo: undefined,
+      created_at: '2023-01-01T00:00:00.000Z',
+      updated_at: '2023-01-01T00:00:00.000Z',
+      sync_status: 'synced',
     };
 
     mockUseApp.mockReturnValue({
@@ -184,11 +196,14 @@ describe('ArtistsScreen Mock Tests', () => {
 
   it('tests renderArtist function with edit button interaction', () => {
     const testArtist: Artist = {
-      id: 5,
+      id: '5',
       name: 'Editable Artist',
       website: undefined,
       social_media: undefined,
       photo: undefined,
+      created_at: '2023-01-01T00:00:00.000Z',
+      updated_at: '2023-01-01T00:00:00.000Z',
+      sync_status: 'synced',
     };
 
     mockUseApp.mockReturnValue({
@@ -219,11 +234,14 @@ describe('ArtistsScreen Mock Tests', () => {
 
   it('tests renderArtist function with delete button interaction', () => {
     const testArtist: Artist = {
-      id: 6,
+      id: '6',
       name: 'Deletable Artist',
       website: undefined,
       social_media: undefined,
       photo: undefined,
+      created_at: '2023-01-01T00:00:00.000Z',
+      updated_at: '2023-01-01T00:00:00.000Z',
+      sync_status: 'synced',
     };
 
     mockUseApp.mockReturnValue({
@@ -252,25 +270,34 @@ describe('ArtistsScreen Mock Tests', () => {
   it('tests FlatList keyExtractor function', () => {
     const multipleArtists: Artist[] = [
       {
-        id: 7,
+        id: '7',
         name: 'First Artist',
         website: undefined,
         social_media: undefined,
         photo: undefined,
+        created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
+        sync_status: 'synced',
       },
       {
-        id: 8,
+        id: '8',
         name: 'Second Artist',
         website: 'https://second.com',
         social_media: '@second',
         photo: 'second-photo.jpg',
+        created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
+        sync_status: 'synced',
       },
       {
-        id: 9,
+        id: '9',
         name: 'Third Artist',
         website: undefined,
         social_media: '@third',
         photo: undefined,
+        created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
+        sync_status: 'synced',
       },
     ];
 
@@ -307,25 +334,34 @@ describe('ArtistsScreen Mock Tests', () => {
   it('tests renderArtist function with mixed data configurations', () => {
     const mixedArtists: Artist[] = [
       {
-        id: 10,
+        id: '10',
         name: 'Only Website Artist',
         website: 'https://only-website.com',
         social_media: undefined,
         photo: undefined,
+        created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
+        sync_status: 'synced',
       },
       {
-        id: 11,
+        id: '11',
         name: 'Only Social Artist',
         website: undefined,
         social_media: '@onlysocial',
         photo: undefined,
+        created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
+        sync_status: 'synced',
       },
       {
-        id: 12,
+        id: '12',
         name: 'Only Photo Artist',
         website: undefined,
         social_media: undefined,
         photo: 'only-photo.jpg',
+        created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
+        sync_status: 'synced',
       },
     ];
 
@@ -364,11 +400,14 @@ describe('ArtistsScreen Mock Tests', () => {
 
   it('tests FlatList contentContainerStyle configuration', () => {
     const testArtist: Artist = {
-      id: 13,
+      id: '13',
       name: 'Styled Artist',
       website: undefined,
       social_media: undefined,
       photo: undefined,
+      created_at: '2023-01-01T00:00:00.000Z',
+      updated_at: '2023-01-01T00:00:00.000Z',
+      sync_status: 'synced',
     };
 
     mockUseApp.mockReturnValue({

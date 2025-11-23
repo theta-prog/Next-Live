@@ -1,7 +1,7 @@
 import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
 import { useApp } from '../../context/AppContext';
-import { Memory } from '../../database/database';
+import { Memory } from '../../database/asyncDatabase';
 import MemoriesScreen from '../../screens/MemoriesScreen';
 
 // Mock the useApp hook
@@ -18,8 +18,8 @@ const mockNavigation = {
 describe('MemoriesScreen', () => {
   const mockMemories: (Memory & { event_title: string; artist_name: string; event_date: string })[] = [
     {
-      id: 1,
-      live_event_id: 1,
+      id: '1',
+      live_event_id: '1',
       review: 'Amazing concert experience!',
       setlist: 'Song 1, Song 2, Song 3',
       photos: JSON.stringify(['photo1.jpg', 'photo2.jpg']),
@@ -27,10 +27,12 @@ describe('MemoriesScreen', () => {
       artist_name: 'Test Artist',
       event_date: '2024-12-25',
       created_at: '2023-01-01T00:00:00.000Z',
+      updated_at: '2023-01-01T00:00:00.000Z',
+      sync_status: 'synced',
     },
     {
-      id: 2,
-      live_event_id: 2,
+      id: '2',
+      live_event_id: '2',
       review: 'Another great show!',
       setlist: 'Song A, Song B, Song C',
       photos: JSON.stringify([]),
@@ -38,6 +40,8 @@ describe('MemoriesScreen', () => {
       artist_name: 'Second Artist',
       event_date: '2024-12-20',
       created_at: '2023-01-02T00:00:00.000Z',
+      updated_at: '2023-01-02T00:00:00.000Z',
+      sync_status: 'synced',
     },
   ];
 
@@ -394,8 +398,8 @@ describe('MemoriesScreen', () => {
 
   it('handles memory list performance', () => {
     const largeMemoryList = Array.from({ length: 100 }, (_, i) => ({
-      id: i + 1,
-      live_event_id: i + 1,
+      id: (i + 1).toString(),
+      live_event_id: (i + 1).toString(),
       review: `Review ${i + 1}`,
       setlist: `Setlist ${i + 1}`,
       photos: JSON.stringify([]),
@@ -403,6 +407,8 @@ describe('MemoriesScreen', () => {
       artist_name: `Artist ${i + 1}`,
       event_date: '2024-12-01',
       created_at: '2023-01-01T00:00:00.000Z',
+      updated_at: '2023-01-01T00:00:00.000Z',
+      sync_status: 'synced' as const,
     }));
 
     mockUseApp.mockReturnValue({
@@ -486,8 +492,8 @@ describe('MemoriesScreen', () => {
   it('handles memories with and without photos', () => {
     const mixedMemories = [
       {
-        id: 1,
-        live_event_id: 1,
+        id: '1',
+        live_event_id: '1',
         review: 'Amazing concert experience!',
         setlist: 'Song 1, Song 2, Song 3',
         photos: JSON.stringify(['photo1.jpg']), // Has photos
@@ -495,10 +501,12 @@ describe('MemoriesScreen', () => {
         artist_name: 'Test Artist',
         event_date: '2024-12-25',
         created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
+        sync_status: 'synced' as const,
       },
       {
-        id: 2,
-        live_event_id: 2,
+        id: '2',
+        live_event_id: '2',
         review: 'Another great show!',
         setlist: 'Song A, Song B, Song C',
         photos: JSON.stringify([]), // No photos
@@ -506,6 +514,8 @@ describe('MemoriesScreen', () => {
         artist_name: 'Second Artist',
         event_date: '2024-12-20',
         created_at: '2023-01-02T00:00:00.000Z',
+        updated_at: '2023-01-02T00:00:00.000Z',
+        sync_status: 'synced' as const,
       },
     ];
 
@@ -822,14 +832,14 @@ describe('MemoriesScreen', () => {
       mockMemories[0],
       {
         ...mockMemories[0],
-        id: 2,
+        id: '2',
         review: 'Second amazing concert!',
         event_title: 'Second Concert',
         photos: JSON.stringify(['photo3.jpg']),
       },
       {
         ...mockMemories[0],
-        id: 3,
+        id: '3',
         review: 'Third incredible show!',
         event_title: 'Third Concert',
         photos: null,
@@ -1285,8 +1295,8 @@ describe('MemoriesScreen', () => {
       mockUseApp.mockReturnValue({
         memories: [
           {
-            id: 1,
-            live_event_id: 1,
+            id: '1',
+            live_event_id: '1',
             review: 'Test review',
             setlist: undefined,
             photos: undefined,
@@ -1294,6 +1304,8 @@ describe('MemoriesScreen', () => {
             artist_name: 'Test Artist',
             event_date: '2024-01-15',
             created_at: '2024-01-15T00:00:00.000Z',
+            updated_at: '2024-01-15T00:00:00.000Z',
+            sync_status: 'synced',
           }
         ],
         artists: [],
@@ -1327,8 +1339,8 @@ describe('MemoriesScreen', () => {
         mockUseApp.mockReturnValue({
           memories: [
             {
-              id: 1,
-              live_event_id: 1,
+              id: '1',
+              live_event_id: '1',
               review: 'Test review',
               setlist: undefined,
               photos: undefined,
@@ -1336,6 +1348,8 @@ describe('MemoriesScreen', () => {
               artist_name: 'Test Artist',
               event_date: dateString,
               created_at: '2024-01-15T00:00:00.000Z',
+              updated_at: '2024-01-15T00:00:00.000Z',
+              sync_status: 'synced',
             }
           ],
           artists: [],
@@ -1364,8 +1378,8 @@ describe('MemoriesScreen', () => {
   describe('renderMemory function', () => {
     it('handles memory with photos correctly', () => {
       const memoryWithPhotos = {
-        id: 1,
-        live_event_id: 1,
+        id: '1',
+        live_event_id: '1',
         review: 'Great show!',
         setlist: 'Song 1, Song 2',
         photos: JSON.stringify(['photo1.jpg', 'photo2.jpg', 'photo3.jpg']),
@@ -1373,6 +1387,8 @@ describe('MemoriesScreen', () => {
         artist_name: 'Rock Band',
         event_date: '2024-01-15',
         created_at: '2024-01-15T00:00:00.000Z',
+        updated_at: '2024-01-15T00:00:00.000Z',
+        sync_status: 'synced' as const,
       };
 
       mockUseApp.mockReturnValue({
@@ -1407,8 +1423,8 @@ describe('MemoriesScreen', () => {
 
     it('handles memory without photos correctly', () => {
       const memoryWithoutPhotos = {
-        id: 2,
-        live_event_id: 2,
+        id: '2',
+        live_event_id: '2',
         review: 'Nice show!',
         setlist: 'Song A, Song B',
         photos: undefined,
@@ -1416,6 +1432,8 @@ describe('MemoriesScreen', () => {
         artist_name: 'Jazz Band',
         event_date: '2024-02-15',
         created_at: '2024-02-15T00:00:00.000Z',
+        updated_at: '2024-02-15T00:00:00.000Z',
+        sync_status: 'synced' as const,
       };
 
       mockUseApp.mockReturnValue({
@@ -1442,8 +1460,8 @@ describe('MemoriesScreen', () => {
 
     it('handles memory with invalid JSON photos', () => {
       const memoryWithInvalidPhotos = {
-        id: 3,
-        live_event_id: 3,
+        id: '3',
+        live_event_id: '3',
         review: 'Cool show!',
         setlist: undefined,
         photos: 'invalid json',
@@ -1451,6 +1469,8 @@ describe('MemoriesScreen', () => {
         artist_name: 'Pop Star',
         event_date: '2024-03-15',
         created_at: '2024-03-15T00:00:00.000Z',
+        updated_at: '2024-03-15T00:00:00.000Z',
+        sync_status: 'synced' as const,
       };
 
       mockUseApp.mockReturnValue({
@@ -1523,8 +1543,8 @@ describe('MemoriesScreen', () => {
     it('renders FlatList when memories exist', () => {
       const memoriesData = [
         {
-          id: 1,
-          live_event_id: 1,
+          id: '1',
+          live_event_id: '1',
           review: 'Amazing concert!',
           setlist: 'Song 1, Song 2',
           photos: JSON.stringify(['photo1.jpg']),
@@ -1532,10 +1552,12 @@ describe('MemoriesScreen', () => {
           artist_name: 'Rock Band',
           event_date: '2024-01-15',
           created_at: '2024-01-15T00:00:00.000Z',
+          updated_at: '2024-01-15T00:00:00.000Z',
+          sync_status: 'synced' as const,
         },
         {
-          id: 2,
-          live_event_id: 2,
+          id: '2',
+          live_event_id: '2',
           review: 'Great performance!',
           setlist: undefined,
           photos: undefined,
@@ -1543,6 +1565,8 @@ describe('MemoriesScreen', () => {
           artist_name: 'Jazz Artist',
           event_date: '2024-02-15',
           created_at: '2024-02-15T00:00:00.000Z',
+          updated_at: '2024-02-15T00:00:00.000Z',
+          sync_status: 'synced' as const,
         }
       ];
 
@@ -1573,8 +1597,8 @@ describe('MemoriesScreen', () => {
   describe('Memory Data Handling', () => {
     it('handles memories with all fields present', () => {
       const fullMemory = {
-        id: 1,
-        live_event_id: 1,
+        id: '1',
+        live_event_id: '1',
         review: 'Comprehensive review of the amazing concert experience!',
         setlist: 'Opening Song, Hit Song 1, Hit Song 2, Encore',
         photos: JSON.stringify(['photo1.jpg', 'photo2.jpg', 'photo3.jpg']),
@@ -1582,6 +1606,8 @@ describe('MemoriesScreen', () => {
         artist_name: 'Famous Artist',
         event_date: '2024-06-15',
         created_at: '2024-06-15T00:00:00.000Z',
+        updated_at: '2024-06-15T00:00:00.000Z',
+        sync_status: 'synced' as const,
       };
 
       mockUseApp.mockReturnValue({
@@ -1607,8 +1633,8 @@ describe('MemoriesScreen', () => {
 
     it('handles memories with missing optional fields', () => {
       const minimalMemory = {
-        id: 1,
-        live_event_id: 1,
+        id: '1',
+        live_event_id: '1',
         review: undefined,
         setlist: undefined,
         photos: undefined,
@@ -1616,6 +1642,8 @@ describe('MemoriesScreen', () => {
         artist_name: 'Simple Artist',
         event_date: '2024-01-01',
         created_at: '2024-01-01T00:00:00.000Z',
+        updated_at: '2024-01-01T00:00:00.000Z',
+        sync_status: 'synced' as const,
       };
 
       mockUseApp.mockReturnValue({

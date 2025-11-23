@@ -21,8 +21,8 @@ describe('MemoriesScreen Functional Tests', () => {
   describe('formatDate function coverage', () => {
     it('executes formatDate function with real data', () => {
       const memoryWithDate = {
-        id: 1,
-        live_event_id: 1,
+        id: '1',
+        live_event_id: '1',
         review: 'Test review',
         setlist: 'Test setlist',
         photos: JSON.stringify(['photo1.jpg']),
@@ -30,6 +30,8 @@ describe('MemoriesScreen Functional Tests', () => {
         artist_name: 'Test Artist',
         event_date: '2024-12-25',
         created_at: '2024-12-25T00:00:00.000Z',
+        updated_at: '2024-12-25T00:00:00.000Z',
+        sync_status: 'synced' as const,
       };
 
       mockUseApp.mockReturnValue({
@@ -69,8 +71,8 @@ describe('MemoriesScreen Functional Tests', () => {
 
       testDates.forEach((dateString, index) => {
         const memoryWithTestDate = {
-          id: index + 1,
-          live_event_id: index + 1,
+          id: (index + 1).toString(),
+          live_event_id: (index + 1).toString(),
           review: `Review ${index + 1}`,
           setlist: `Setlist ${index + 1}`,
           photos: JSON.stringify([`photo${index + 1}.jpg`]),
@@ -78,6 +80,8 @@ describe('MemoriesScreen Functional Tests', () => {
           artist_name: `Artist ${index + 1}`,
           event_date: dateString,
           created_at: `2024-12-25T00:00:00.000Z`,
+          updated_at: `2024-12-25T00:00:00.000Z`,
+          sync_status: 'synced' as const,
         };
 
         mockUseApp.mockReturnValue({
@@ -107,8 +111,8 @@ describe('MemoriesScreen Functional Tests', () => {
   describe('renderMemory function coverage', () => {
     it('executes renderMemory with photos JSON parsing', () => {
       const memoryWithPhotos = {
-        id: 1,
-        live_event_id: 1,
+        id: '1',
+        live_event_id: '1',
         review: 'Great concert with amazing photos!',
         setlist: 'Song 1, Song 2, Song 3',
         photos: JSON.stringify(['photo1.jpg', 'photo2.jpg', 'photo3.jpg']),
@@ -116,6 +120,8 @@ describe('MemoriesScreen Functional Tests', () => {
         artist_name: 'Photo Band',
         event_date: '2024-01-15',
         created_at: '2024-01-15T00:00:00.000Z',
+        updated_at: '2024-01-15T00:00:00.000Z',
+        sync_status: 'synced' as const,
       };
 
       mockUseApp.mockReturnValue({
@@ -144,7 +150,7 @@ describe('MemoriesScreen Functional Tests', () => {
       try {
         const memoryCard = component.getByTestId('memory-card-1');
         fireEvent.press(memoryCard);
-        expect(mockNavigation.navigate).toHaveBeenCalledWith('MemoryDetail', { memoryId: 1 });
+        expect(mockNavigation.navigate).toHaveBeenCalledWith('MemoryDetail', { memoryId: '1' });
       } catch {
         // FlatList がレンダリングされない場合でも、関数は定義されている
         expect(mockUseApp).toHaveBeenCalled();
@@ -153,8 +159,8 @@ describe('MemoriesScreen Functional Tests', () => {
 
     it('executes renderMemory without photos', () => {
       const memoryWithoutPhotos = {
-        id: 2,
-        live_event_id: 2,
+        id: '2',
+        live_event_id: '2',
         review: 'Great concert without photos',
         setlist: 'Song A, Song B, Song C',
         photos: undefined,
@@ -162,6 +168,8 @@ describe('MemoriesScreen Functional Tests', () => {
         artist_name: 'No Photo Band',
         event_date: '2024-02-15',
         created_at: '2024-02-15T00:00:00.000Z',
+        updated_at: '2024-02-15T00:00:00.000Z',
+        sync_status: 'synced' as const,
       };
 
       mockUseApp.mockReturnValue({
@@ -187,8 +195,8 @@ describe('MemoriesScreen Functional Tests', () => {
 
     it('executes renderMemory with invalid JSON photos', () => {
       const memoryWithInvalidJSON = {
-        id: 3,
-        live_event_id: 3,
+        id: '3',
+        live_event_id: '3',
         review: 'Concert with corrupted photos data',
         setlist: 'Song X, Song Y',
         photos: 'invalid json string',
@@ -196,6 +204,8 @@ describe('MemoriesScreen Functional Tests', () => {
         artist_name: 'Data Band',
         event_date: '2024-03-15',
         created_at: '2024-03-15T00:00:00.000Z',
+        updated_at: '2024-03-15T00:00:00.000Z',
+        sync_status: 'synced' as const,
       };
 
       mockUseApp.mockReturnValue({
@@ -276,8 +286,8 @@ describe('MemoriesScreen Functional Tests', () => {
     it('renders FlatList when memories exist', () => {
       const testMemories = [
         {
-          id: 1,
-          live_event_id: 1,
+          id: '1',
+          live_event_id: '1',
           review: 'First memory',
           setlist: 'Songs 1-3',
           photos: JSON.stringify(['photo1.jpg']),
@@ -285,10 +295,12 @@ describe('MemoriesScreen Functional Tests', () => {
           artist_name: 'First Artist',
           event_date: '2024-01-01',
           created_at: '2024-01-01T00:00:00.000Z',
+          updated_at: '2024-01-01T00:00:00.000Z',
+          sync_status: 'synced' as const,
         },
         {
-          id: 2,
-          live_event_id: 2,
+          id: '2',
+          live_event_id: '2',
           review: 'Second memory',
           setlist: 'Songs A-C',
           photos: undefined,
@@ -296,6 +308,8 @@ describe('MemoriesScreen Functional Tests', () => {
           artist_name: 'Second Artist', 
           event_date: '2024-02-01',
           created_at: '2024-02-01T00:00:00.000Z',
+          updated_at: '2024-02-01T00:00:00.000Z',
+          sync_status: 'synced' as const,
         }
       ];
 
@@ -326,8 +340,8 @@ describe('MemoriesScreen Functional Tests', () => {
   describe('Memory data variations', () => {
     it('handles memory with complete data', () => {
       const completeMemory = {
-        id: 1,
-        live_event_id: 1,
+        id: '1',
+        live_event_id: '1',
         review: 'Complete review with all details about the amazing concert experience',
         setlist: 'Opening, Hit 1, Hit 2, Hit 3, Encore',
         photos: JSON.stringify(['photo1.jpg', 'photo2.jpg', 'photo3.jpg', 'photo4.jpg']),
@@ -335,6 +349,8 @@ describe('MemoriesScreen Functional Tests', () => {
         artist_name: 'Complete Artist',
         event_date: '2024-06-15',
         created_at: '2024-06-15T00:00:00.000Z',
+        updated_at: '2024-06-15T00:00:00.000Z',
+        sync_status: 'synced' as const,
       };
 
       mockUseApp.mockReturnValue({
@@ -360,8 +376,8 @@ describe('MemoriesScreen Functional Tests', () => {
 
     it('handles memory with minimal data', () => {
       const minimalMemory = {
-        id: 1,
-        live_event_id: 1,
+        id: '1',
+        live_event_id: '1',
         review: undefined,
         setlist: undefined,
         photos: undefined,
@@ -369,6 +385,8 @@ describe('MemoriesScreen Functional Tests', () => {
         artist_name: 'Minimal Artist',
         event_date: '2024-01-01',
         created_at: '2024-01-01T00:00:00.000Z',
+        updated_at: '2024-01-01T00:00:00.000Z',
+        sync_status: 'synced' as const,
       };
 
       mockUseApp.mockReturnValue({

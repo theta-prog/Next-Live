@@ -1,5 +1,5 @@
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { build } from '../index.js';
-import { afterAll, beforeAll, describe, it, expect } from 'vitest';
 
 let app: Awaited<ReturnType<typeof build>>;
 

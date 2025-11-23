@@ -2,29 +2,29 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useState } from 'react';
 import {
-  Alert,
-  FlatList,
-  Image,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    FlatList,
+    Image,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { useApp } from '../context/AppContext';
-import { Memory } from '../database/database';
+import { BaseEntity, Memory } from '../database/asyncDatabase';
 import { calculateDaysUntil } from '../utils/index';
 
 const MemoryFormScreen = ({ navigation, route }: any) => {
   const { addMemory, updateMemory, memories, liveEvents } = useApp();
-  const initialEventId = route.params?.eventId as number | undefined;
+  const initialEventId = route.params?.eventId as string | undefined;
   const memoryId = route.params?.memoryId;
   const editingMemory = memoryId ? memories.find(m => m.id === memoryId) : null;
-  const [selectedEventId, setSelectedEventId] = useState<number | null>(initialEventId ?? null);
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(initialEventId ?? null);
   const [query, setQuery] = useState('');
-  const event = liveEvents.find(e => e.id === (selectedEventId ?? -1));
+  const event = liveEvents.find(e => e.id === selectedEventId);
 
   const [review, setReview] = useState('');
   const [setlist, setSetlist] = useState('');
@@ -83,7 +83,7 @@ const MemoryFormScreen = ({ navigation, route }: any) => {
       return;
     }
 
-    const memoryData: Omit<Memory, 'id' | 'created_at'> = {
+    const memoryData: Omit<Memory, keyof BaseEntity> = {
       live_event_id: selectedEventId,
       review: review.trim() || undefined,
       setlist: setlist.trim() || undefined,

@@ -22,13 +22,15 @@ const TestApp = () => {
 describe('App Integration Tests', () => {
   const mockUpcomingEvents = [
     {
-      id: 1,
+      id: '1',
       title: 'Test Concert',
       date: '2024-12-25',
       venue_name: 'Test Venue',
-      artist_id: 1,
+      artist_id: '1',
       artist_name: 'Test Artist',
       created_at: '2023-01-01T00:00:00.000Z',
+      updated_at: '2023-01-01T00:00:00.000Z',
+      sync_status: 'synced' as const,
     }
   ];
 

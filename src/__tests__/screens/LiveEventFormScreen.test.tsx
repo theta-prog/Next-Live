@@ -2,7 +2,7 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import React from 'react';
 import { Alert } from 'react-native';
 import { useApp } from '../../context/AppContext';
-import { Artist } from '../../database/database';
+import { Artist } from '../../database/asyncDatabase';
 import LiveEventFormScreen from '../../screens/LiveEventFormScreen';
 
 // Mock the useApp hook
@@ -44,11 +44,13 @@ jest.mock('@react-native-picker/picker', () => ({
 describe('LiveEventFormScreen', () => {
   const mockArtists: Artist[] = [
     {
-      id: 1,
+      id: '1',
       name: 'Test Artist',
       website: 'https://test.com',
       social_media: '@testartist',
       created_at: '2023-01-01T00:00:00.000Z',
+      updated_at: '2023-01-01T00:00:00.000Z',
+      sync_status: 'synced',
     },
   ];
 
@@ -157,18 +159,20 @@ describe('LiveEventFormScreen', () => {
 
   it('renders in edit mode when eventId is provided', () => {
     const editRoute = {
-      params: { eventId: 1 },
+      params: { eventId: '1' },
     };
 
     const mockLiveEvents = [
       {
-        id: 1,
+        id: '1',
         title: 'Existing Concert',
-        artist_id: 1,
+        artist_id: '1',
         date: '2024-12-25',
         venue_name: 'Existing Venue',
         artist_name: 'Test Artist',
         created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
+        sync_status: 'synced' as const,
       },
     ];
 

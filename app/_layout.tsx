@@ -39,6 +39,7 @@ import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AppProvider } from '../src/context/AppContext';
+import { AuthProvider } from '../src/context/AuthContext';
 import AppNavigator from '../src/navigation/AppNavigator';
 
 export default function RootLayout() {
@@ -73,10 +74,12 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <AppProvider>
-        <AppNavigator />
-        <StatusBar style="auto" />
-      </AppProvider>
+      <AuthProvider>
+        <AppProvider>
+          <AppNavigator />
+          <StatusBar style="auto" />
+        </AppProvider>
+      </AuthProvider>
     </SafeAreaProvider>
   );
 }

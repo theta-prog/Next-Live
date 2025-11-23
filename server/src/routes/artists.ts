@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
-import { prisma } from '../lib/prisma.js';
 import { z } from 'zod';
+import { prisma } from '../lib/prisma.js';
 
 const createSchema = z.object({
   name: z.string().min(1),

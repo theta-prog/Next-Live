@@ -1,5 +1,5 @@
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
-import { Artist, database, LiveEvent, Memory } from '../database/asyncDatabase';
+import { Artist, BaseEntity, database, LiveEvent, Memory } from '../database/asyncDatabase';
 
 interface AppContextType {
   artists: Artist[];
@@ -8,19 +8,19 @@ interface AppContextType {
   upcomingEvents: (LiveEvent & { artist_name: string })[];
   
   // Artist methods
-  addArtist: (artist: Omit<Artist, 'id' | 'created_at'>) => Promise<void>;
-  updateArtist: (id: number, artist: Partial<Artist>) => Promise<void>;
-  deleteArtist: (id: number) => Promise<void>;
+  addArtist: (artist: Omit<Artist, keyof BaseEntity>) => Promise<void>;
+  updateArtist: (id: string, artist: Partial<Artist>) => Promise<void>;
+  deleteArtist: (id: string) => Promise<void>;
   
   // Live event methods
-  addLiveEvent: (event: Omit<LiveEvent, 'id' | 'created_at'>) => Promise<void>;
-  updateLiveEvent: (id: number, event: Partial<LiveEvent>) => Promise<void>;
-  deleteLiveEvent: (id: number) => Promise<void>;
+  addLiveEvent: (event: Omit<LiveEvent, keyof BaseEntity>) => Promise<void>;
+  updateLiveEvent: (id: string, event: Partial<LiveEvent>) => Promise<void>;
+  deleteLiveEvent: (id: string) => Promise<void>;
   
   // Memory methods
-  addMemory: (memory: Omit<Memory, 'id' | 'created_at'>) => Promise<void>;
-  updateMemory: (id: number, memory: Partial<Memory>) => Promise<void>;
-  deleteMemory: (id: number) => Promise<void>;
+  addMemory: (memory: Omit<Memory, keyof BaseEntity>) => Promise<void>;
+  updateMemory: (id: string, memory: Partial<Memory>) => Promise<void>;
+  deleteMemory: (id: string) => Promise<void>;
   
   // Utility methods
   refreshData: () => Promise<void>;
@@ -69,7 +69,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   }, []);
 
   // Artist methods
-  const addArtist = async (artist: Omit<Artist, 'id' | 'created_at'>) => {
+  const addArtist = async (artist: Omit<Artist, keyof BaseEntity>) => {
     try {
       await database.createArtist(artist);
       await refreshData();
@@ -78,7 +78,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     }
   };
 
-  const updateArtist = async (id: number, artist: Partial<Artist>) => {
+  const updateArtist = async (id: string, artist: Partial<Artist>) => {
     try {
       await database.updateArtist(id, artist);
       await refreshData();
@@ -87,7 +87,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     }
   };
 
-  const deleteArtist = async (id: number) => {
+  const deleteArtist = async (id: string) => {
     try {
       await database.deleteArtist(id);
       await refreshData();
@@ -97,7 +97,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   };
 
   // Live event methods
-  const addLiveEvent = async (event: Omit<LiveEvent, 'id' | 'created_at'>) => {
+  const addLiveEvent = async (event: Omit<LiveEvent, keyof BaseEntity>) => {
     try {
       await database.createLiveEvent(event);
       await refreshData();
@@ -106,7 +106,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     }
   };
 
-  const updateLiveEvent = async (id: number, event: Partial<LiveEvent>) => {
+  const updateLiveEvent = async (id: string, event: Partial<LiveEvent>) => {
     try {
       await database.updateLiveEvent(id, event);
       await refreshData();
@@ -115,7 +115,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     }
   };
 
-  const deleteLiveEvent = async (id: number) => {
+  const deleteLiveEvent = async (id: string) => {
     try {
       await database.deleteLiveEvent(id);
       await refreshData();
@@ -125,7 +125,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   };
 
   // Memory methods
-  const addMemory = async (memory: Omit<Memory, 'id' | 'created_at'>) => {
+  const addMemory = async (memory: Omit<Memory, keyof BaseEntity>) => {
     try {
       await database.createMemory(memory);
       await refreshData();
@@ -134,7 +134,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     }
   };
 
-  const updateMemory = async (id: number, memory: Partial<Memory>) => {
+  const updateMemory = async (id: string, memory: Partial<Memory>) => {
     try {
       await database.updateMemory(id, memory);
       await refreshData();
@@ -143,7 +143,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     }
   };
 
-  const deleteMemory = async (id: number) => {
+  const deleteMemory = async (id: string) => {
     try {
       await database.deleteMemory(id);
       await refreshData();

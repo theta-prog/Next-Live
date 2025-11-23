@@ -1,6 +1,6 @@
-# Next-Live Server (Phase 0)
+# Next-Live Server (Phase 1 Complete)
 
-Fastify + Prisma による最小 BFF 実装（Google 認証 + Artists CRUD）。
+Fastify + Prisma による完全なBFF実装（Google認証、CRUD、画像アップロード、同期API）。
 
 ## セットアップ
 
@@ -24,16 +24,58 @@ npm run dev
 # http://localhost:3000/healthz で {"status":"ok"}
 ```
 
-## エンドポイント (Phase 0)
+## エンドポイント
 
+### 認証
 | Method | Path | Auth | 説明 |
 |--------|------|------|------|
-| POST | /v1/auth/google | none | Google ID Token でログイン（accessToken返却） |
+| POST | /v1/auth/google | none | Google ID Token でログイン |
+| POST | /v1/auth/refresh | none | Refresh Token でアクセストークン更新 |
+| POST | /v1/auth/logout | Bearer | ログアウト（Refresh Token 無効化） |
+
+### アーティスト
+| Method | Path | Auth | 説明 |
+|--------|------|------|------|
 | GET | /v1/artists | Bearer | アーティスト一覧 |
-| POST | /v1/artists | Bearer | 作成 |
-| PATCH | /v1/artists/:id | Bearer | 更新 |
-| DELETE | /v1/artists/:id | Bearer | 削除 |
-| GET | /healthz | none | ヘルスチェック |
+| POST | /v1/artists | Bearer | アーティスト作成 |
+| PATCH | /v1/artists/:id | Bearer | アーティスト更新 |
+| DELETE | /v1/artists/:id | Bearer | アーティスト削除 |
+
+### ライブイベント
+| Method | Path | Auth | 説明 |
+|--------|------|------|------|
+| GET | /v1/live-events | Bearer | イベント一覧 |
+| GET | /v1/live-events/:id | Bearer | イベント詳細 |
+| POST | /v1/live-events | Bearer | イベント作成 |
+| PATCH | /v1/live-events/:id | Bearer | イベント更新 |
+| DELETE | /v1/live-events/:id | Bearer | イベント削除 |
+
+### 思い出
+| Method | Path | Auth | 説明 |
+|--------|------|------|------|
+| GET | /v1/memories | Bearer | 思い出一覧 |
+| GET | /v1/memories/:id | Bearer | 思い出詳細 |
+| POST | /v1/memories | Bearer | 思い出作成 |
+| PATCH | /v1/memories/:id | Bearer | 思い出更新 |
+| DELETE | /v1/memories/:id | Bearer | 思い出削除 |
+| GET | /v1/live-events/:eventId/memories | Bearer | イベント別思い出一覧 |
+
+### ストレージ
+| Method | Path | Auth | 説明 |
+|--------|------|------|------|
+| POST | /v1/storage/presign | Bearer | 画像アップロード用URL生成 |
+| DELETE | /v1/storage/:key | Bearer | 画像削除 |
+
+### 同期
+| Method | Path | Auth | 説明 |
+|--------|------|------|------|
+| POST | /v1/sync | Bearer | データ同期 |
+| GET | /v1/sync/status | Bearer | 同期ステータス |
+
+### ヘルスチェック
+| Method | Path | Auth | 説明 |
+|--------|------|------|------|
+| GET | /healthz | none | サーバーヘルスチェック |
 
 ### 認証フロー (開発)
 
@@ -54,13 +96,22 @@ curl -X POST http://localhost:3000/v1/auth/google \
 curl -H 'Authorization: Bearer <token>' http://localhost:3000/v1/artists
 ```
 
-## 今後 (Phase1 予定)
+## テスト実行
 
-- Refresh トークン & ローテーション
-- 画像 R2 presign `/v1/storage/presign`
-- LiveEvents / Memories CRUD
-- 差分同期 `/v1/sync`
-- ルート単体の E2E テスト (supertest) 追加
+```bash
+npm test
+```
+
+全テストファイル:
+- `auth.test.ts` - Google認証
+- `auth.refresh.test.ts` - Refresh Token
+- `artists.validation.test.ts` - バリデーション
+- `artists.skipdb.test.ts` - SKIP_DBモード
+- `artists.db.test.ts` - DB連携
+- `liveEvents.test.ts` - ライブイベントCRUD
+- `memories.test.ts` - 思い出CRUD
+- `sync.test.ts` - 同期API
+- `storage.test.ts` - ストレージAPI
 
 ## デプロイ（Fly.io 概要）
 

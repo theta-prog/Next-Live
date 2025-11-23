@@ -46,11 +46,14 @@ describe('ArtistsScreen Additional Coverage (navigation-based)', () => {
     mockUseApp.mockReturnValue({
       artists: [
         {
-          id: 1,
+          id: '1',
           name: 'Artist With Nulls',
           website: undefined,
           social_media: undefined,
           photo: undefined,
+          created_at: '2023-01-01T00:00:00.000Z',
+          updated_at: '2023-01-01T00:00:00.000Z',
+          sync_status: 'synced',
         },
       ],
       liveEvents: [],
@@ -72,7 +75,7 @@ describe('ArtistsScreen Additional Coverage (navigation-based)', () => {
     const editBtn = queryByTestId('edit-artist-button-1');
     if (editBtn) {
       fireEvent.press(editBtn);
-      expect(mockNavigation.navigate).toHaveBeenCalledWith('ArtistForm', { artistId: 1 });
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('ArtistForm', { artistId: '1' });
     } else {
       // FlatListがテストで項目を描画しない場合はpass扱い
       expect(true).toBe(true);

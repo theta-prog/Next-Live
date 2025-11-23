@@ -42,6 +42,11 @@ jest.mock('expo-haptics', () => ({
   },
 }));
 
+// Mock Crypto
+jest.mock('expo-crypto', () => ({
+  randomUUID: jest.fn(() => 'test-uuid-' + Math.random().toString(36).substr(2, 9)),
+}));
+
 // Mock navigation
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({

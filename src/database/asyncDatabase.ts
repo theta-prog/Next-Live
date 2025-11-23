@@ -1,18 +1,25 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Crypto from 'expo-crypto';
 
-export interface Artist {
-  id?: number;
+export type SyncStatus = 'synced' | 'created' | 'updated';
+
+export interface BaseEntity {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  sync_status: SyncStatus;
+}
+
+export interface Artist extends BaseEntity {
   name: string;
   website?: string;
   social_media?: string;
   photo?: string; // Artist photo URI
-  created_at?: string;
 }
 
-export interface LiveEvent {
-  id?: number;
+export interface LiveEvent extends BaseEntity {
   title: string;
-  artist_id: number;
+  artist_id: string;
   date: string;
   doors_open?: string;
   show_start?: string;
@@ -22,37 +29,32 @@ export interface LiveEvent {
   ticket_price?: number;
   seat_number?: string;
   memo?: string;
-  created_at?: string;
 }
 
-export interface Memory {
-  id?: number;
-  live_event_id: number;
+export interface Memory extends BaseEntity {
+  live_event_id: string;
   review?: string;
   setlist?: string;
   photos?: string; // JSON array of photo URIs
-  created_at?: string;
+}
+
+export interface DeletedItem {
+  id: string;
+  entityType: 'artist' | 'live_event' | 'memory';
+  deletedAt: string;
 }
 
 const STORAGE_KEYS = {
   ARTISTS: 'artists',
   LIVE_EVENTS: 'live_events',
   MEMORIES: 'memories',
-  COUNTER: 'counter',
+  DELETED_ITEMS: 'deleted_items',
+  LAST_SYNC: 'last_sync',
 };
 
 class Database {
-  private async getNextId(entityType: string): Promise<number> {
-    try {
-      const counterKey = `${STORAGE_KEYS.COUNTER}_${entityType}`;
-      const counter = await AsyncStorage.getItem(counterKey);
-      const nextId = counter ? parseInt(counter) + 1 : 1;
-      await AsyncStorage.setItem(counterKey, nextId.toString());
-      return nextId;
-    } catch (error) {
-      console.error('Error getting next ID:', error);
-      return Date.now(); // fallback to timestamp
-    }
+  private getNextId(): string {
+    return Crypto.randomUUID();
   }
 
   private async getStoredData<T>(key: string): Promise<T[]> {
@@ -73,21 +75,32 @@ class Database {
     }
   }
 
+  private async addDeletedItem(id: string, entityType: DeletedItem['entityType']): Promise<void> {
+    const deletedItems = await this.getStoredData<DeletedItem>(STORAGE_KEYS.DELETED_ITEMS);
+    deletedItems.push({
+      id,
+      entityType,
+      deletedAt: new Date().toISOString(),
+    });
+    await this.setStoredData(STORAGE_KEYS.DELETED_ITEMS, deletedItems);
+  }
+
   // Artists methods
-  async createArtist(artist: Omit<Artist, 'id' | 'created_at'>): Promise<Artist> {
+  async createArtist(artist: Omit<Artist, keyof BaseEntity>): Promise<Artist> {
     const artists = await this.getStoredData<Artist>(STORAGE_KEYS.ARTISTS);
-    const id = await this.getNextId('artist');
     const newArtist: Artist = {
       ...artist,
-      id,
+      id: this.getNextId(),
       created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      sync_status: 'created',
     };
     artists.push(newArtist);
     await this.setStoredData(STORAGE_KEYS.ARTISTS, artists);
     return newArtist;
   }
 
-  async getArtist(id: number): Promise<Artist | null> {
+  async getArtist(id: string): Promise<Artist | null> {
     const artists = await this.getStoredData<Artist>(STORAGE_KEYS.ARTISTS);
     return artists.find(artist => artist.id === id) || null;
   }
@@ -97,37 +110,44 @@ class Database {
     return artists.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
   }
 
-  async updateArtist(id: number, artistData: Partial<Artist>): Promise<void> {
+  async updateArtist(id: string, artistData: Partial<Artist>): Promise<void> {
     const artists = await this.getStoredData<Artist>(STORAGE_KEYS.ARTISTS);
     const index = artists.findIndex(artist => artist.id === id);
     if (index !== -1) {
       const currentArtist = artists[index]!;
-      artists[index] = { ...currentArtist, ...artistData };
+      artists[index] = { 
+        ...currentArtist, 
+        ...artistData,
+        updated_at: new Date().toISOString(),
+        sync_status: currentArtist.sync_status === 'created' ? 'created' : 'updated'
+      };
       await this.setStoredData(STORAGE_KEYS.ARTISTS, artists);
     }
   }
 
-  async deleteArtist(id: number): Promise<void> {
+  async deleteArtist(id: string): Promise<void> {
     const artists = await this.getStoredData<Artist>(STORAGE_KEYS.ARTISTS);
     const filteredArtists = artists.filter(artist => artist.id !== id);
     await this.setStoredData(STORAGE_KEYS.ARTISTS, filteredArtists);
+    await this.addDeletedItem(id, 'artist');
   }
 
   // Live events methods
-  async createLiveEvent(event: Omit<LiveEvent, 'id' | 'created_at'>): Promise<LiveEvent> {
+  async createLiveEvent(event: Omit<LiveEvent, keyof BaseEntity>): Promise<LiveEvent> {
     const events = await this.getStoredData<LiveEvent>(STORAGE_KEYS.LIVE_EVENTS);
-    const id = await this.getNextId('live_event');
     const newEvent: LiveEvent = {
       ...event,
-      id,
+      id: this.getNextId(),
       created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      sync_status: 'created',
     };
     events.push(newEvent);
     await this.setStoredData(STORAGE_KEYS.LIVE_EVENTS, events);
     return newEvent;
   }
 
-  async getLiveEvent(id: number): Promise<LiveEvent | null> {
+  async getLiveEvent(id: string): Promise<LiveEvent | null> {
     const events = await this.getStoredData<LiveEvent>(STORAGE_KEYS.LIVE_EVENTS);
     return events.find(event => event.id === id) || null;
   }
@@ -159,42 +179,49 @@ class Database {
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }
 
-  async updateLiveEvent(id: number, eventData: Partial<LiveEvent>): Promise<void> {
+  async updateLiveEvent(id: string, eventData: Partial<LiveEvent>): Promise<void> {
     const events = await this.getStoredData<LiveEvent>(STORAGE_KEYS.LIVE_EVENTS);
     const index = events.findIndex(event => event.id === id);
     if (index !== -1) {
       const currentEvent = events[index]!;
-      events[index] = { ...currentEvent, ...eventData };
+      events[index] = { 
+        ...currentEvent, 
+        ...eventData,
+        updated_at: new Date().toISOString(),
+        sync_status: currentEvent.sync_status === 'created' ? 'created' : 'updated'
+      };
       await this.setStoredData(STORAGE_KEYS.LIVE_EVENTS, events);
     }
   }
 
-  async deleteLiveEvent(id: number): Promise<void> {
+  async deleteLiveEvent(id: string): Promise<void> {
     const events = await this.getStoredData<LiveEvent>(STORAGE_KEYS.LIVE_EVENTS);
     const filteredEvents = events.filter(event => event.id !== id);
     await this.setStoredData(STORAGE_KEYS.LIVE_EVENTS, filteredEvents);
+    await this.addDeletedItem(id, 'live_event');
   }
 
   // Memories methods
-  async createMemory(memory: Omit<Memory, 'id' | 'created_at'>): Promise<Memory> {
+  async createMemory(memory: Omit<Memory, keyof BaseEntity>): Promise<Memory> {
     const memories = await this.getStoredData<Memory>(STORAGE_KEYS.MEMORIES);
-    const id = await this.getNextId('memory');
     const newMemory: Memory = {
       ...memory,
-      id,
+      id: this.getNextId(),
       created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      sync_status: 'created',
     };
     memories.push(newMemory);
     await this.setStoredData(STORAGE_KEYS.MEMORIES, memories);
     return newMemory;
   }
 
-  async getMemory(id: number): Promise<Memory | null> {
+  async getMemory(id: string): Promise<Memory | null> {
     const memories = await this.getStoredData<Memory>(STORAGE_KEYS.MEMORIES);
     return memories.find(memory => memory.id === id) || null;
   }
 
-  async getMemoryByLiveEventId(liveEventId: number): Promise<Memory | null> {
+  async getMemoryByLiveEventId(liveEventId: string): Promise<Memory | null> {
     const memories = await this.getStoredData<Memory>(STORAGE_KEYS.MEMORIES);
     return memories.find(memory => memory.live_event_id === liveEventId) || null;
   }
@@ -224,20 +251,26 @@ class Database {
     });
   }
 
-  async updateMemory(id: number, memoryData: Partial<Memory>): Promise<void> {
+  async updateMemory(id: string, memoryData: Partial<Memory>): Promise<void> {
     const memories = await this.getStoredData<Memory>(STORAGE_KEYS.MEMORIES);
     const index = memories.findIndex(memory => memory.id === id);
     if (index !== -1) {
       const currentMemory = memories[index]!;
-      memories[index] = { ...currentMemory, ...memoryData };
+      memories[index] = { 
+        ...currentMemory, 
+        ...memoryData,
+        updated_at: new Date().toISOString(),
+        sync_status: currentMemory.sync_status === 'created' ? 'created' : 'updated'
+      };
       await this.setStoredData(STORAGE_KEYS.MEMORIES, memories);
     }
   }
 
-  async deleteMemory(id: number): Promise<void> {
+  async deleteMemory(id: string): Promise<void> {
     const memories = await this.getStoredData<Memory>(STORAGE_KEYS.MEMORIES);
     const filteredMemories = memories.filter(memory => memory.id !== id);
     await this.setStoredData(STORAGE_KEYS.MEMORIES, filteredMemories);
+    await this.addDeletedItem(id, 'memory');
   }
 }
 

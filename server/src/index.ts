@@ -1,11 +1,16 @@
-import Fastify from 'fastify';
 import dotenv from 'dotenv';
-dotenv.config();
+import Fastify from 'fastify';
 
-import jwtPlugin from './plugins/jwt.js';
-import { authGoogleRoute } from './routes/auth/google.js';
-import { artistRoutes } from './routes/artists.js';
 import cors from '@fastify/cors';
+import rateLimit from '@fastify/rate-limit';
+import jwtPlugin from './plugins/jwt.js';
+import { artistRoutes } from './routes/artists.js';
+import { authGoogleRoute } from './routes/auth/google.js';
+import { liveEventRoutes } from './routes/liveEvents.js';
+import { memoryRoutes } from './routes/memories.js';
+import { storageRoutes } from './routes/storage.js';
+import { syncRoutes } from './routes/sync.js';
+dotenv.config();
 
 async function build() {
   const app = Fastify({
@@ -15,13 +20,24 @@ async function build() {
   });
 
   await app.register(cors, { origin: true, credentials: true });
+  
+  // Rate limiting: 100 requests per minute per IP
+  await app.register(rateLimit, {
+    max: 100,
+    timeWindow: '1 minute'
+  });
+
   // 公開ヘルスチェック（認証不要）
   app.get('/healthz', async () => ({ status: 'ok' }));
-  // TODO: add rate limiting plugin (compatible version) or custom middleware later
+  
   await app.register(jwtPlugin);
 
   await authGoogleRoute(app);
   await artistRoutes(app);
+  await liveEventRoutes(app);
+  await memoryRoutes(app);
+  await syncRoutes(app);
+  await storageRoutes(app);
 
   // 共通エラーハンドラ
   app.setErrorHandler((err, _req, reply) => {

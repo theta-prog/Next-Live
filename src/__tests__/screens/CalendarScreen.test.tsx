@@ -37,22 +37,26 @@ jest.mock('react-native-calendars', () => ({
 describe('CalendarScreen', () => {
   const mockLiveEvents = [
     {
-      id: 1,
+      id: '1',
       title: 'Test Concert',
       date: '2024-12-25',
       venue_name: 'Test Venue',
-      artist_id: 1,
+      artist_id: '1',
       artist_name: 'Test Artist',
       created_at: '2023-01-01T00:00:00.000Z',
+      updated_at: '2023-01-01T00:00:00.000Z',
+      sync_status: 'synced' as const,
     },
     {
-      id: 2,
+      id: '2',
       title: 'Another Concert',
       date: '2024-12-26',
       venue_name: 'Another Venue',
-      artist_id: 2,
+      artist_id: '2',
       artist_name: 'Another Artist',
       created_at: '2023-01-02T00:00:00.000Z',
+      updated_at: '2023-01-02T00:00:00.000Z',
+      sync_status: 'synced' as const,
     },
   ];
 
@@ -125,7 +129,7 @@ describe('CalendarScreen', () => {
     fireEvent.press(eventCard);
 
     expect(mockNavigation.navigate).toHaveBeenCalledWith('LiveEventDetail', {
-      eventId: 1,
+      eventId: '1',
     });
   });
 
@@ -172,13 +176,15 @@ describe('CalendarScreen', () => {
     const eventsOnSameDate = [
       ...mockLiveEvents,
       {
-        id: 3,
+        id: '3',
         title: 'Third Concert',
         date: '2024-12-25',
         venue_name: 'Third Venue',
-        artist_id: 3,
+        artist_id: '3',
         artist_name: 'Third Artist',
         created_at: '2023-01-03T00:00:00.000Z',
+        updated_at: '2023-01-03T00:00:00.000Z',
+        sync_status: 'synced' as const,
       },
     ];
 
@@ -220,13 +226,15 @@ describe('CalendarScreen', () => {
 
   it('handles event navigation correctly', () => {
     const mockEvent = {
-      id: 1,
+      id: '1',
       title: 'Nav Test Concert',
       date: '2024-12-25',
       venue_name: 'Nav Test Venue',
-      artist_id: 1,
+      artist_id: '1',
       artist_name: 'Nav Test Artist',
       created_at: '2024-01-01T00:00:00.000Z',
+      updated_at: '2024-01-01T00:00:00.000Z',
+      sync_status: 'synced' as const,
     };
 
     mockUseApp.mockReturnValue({
@@ -253,22 +261,26 @@ describe('CalendarScreen', () => {
   it('displays multiple events correctly', () => {
     const mockEvents = [
       {
-        id: 1,
+        id: '1',
         title: 'Event 1',
         date: '2024-12-25',
         venue_name: 'Venue 1',
-        artist_id: 1,
+        artist_id: '1',
         artist_name: 'Artist 1',
         created_at: '2024-01-01T00:00:00.000Z',
+        updated_at: '2024-01-01T00:00:00.000Z',
+        sync_status: 'synced' as const,
       },
       {
-        id: 2,
+        id: '2',
         title: 'Event 2',
         date: '2024-12-26',
         venue_name: 'Venue 2',
-        artist_id: 2,
+        artist_id: '2',
         artist_name: 'Artist 2',
         created_at: '2024-01-01T00:00:00.000Z',
+        updated_at: '2024-01-01T00:00:00.000Z',
+        sync_status: 'synced' as const,
       }
     ];
 

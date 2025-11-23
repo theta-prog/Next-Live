@@ -2,7 +2,7 @@ import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
 import { Alert } from 'react-native';
 import { useApp } from '../../context/AppContext';
-import { LiveEvent } from '../../database/asyncDatabase';
+import { LiveEvent, SyncStatus } from '../../database/asyncDatabase';
 import LiveEventDetailScreen from '../../screens/LiveEventDetailScreen';
 
 // Mock the useApp hook
@@ -19,7 +19,7 @@ const mockNavigation = {
 // Mock route params
 const mockRoute = {
   params: {
-    eventId: 1,
+    eventId: '1',
   },
 };
 
@@ -29,29 +29,33 @@ jest.spyOn(Alert, 'alert').mockImplementation(() => {});
 describe('LiveEventDetailScreen', () => {
   const mockLiveEvents: (LiveEvent & { artist_name: string })[] = [
     {
-      id: 1,
+      id: '1',
       title: 'Test Concert',
       date: '2024-12-25',
       venue_name: 'Test Venue',
-      artist_id: 1,
+      artist_id: '1',
       artist_name: 'Test Artist',
       ticket_status: 'won' as const,
       ticket_price: 5000,
       memo: 'Looking forward to this concert!',
       created_at: '2023-01-01T00:00:00.000Z',
+      updated_at: '2023-01-01T00:00:00.000Z',
+      sync_status: 'synced' as SyncStatus,
     },
   ];
 
   const mockMemories = [
     {
-      id: 1,
-      live_event_id: 1,
+      id: '1',
+      live_event_id: '1',
       review: 'Amazing concert!',
       setlist: 'Song 1, Song 2, Song 3',
       event_title: 'Test Concert',
       artist_name: 'Test Artist',
       event_date: '2024-12-25',
       created_at: '2023-01-01T00:00:00.000Z',
+      updated_at: '2023-01-01T00:00:00.000Z',
+      sync_status: 'synced' as SyncStatus,
     },
   ];
 
@@ -104,7 +108,7 @@ describe('LiveEventDetailScreen', () => {
   });
 
   it('shows error message when event not found', () => {
-    const invalidRoute = { params: { eventId: 999 } };
+    const invalidRoute = { params: { eventId: '999' } };
     
     const { getByText } = render(
       <LiveEventDetailScreen navigation={mockNavigation} route={invalidRoute} />

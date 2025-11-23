@@ -8,6 +8,10 @@ module.exports = {
   transformIgnorePatterns: [
     'node_modules/(?!(react-native|@react-native|react-native-.*|@expo/.*|expo-.*|@unimodules/.*|unimodules-.*|sentry-expo|native-base|react-navigation|@react-navigation/.*|@expo-google-fonts/.*)/)',
   ],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '<rootDir>/server/',
+  ],
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.(js|ts|tsx)$',
   moduleNameMapper: {
     '\\.(css|less|scss|sss|styl)$': 'identity-obj-proxy',
