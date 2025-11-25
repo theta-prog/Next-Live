@@ -77,12 +77,14 @@ const ArtistFormScreen: React.FC<Props> = ({ navigation, route }) => {
           name: trimmedName,
           website: trimmedWebsite || undefined,
           social_media: trimmedSocial || undefined,
+          photo: photo || undefined,
         });
       } else {
         await addArtist({
           name: trimmedName,
           website: trimmedWebsite || undefined,
           social_media: trimmedSocial || undefined,
+          photo: photo || undefined,
         });
       }
       navigation.goBack();
@@ -154,7 +156,7 @@ const ArtistFormScreen: React.FC<Props> = ({ navigation, route }) => {
             <Text style={styles.inputLabel}>SNS</Text>
             <TextInput
               style={styles.input}
-              placeholder="@username"
+              placeholder="https://..."
               value={social}
               onChangeText={setSocial}
               testID="artist-social-input"

@@ -4,15 +4,18 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// Screen imports
+import { useAuth } from '../context/AuthContext';
+import ArtistDetailScreen from '../screens/ArtistDetailScreen';
 import ArtistFormScreen from '../screens/ArtistFormScreen';
 import ArtistsScreen from '../screens/ArtistsScreen';
 import CalendarScreen from '../screens/CalendarScreen';
 import HomeScreen from '../screens/HomeScreen';
 import LiveEventDetailScreen from '../screens/LiveEventDetailScreen';
 import LiveEventFormScreen from '../screens/LiveEventFormScreen';
+import LoginScreen from '../screens/LoginScreen';
 import MemoriesScreen from '../screens/MemoriesScreen';
 import MemoryDetailScreen from '../screens/MemoryDetailScreen';
 import MemoryFormScreen from '../screens/MemoryFormScreen';
@@ -95,6 +98,16 @@ const TabNavigator = () => {
 export { TabNavigator };
 
 const AppNavigator = () => {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#007AFF" />
+      </View>
+    );
+  }
+
   return (
     <SafeAreaProvider>
       <NavigationContainer>
@@ -105,45 +118,58 @@ const AppNavigator = () => {
             cardStyle: { backgroundColor: '#f5f5f5' },
           }}
         >
-          <Stack.Screen name="Main" component={TabNavigator} />
-          <Stack.Screen 
-            name="ArtistForm" 
-            component={ArtistFormScreen}
-            options={{
-              headerShown: false,
-              presentation: 'modal',
-            }}
-          />
-          <Stack.Screen 
-            name="LiveEventForm" 
-            component={LiveEventFormScreen}
-            options={{
-              headerShown: false,
-              presentation: 'modal',
-            }}
-          />
-          <Stack.Screen 
-            name="LiveEventDetail" 
-            component={LiveEventDetailScreen}
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen 
-            name="MemoryForm" 
-            component={MemoryFormScreen}
-            options={{
-              headerShown: false,
-              presentation: 'modal',
-            }}
-          />
-          <Stack.Screen 
-            name="MemoryDetail" 
-            component={MemoryDetailScreen}
-            options={{
-              headerShown: false,
-            }}
-          />
+          {isAuthenticated ? (
+            <>
+              <Stack.Screen name="Main" component={TabNavigator} />
+              <Stack.Screen 
+                name="ArtistForm" 
+                component={ArtistFormScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'modal',
+                }}
+              />
+              <Stack.Screen 
+                name="ArtistDetail" 
+                component={ArtistDetailScreen}
+                options={{
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen 
+                name="LiveEventForm" 
+                component={LiveEventFormScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'modal',
+                }}
+              />
+              <Stack.Screen 
+                name="LiveEventDetail" 
+                component={LiveEventDetailScreen}
+                options={{
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen 
+                name="MemoryForm" 
+                component={MemoryFormScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'modal',
+                }}
+              />
+              <Stack.Screen 
+                name="MemoryDetail" 
+                component={MemoryDetailScreen}
+                options={{
+                  headerShown: false,
+                }}
+              />
+            </>
+          ) : (
+            <Stack.Screen name="Login" component={LoginScreen} />
+          )}
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>

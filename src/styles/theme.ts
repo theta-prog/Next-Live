@@ -105,6 +105,14 @@ export const theme = {
 };
 
 export const typography = {
+  brand: {
+    fontFamily: theme.fonts.accentBold,
+    fontSize: 40,
+    lineHeight: 48,
+    color: theme.colors.text.primary,
+    letterSpacing: 2,
+    textTransform: 'uppercase' as const,
+  },
   h1: {
     fontFamily: theme.fonts.accentBold,
     fontSize: 32,

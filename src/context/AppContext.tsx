@@ -1,5 +1,6 @@
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
-import { Artist, BaseEntity, database, LiveEvent, Memory } from '../database/asyncDatabase';
+import { artistService, liveEventService, memoryService } from '../api/services';
+import { Artist, BaseEntity, LiveEvent, Memory } from '../database/asyncDatabase';
 
 interface AppContextType {
   artists: Artist[];
@@ -48,17 +49,53 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   const refreshData = async () => {
     try {
-      const [artistsData, eventsData, memoriesData, upcomingData] = await Promise.all([
-        database.getAllArtists(),
-        database.getLiveEventsWithArtists(),
-        database.getMemoriesWithEventDetails(),
-        database.getUpcomingLiveEvents(),
+      // Fetch all data in parallel
+      const [artistsData, eventsData, memoriesData] = await Promise.all([
+        artistService.getAll(),
+        liveEventService.getAll(),
+        memoryService.getAll(),
       ]);
       
-      setArtists(artistsData);
-      setLiveEvents(eventsData);
-      setMemories(memoriesData);
-      setUpcomingEvents(upcomingData);
+      // Sort artists
+      const sortedArtists = artistsData.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      setArtists(sortedArtists);
+
+      // Join events with artists
+      const eventsWithArtists = eventsData.map(event => {
+        const artist = artistsData.find(a => a.id === event.artist_id);
+        return {
+          ...event,
+          artist_name: artist?.name || 'Unknown Artist',
+        };
+      }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      
+      setLiveEvents(eventsWithArtists);
+
+      // Join memories with events and artists
+      const memoriesWithDetails = memoriesData.map(memory => {
+        const event = eventsData.find(e => e.id === memory.live_event_id);
+        const artist = event ? artistsData.find(a => a.id === event.artist_id) : null;
+        
+        return {
+          ...memory,
+          event_title: event?.title || 'Unknown Event',
+          artist_name: artist?.name || 'Unknown Artist',
+          event_date: event?.date || '',
+        };
+      }).sort((a, b) => 
+        new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+      );
+
+      setMemories(memoriesWithDetails);
+
+      // Filter upcoming events
+      const today = new Date().toISOString().split('T')[0]!;
+      const upcoming = eventsWithArtists
+        .filter(event => event.date >= today)
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      
+      setUpcomingEvents(upcoming);
+
     } catch (error) {
       console.error('Error refreshing data:', error);
     }
@@ -71,84 +108,93 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   // Artist methods
   const addArtist = async (artist: Omit<Artist, keyof BaseEntity>) => {
     try {
-      await database.createArtist(artist);
+      await artistService.create(artist);
       await refreshData();
     } catch (error) {
       console.error('Error adding artist:', error);
+      throw error;
     }
   };
 
   const updateArtist = async (id: string, artist: Partial<Artist>) => {
     try {
-      await database.updateArtist(id, artist);
+      await artistService.update(id, artist);
       await refreshData();
     } catch (error) {
       console.error('Error updating artist:', error);
+      throw error;
     }
   };
 
   const deleteArtist = async (id: string) => {
     try {
-      await database.deleteArtist(id);
+      await artistService.delete(id);
       await refreshData();
     } catch (error) {
       console.error('Error deleting artist:', error);
+      throw error;
     }
   };
 
   // Live event methods
   const addLiveEvent = async (event: Omit<LiveEvent, keyof BaseEntity>) => {
     try {
-      await database.createLiveEvent(event);
+      await liveEventService.create(event);
       await refreshData();
     } catch (error) {
       console.error('Error adding live event:', error);
+      throw error;
     }
   };
 
   const updateLiveEvent = async (id: string, event: Partial<LiveEvent>) => {
     try {
-      await database.updateLiveEvent(id, event);
+      await liveEventService.update(id, event);
       await refreshData();
     } catch (error) {
       console.error('Error updating live event:', error);
+      throw error;
     }
   };
 
   const deleteLiveEvent = async (id: string) => {
     try {
-      await database.deleteLiveEvent(id);
+      await liveEventService.delete(id);
       await refreshData();
     } catch (error) {
       console.error('Error deleting live event:', error);
+      throw error;
     }
   };
 
   // Memory methods
   const addMemory = async (memory: Omit<Memory, keyof BaseEntity>) => {
     try {
-      await database.createMemory(memory);
+      await memoryService.create(memory);
       await refreshData();
     } catch (error) {
       console.error('Error adding memory:', error);
+      throw error;
     }
   };
 
   const updateMemory = async (id: string, memory: Partial<Memory>) => {
     try {
-      await database.updateMemory(id, memory);
+      await memoryService.update(id, memory);
       await refreshData();
     } catch (error) {
       console.error('Error updating memory:', error);
+      throw error;
     }
   };
 
   const deleteMemory = async (id: string) => {
     try {
-      await database.deleteMemory(id);
+      await memoryService.delete(id);
       await refreshData();
     } catch (error) {
       console.error('Error deleting memory:', error);
+      throw error;
     }
   };
 

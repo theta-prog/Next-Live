@@ -12,10 +12,21 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useApp } from '../context/AppContext';
 import { BaseEntity, LiveEvent } from '../database/asyncDatabase';
 import { theme, typography } from '../styles/theme';
+
+// 日本語ロケール設定
+LocaleConfig.locales['ja'] = {
+  monthNames: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+  monthNamesShort: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+  dayNames: ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'],
+  dayNamesShort: ['日', '月', '火', '水', '木', '金', '土'],
+  today: '今日'
+};
+LocaleConfig.defaultLocale = 'ja';
 
 const LiveEventFormScreen = ({ navigation, route }: any) => {
   const { artists, addLiveEvent, updateLiveEvent, liveEvents } = useApp();
@@ -23,10 +34,10 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
   const editingEvent = editingEventId ? liveEvents.find(e => e.id === editingEventId) : null;
 
   const [title, setTitle] = useState('');
-  const [artistId, setArtistId] = useState<string | null>(null);
+  const [artistId, setArtistId] = useState<string>('');
   const [date, setDate] = useState(new Date());
-  const [doorsOpen, setDoorsOpen] = useState('');
-  const [showStart, setShowStart] = useState('');
+  const [doorsOpen, setDoorsOpen] = useState<Date | null>(null);
+  const [showStart, setShowStart] = useState<Date | null>(null);
   const [venueName, setVenueName] = useState('');
   const [venueAddress, setVenueAddress] = useState('');
   const [ticketStatus, setTicketStatus] = useState<'won' | 'lost' | 'pending' | 'purchased' | undefined>(undefined);
@@ -34,15 +45,31 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
   const [seatNumber, setSeatNumber] = useState('');
   const [memo, setMemo] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
-  // インライン新規アーティストフォームはUX要件変更により削除
+  const [showDoorsOpenPicker, setShowDoorsOpenPicker] = useState(false);
+  const [showShowStartPicker, setShowShowStartPicker] = useState(false);
+
+  // Helper to parse time string "HH:mm" to Date
+  const parseTime = (timeStr?: string) => {
+    if (!timeStr) return null;
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    const d = new Date();
+    d.setHours(hours || 0, minutes || 0, 0, 0);
+    return d;
+  };
+
+  // Helper to format Date to "HH:mm"
+  const formatTime = (d: Date | null) => {
+    if (!d) return '';
+    return d.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', hour12: false });
+  };
 
   useEffect(() => {
     if (editingEvent) {
       setTitle(editingEvent.title);
-      setArtistId(editingEvent.artist_id);
+      setArtistId(editingEvent.artist_id || '');
       setDate(new Date(editingEvent.date));
-      setDoorsOpen(editingEvent.doors_open || '');
-      setShowStart(editingEvent.show_start || '');
+      setDoorsOpen(parseTime(editingEvent.doors_open));
+      setShowStart(parseTime(editingEvent.show_start));
       setVenueName(editingEvent.venue_name);
       setVenueAddress(editingEvent.venue_address || '');
       setTicketStatus(editingEvent.ticket_status);
@@ -69,9 +96,9 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
     const eventData: Omit<LiveEvent, keyof BaseEntity> = {
       title: title.trim(),
       artist_id: artistId,
-      date: date.toISOString().split('T')[0]!,
-      doors_open: doorsOpen.trim() || undefined,
-      show_start: showStart.trim() || undefined,
+      date: date.toISOString(),
+      doors_open: formatTime(doorsOpen) || undefined,
+      show_start: formatTime(showStart) || undefined,
       venue_name: venueName.trim(),
       venue_address: venueAddress.trim() || undefined,
       ticket_status: ticketStatus,
@@ -92,10 +119,19 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
     }
   };
 
-  const onDateChange = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(Platform.OS === 'ios');
+  const onCalendarDayPress = (day: any) => {
+    // timestampはUTCの0時基準のため、JSTなどでは日付がずれる可能性がある
+    // dateString (YYYY-MM-DD) を使ってローカルタイムの日付オブジェクトを作成する
+    const [year, month, dayNum] = day.dateString.split('-').map(Number);
+    const newDate = new Date(year, month - 1, dayNum);
+    setDate(newDate);
+    setShowDatePicker(false);
+  };
+
+  const onTimeChange = (setter: (d: Date) => void, setShow: (b: boolean) => void) => (event: any, selectedDate?: Date) => {
+    setShow(Platform.OS === 'ios');
     if (selectedDate) {
-      setDate(selectedDate);
+      setter(selectedDate);
     }
   };
 
@@ -106,6 +142,13 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
       day: 'numeric',
       weekday: 'long',
     });
+  };
+
+  const toLocalDateString = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   const ticketStatusOptions = [
@@ -173,7 +216,7 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
                   onValueChange={setArtistId}
                   style={styles.picker}
                 >
-                  <Picker.Item label="選択してください" value={null} />
+                  <Picker.Item label="選択してください" value="" />
                   {artists.map((artist) => (
                     <Picker.Item
                       key={artist.id}
@@ -194,18 +237,47 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
             <Text style={styles.label}>日程 *</Text>
             <TouchableOpacity
               style={styles.dateButton}
-              onPress={() => setShowDatePicker(true)}
+              onPress={() => setShowDatePicker(!showDatePicker)}
             >
               <Text style={styles.dateButtonText}>{formatDate(date)}</Text>
-              <Ionicons name="calendar-outline" size={20} color="#666" />
+              <Ionicons name={showDatePicker ? "chevron-up" : "calendar-outline"} size={20} color="#666" />
             </TouchableOpacity>
+            
             {showDatePicker && (
-              <DateTimePicker
-                value={date}
-                mode="date"
-                display="default"
-                onChange={onDateChange}
-              />
+              <View style={styles.inlineCalendarContainer}>
+                <Calendar
+                  current={toLocalDateString(date)}
+                  onDayPress={onCalendarDayPress}
+                  markedDates={{
+                    [toLocalDateString(date)]: {
+                      selected: true,
+                      selectedColor: theme.colors.accent,
+                      selectedTextColor: theme.colors.text.inverse
+                    }
+                  }}
+                  theme={{
+                    backgroundColor: theme.colors.background,
+                    calendarBackground: theme.colors.background,
+                    textSectionTitleColor: theme.colors.text.secondary,
+                    selectedDayBackgroundColor: theme.colors.accent,
+                    selectedDayTextColor: theme.colors.text.inverse,
+                    todayTextColor: theme.colors.accent,
+                    dayTextColor: theme.colors.text.primary,
+                    textDisabledColor: theme.colors.text.tertiary,
+                    dotColor: theme.colors.accent,
+                    selectedDotColor: theme.colors.text.inverse,
+                    arrowColor: theme.colors.accent,
+                    monthTextColor: theme.colors.text.primary,
+                    indicatorColor: theme.colors.accent,
+                    textDayFontFamily: theme.fonts.secondary,
+                    textMonthFontFamily: theme.fonts.primaryMedium,
+                    textDayHeaderFontFamily: theme.fonts.secondaryMedium,
+                    textDayFontSize: 16,
+                    textMonthFontSize: 16,
+                    textDayHeaderFontSize: 14
+                  }}
+                />
+              </View>
             )}
           </View>
         </View>
@@ -215,24 +287,106 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
           
           <View style={styles.inputGroup}>
             <Text style={styles.label}>開場時間</Text>
-            <TextInput
-              style={styles.input}
-              value={doorsOpen}
-              onChangeText={setDoorsOpen}
-              placeholder="例: 18:00"
-              testID="doors-open-input"
-            />
+            {Platform.OS === 'web' ? (
+              // @ts-ignore
+              React.createElement('input', {
+                type: 'time',
+                value: formatTime(doorsOpen),
+                onChange: (e: any) => {
+                  const val = e.target.value;
+                  if (val) {
+                    setDoorsOpen(parseTime(val));
+                  } else {
+                    setDoorsOpen(null);
+                  }
+                },
+                onClick: (e: any) => {
+                  if (e.target.showPicker) e.target.showPicker();
+                },
+                style: {
+                  padding: '12px',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: theme.colors.border,
+                  borderRadius: '6px',
+                  fontSize: '16px',
+                  fontFamily: 'inherit',
+                  backgroundColor: theme.colors.background,
+                  color: theme.colors.text.primary,
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  height: '44px'
+                }
+              })
+            ) : (
+              <TouchableOpacity
+                style={styles.dateButton}
+                onPress={() => setShowDoorsOpenPicker(true)}
+              >
+                <Text style={styles.dateButtonText}>{doorsOpen ? formatTime(doorsOpen) : '未設定'}</Text>
+                <Ionicons name="time-outline" size={20} color="#666" />
+              </TouchableOpacity>
+            )}
+            {Platform.OS !== 'web' && showDoorsOpenPicker && (
+              <DateTimePicker
+                value={doorsOpen || new Date()}
+                mode="time"
+                display="default"
+                onChange={onTimeChange(setDoorsOpen, setShowDoorsOpenPicker)}
+              />
+            )}
           </View>
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>開演時間</Text>
-            <TextInput
-              style={styles.input}
-              value={showStart}
-              onChangeText={setShowStart}
-              placeholder="例: 19:00"
-              testID="show-start-input"
-            />
+            {Platform.OS === 'web' ? (
+              // @ts-ignore
+              React.createElement('input', {
+                type: 'time',
+                value: formatTime(showStart),
+                onChange: (e: any) => {
+                  const val = e.target.value;
+                  if (val) {
+                    setShowStart(parseTime(val));
+                  } else {
+                    setShowStart(null);
+                  }
+                },
+                onClick: (e: any) => {
+                  if (e.target.showPicker) e.target.showPicker();
+                },
+                style: {
+                  padding: '12px',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: theme.colors.border,
+                  borderRadius: '6px',
+                  fontSize: '16px',
+                  fontFamily: 'inherit',
+                  backgroundColor: theme.colors.background,
+                  color: theme.colors.text.primary,
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  height: '44px'
+                }
+              })
+            ) : (
+              <TouchableOpacity
+                style={styles.dateButton}
+                onPress={() => setShowShowStartPicker(true)}
+              >
+                <Text style={styles.dateButtonText}>{showStart ? formatTime(showStart) : '未設定'}</Text>
+                <Ionicons name="time-outline" size={20} color="#666" />
+              </TouchableOpacity>
+            )}
+            {Platform.OS !== 'web' && showShowStartPicker && (
+              <DateTimePicker
+                value={showStart || new Date()}
+                mode="time"
+                display="default"
+                onChange={onTimeChange(setShowStart, setShowShowStartPicker)}
+              />
+            )}
           </View>
         </View>
 
@@ -507,6 +661,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: theme.colors.accent,
     textDecorationLine: 'underline',
+  },
+  inlineCalendarContainer: {
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.md,
+    overflow: 'hidden',
   },
 });
 

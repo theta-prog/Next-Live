@@ -42,40 +42,45 @@ const ArtistsScreen = ({ navigation, route }: any) => {
   };
 
   const renderArtist = ({ item }: { item: Artist }) => (
-    <Card variant="default" style={styles.artistCard} testID={`artist-card-${item.id}`}>
-      <View style={styles.artistHeader}>
-        {item.photo && (
-          <Image source={{ uri: item.photo }} style={styles.artistPhoto} />
-        )}
-        <View style={styles.artistInfo}>
-          <Text style={[typography.h3, styles.artistName]}>{item.name}</Text>
-          {item.website && (
-            <Text style={[typography.body2, styles.artistDetail]}>🌐 {item.website}</Text>
+    <TouchableOpacity
+      onPress={() => navigation.navigate('ArtistDetail', { artistId: item.id })}
+      activeOpacity={0.9}
+    >
+      <Card variant="default" style={styles.artistCard} testID={`artist-card-${item.id}`}>
+        <View style={styles.artistHeader}>
+          {item.photo && (
+            <Image source={{ uri: item.photo }} style={styles.artistPhoto} />
           )}
-          {item.social_media && (
-            <Text style={[typography.body2, styles.artistDetail]}>📱 {item.social_media}</Text>
-          )}
+          <View style={styles.artistInfo}>
+            <Text style={[typography.h3, styles.artistName]}>{item.name}</Text>
+            {item.website && (
+              <Text style={[typography.body2, styles.artistDetail]}>🌐 {item.website}</Text>
+            )}
+            {item.social_media && (
+              <Text style={[typography.body2, styles.artistDetail]}>📱 {item.social_media}</Text>
+            )}
+          </View>
         </View>
-      </View>
-      <View style={styles.artistActions}>
-        <IconButton
-          onPress={() => navigation.navigate('ArtistForm', { artistId: item.id })}
-          variant="ghost"
-          size="medium"
-          testID={`edit-artist-button-${item.id}`}
-        >
-          <Ionicons name="pencil" size={18} color={theme.colors.text.secondary} />
-        </IconButton>
-        <IconButton
-          onPress={() => handleDelete(item)}
-          variant="ghost"
-          size="medium"
-          testID={`delete-artist-button-${item.id}`}
-        >
-          <Ionicons name="trash" size={18} color={theme.colors.error} />
-        </IconButton>
-      </View>
-    </Card>
+        <View style={styles.artistActions}>
+          <IconButton
+            onPress={() => navigation.navigate('ArtistForm', { artistId: item.id })}
+            variant="ghost"
+            size="medium"
+            testID={`edit-artist-button-${item.id}`}
+          >
+            <Ionicons name="pencil" size={18} color={theme.colors.text.secondary} />
+          </IconButton>
+          <IconButton
+            onPress={() => handleDelete(item)}
+            variant="ghost"
+            size="medium"
+            testID={`delete-artist-button-${item.id}`}
+          >
+            <Ionicons name="trash" size={18} color={theme.colors.error} />
+          </IconButton>
+        </View>
+      </Card>
+    </TouchableOpacity>
   );
 
   return (

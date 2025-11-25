@@ -1,11 +1,13 @@
 import axios from 'axios';
 import { makeRedirectUri } from 'expo-auth-session';
 import * as Google from 'expo-auth-session/providers/google';
-import * as SecureStore from 'expo-secure-store';
 import * as WebBrowser from 'expo-web-browser';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import client from '../api/client';
 import { API_BASE_URL } from '../config';
+import { storage } from '../utils/storage';
+
+WebBrowser.maybeCompleteAuthSession();
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -20,6 +22,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: () => Promise<void>;
+  loginAsGuest: () => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
 }
@@ -63,9 +66,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const checkLoginStatus = async () => {
     try {
-      const accessToken = await SecureStore.getItemAsync('accessToken');
+      const accessToken = await storage.getItem('accessToken');
       if (accessToken) {
-        const userInfo = await SecureStore.getItemAsync('userInfo');
+        const userInfo = await storage.getItem('userInfo');
         if (userInfo) {
             setUser(JSON.parse(userInfo));
         }
@@ -86,9 +89,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const { accessToken, refreshToken, user: userData } = res.data;
 
-      await SecureStore.setItemAsync('accessToken', accessToken);
-      await SecureStore.setItemAsync('refreshToken', refreshToken);
-      await SecureStore.setItemAsync('userInfo', JSON.stringify(userData));
+      await storage.setItem('accessToken', accessToken);
+      await storage.setItem('refreshToken', refreshToken);
+      await storage.setItem('userInfo', JSON.stringify(userData));
 
       setUser(userData);
     } catch (error) {
@@ -103,6 +106,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await promptAsync();
   };
 
+  const loginAsGuest = async () => {
+    setIsLoading(true);
+    try {
+      // ダミーユーザーデータ
+      const dummyUser: User = {
+        id: 'guest_user_id',
+        email: 'guest@example.com',
+        name: 'Guest User',
+        picture: 'https://via.placeholder.com/150',
+      };
+
+      // ダミートークン保存
+      await storage.setItem('accessToken', 'dummy_access_token');
+      await storage.setItem('refreshToken', 'dummy_refresh_token');
+      await storage.setItem('userInfo', JSON.stringify(dummyUser));
+
+      setUser(dummyUser);
+    } catch (error) {
+      console.error('Guest login error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const logout = async () => {
     setIsLoading(true);
     try {
@@ -111,15 +138,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Ignore error
     }
     
-    await SecureStore.deleteItemAsync('accessToken');
-    await SecureStore.deleteItemAsync('refreshToken');
-    await SecureStore.deleteItemAsync('userInfo');
+    await storage.removeItem('accessToken');
+    await storage.removeItem('refreshToken');
+    await storage.removeItem('userInfo');
     setUser(null);
     setIsLoading(false);
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, isLoading, login, loginAsGuest, logout, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,6 +1,6 @@
 import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
 import { API_BASE_URL } from '../config';
+import { storage } from '../utils/storage';
 
 const client = axios.create({
   baseURL: API_BASE_URL,
@@ -12,7 +12,7 @@ const client = axios.create({
 
 // Request interceptor to add token
 client.interceptors.request.use(async (config) => {
-  const token = await SecureStore.getItemAsync('accessToken');
+  const token = await storage.getItem('accessToken');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -29,7 +29,7 @@ client.interceptors.response.use(
       originalRequest._retry = true;
       
       try {
-        const refreshToken = await SecureStore.getItemAsync('refreshToken');
+        const refreshToken = await storage.getItem('refreshToken');
         if (!refreshToken) {
           throw new Error('No refresh token');
         }
@@ -41,17 +41,17 @@ client.interceptors.response.use(
 
         const { accessToken, refreshToken: newRefreshToken } = response.data;
 
-        await SecureStore.setItemAsync('accessToken', accessToken);
+        await storage.setItem('accessToken', accessToken);
         if (newRefreshToken) {
-          await SecureStore.setItemAsync('refreshToken', newRefreshToken);
+          await storage.setItem('refreshToken', newRefreshToken);
         }
 
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return client(originalRequest);
       } catch (refreshError) {
         // Logout or handle error
-        await SecureStore.deleteItemAsync('accessToken');
-        await SecureStore.deleteItemAsync('refreshToken');
+        await storage.removeItem('accessToken');
+        await storage.removeItem('refreshToken');
         // TODO: Trigger logout action in app
         return Promise.reject(refreshError);
       }

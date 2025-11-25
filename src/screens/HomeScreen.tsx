@@ -1,19 +1,21 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button, Card, IconButton, SectionHeader } from '../components/UI';
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 import { theme, typography } from '../styles/theme';
 
 const HomeScreen = ({ navigation }: any) => {
   const { upcomingEvents } = useApp();
+  const { logout } = useAuth();
 
   const nextEvent = upcomingEvents[0];
 
@@ -39,10 +41,15 @@ const HomeScreen = ({ navigation }: any) => {
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.container}>
         {/* 固定ヘッダー */}
-        <View style={styles.header}>
-          <Text style={[typography.h1, styles.headerTitle]}>MEMOLive</Text>
-          <Text style={[typography.body2, styles.headerSubtitle]}>お気に入りのアーティストを管理</Text>
+                <View style={styles.header}>
+          <View style={styles.headerTopRow}>
+            <View>
+              <Text style={[typography.brand, styles.headerTitle]}>MEMOLIVE</Text>
+              <Text style={[typography.body2, styles.headerSubtitle]}>お気に入りのアーティストを管理</Text>
+            </View>
+          </View>
         </View>
+
 
         {/* スクロール可能なコンテンツ */}
         <ScrollView 
@@ -164,6 +171,17 @@ const HomeScreen = ({ navigation }: any) => {
           ))}
         </Card>
       )}
+
+      <View style={styles.footer}>
+        <Button
+          title="ログアウト"
+          onPress={logout}
+          variant="ghost"
+          style={styles.logoutButton}
+          textStyle={styles.logoutButtonText}
+        />
+        <Text style={styles.versionText}>Version 1.0.0</Text>
+      </View>
         </ScrollView>
       </View>
     </SafeAreaView>
@@ -194,7 +212,8 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     marginBottom: theme.spacing.sm,
-    letterSpacing: -1,
+    fontSize: 32, // ヘッダー用に少し小さく調整
+    lineHeight: 40,
   },
   headerSubtitle: {
     opacity: 0.8,
@@ -326,6 +345,21 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xs,
   },
   upcomingEventDate: {
+    color: theme.colors.text.tertiary,
+  },
+  footer: {
+    padding: theme.spacing.xl,
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+  },
+  logoutButton: {
+    minWidth: 120,
+  },
+  logoutButtonText: {
+    color: theme.colors.error,
+  },
+  versionText: {
+    ...typography.caption,
     color: theme.colors.text.tertiary,
   },
 });

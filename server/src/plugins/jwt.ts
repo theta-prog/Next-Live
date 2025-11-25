@@ -28,8 +28,18 @@ export default fp(async function (app: FastifyInstance) {
 
   app.decorate('authenticate', async (req: any, reply: any) => {
     try {
+      // Development bypass for guest login
+      const authHeader = req.headers['authorization'];
+      // console.log('Auth Debug:', { env: process.env.NODE_ENV, header: authHeader });
+      
+      if (process.env.NODE_ENV === 'development' && authHeader === 'Bearer dummy_access_token') {
+        req.user = { sub: 'guest_user_id' };
+        return;
+      }
+
       await req.jwtVerify();
     } catch (err) {
+      // console.error(err);
       reply.code(401).send({ code: 'UNAUTHORIZED' });
     }
   });

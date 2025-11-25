@@ -61,6 +61,17 @@ export async function authGoogleRoute(app: FastifyInstance) {
     if (!refreshToken || typeof refreshToken !== 'string') {
       return reply.code(400).send({ code: 'VALIDATION_ERROR' });
     }
+
+    // Development bypass for guest login
+    // console.log('Refresh Debug:', { env: process.env.NODE_ENV, token: refreshToken });
+    if (process.env.NODE_ENV === 'development' && refreshToken === 'dummy_refresh_token') {
+      return reply.send({
+        accessToken: 'dummy_access_token',
+        refreshToken: 'dummy_refresh_token',
+        refreshExpiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+      });
+    }
+
     // decode old access token if provided to get userId fallback
     const auth = (req.headers.authorization || '').split(' ')[1];
     let userId: string | null = null;
