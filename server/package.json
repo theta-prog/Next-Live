@@ -17,19 +17,19 @@
     "@fastify/jwt": "^9.1.0",
     "@fastify/rate-limit": "^10.3.0",
     "@prisma/client": "^5.19.0",
+    "@types/node": "^20.12.12",
     "dotenv": "^16.4.5",
     "fastify": "^5.6.2",
     "google-auth-library": "^9.14.1",
+    "prisma": "^5.19.0",
+    "typescript": "^5.5.4",
     "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/chai": "^4.3.11",
-    "@types/node": "^20.12.12",
     "eslint": "^9.5.0",
-    "prisma": "^5.19.0",
     "testcontainers": "^10.7.2",
     "tsx": "^4.15.7",
-    "typescript": "^5.5.4",
     "vitest": "^1.6.0"
   }
 }
