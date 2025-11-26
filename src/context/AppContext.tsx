@@ -1,6 +1,7 @@
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { artistService, liveEventService, memoryService } from '../api/services';
 import { Artist, BaseEntity, LiveEvent, Memory } from '../database/asyncDatabase';
+import { useAuth } from './AuthContext';
 
 interface AppContextType {
   artists: Artist[];
@@ -42,12 +43,15 @@ interface AppProviderProps {
 }
 
 export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
+  const { isAuthenticated } = useAuth();
   const [artists, setArtists] = useState<Artist[]>([]);
   const [liveEvents, setLiveEvents] = useState<(LiveEvent & { artist_name: string })[]>([]);
   const [memories, setMemories] = useState<(Memory & { event_title: string; artist_name: string; event_date: string })[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<(LiveEvent & { artist_name: string })[]>([]);
 
   const refreshData = async () => {
+    if (!isAuthenticated) return;
+
     try {
       // Fetch all data in parallel
       const [artistsData, eventsData, memoriesData] = await Promise.all([
@@ -102,8 +106,16 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   };
 
   useEffect(() => {
-    refreshData();
-  }, []);
+    if (isAuthenticated) {
+      refreshData();
+    } else {
+      // Clear data on logout
+      setArtists([]);
+      setLiveEvents([]);
+      setMemories([]);
+      setUpcomingEvents([]);
+    }
+  }, [isAuthenticated]);
 
   // Artist methods
   const addArtist = async (artist: Omit<Artist, keyof BaseEntity>) => {
