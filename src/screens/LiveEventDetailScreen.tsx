@@ -62,8 +62,13 @@ const LiveEventDetailScreen = ({ navigation, route }: any) => {
           text: '削除',
           style: 'destructive',
           onPress: async () => {
-            await deleteLiveEvent(event.id!);
-            navigation.goBack();
+            try {
+              await deleteLiveEvent(event.id!);
+              navigation.goBack();
+            } catch (error) {
+              console.error('Delete error:', error);
+              Alert.alert('エラー', '削除に失敗しました。もう一度お試しください。');
+            }
           },
         },
       ]

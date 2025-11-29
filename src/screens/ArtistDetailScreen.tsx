@@ -51,8 +51,13 @@ const ArtistDetailScreen = ({ navigation, route }: any) => {
           text: '削除',
           style: 'destructive',
           onPress: async () => {
-            await deleteArtist(artist.id!);
-            navigation.goBack();
+            try {
+              await deleteArtist(artist.id!);
+              navigation.goBack();
+            } catch (error) {
+              console.error('Delete error:', error);
+              Alert.alert('エラー', '削除に失敗しました。関連するデータがある可能性があります。');
+            }
           },
         },
       ]
