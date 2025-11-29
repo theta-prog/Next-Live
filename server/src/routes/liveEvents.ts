@@ -73,6 +73,10 @@ export async function liveEventRoutes(app: FastifyInstance) {
     const userId = req.user.sub;
     const existing = await prisma.liveEvent.findFirst({ where: { id: params.data.id, userId } });
     if (!existing) return reply.code(404).send({ code: 'NOT_FOUND' });
+
+    // Cascade delete: Memories -> LiveEvent
+    await prisma.memory.deleteMany({ where: { eventId: existing.id } });
+
     await prisma.liveEvent.delete({ where: { id: existing.id } });
     return { ok: true };
   });

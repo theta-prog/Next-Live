@@ -59,12 +59,18 @@ const MemoryFormScreen = ({ navigation, route }: any) => {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [4, 3],
-      quality: 0.8,
+      quality: 0.5, // Reduce quality to keep payload size small
       allowsMultipleSelection: true,
+      base64: true, // Request Base64
     });
 
     if (!result.canceled) {
-      const newPhotos = result.assets.map(asset => asset.uri);
+      const newPhotos = result.assets.map(asset => {
+        if (asset.base64) {
+          return `data:${asset.mimeType || 'image/jpeg'};base64,${asset.base64}`;
+        }
+        return asset.uri;
+      });
       setPhotos(prev => [...prev, ...newPhotos]);
     }
   };

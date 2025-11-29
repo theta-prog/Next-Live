@@ -6,7 +6,7 @@ const createSchema = z.object({
   eventId: z.string().uuid(),
   review: z.string().optional(),
   setlist: z.string().optional(),
-  photos: z.array(z.string().url()).optional()
+  photos: z.array(z.string()).optional()
 });
 
 const updateSchema = createSchema.omit({ eventId: true }).partial();

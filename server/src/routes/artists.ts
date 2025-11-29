@@ -51,6 +51,16 @@ export async function artistRoutes(app: FastifyInstance) {
     const userId = req.user.sub;
     const existing = await prisma.artist.findFirst({ where: { id: params.data.id, userId } });
     if (!existing) return reply.code(404).send({ code: 'NOT_FOUND' });
+
+    // Cascade delete: Memories -> LiveEvents -> Artist
+    const events = await prisma.liveEvent.findMany({ where: { artistId: existing.id } });
+    const eventIds = events.map(e => e.id);
+    
+    if (eventIds.length > 0) {
+      await prisma.memory.deleteMany({ where: { eventId: { in: eventIds } } });
+      await prisma.liveEvent.deleteMany({ where: { artistId: existing.id } });
+    }
+
     await prisma.artist.delete({ where: { id: existing.id } });
     return { ok: true };
   });
