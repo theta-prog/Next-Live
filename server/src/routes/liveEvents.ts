@@ -71,13 +71,24 @@ export async function liveEventRoutes(app: FastifyInstance) {
     if (!params.success) return reply.code(400).send({ code: 'INVALID_ID' });
     if (skipDb) return { ok: true };
     const userId = req.user.sub;
-    const existing = await prisma.liveEvent.findFirst({ where: { id: params.data.id, userId } });
-    if (!existing) return reply.code(404).send({ code: 'NOT_FOUND' });
 
-    // Cascade delete: Memories -> LiveEvent
-    await prisma.memory.deleteMany({ where: { eventId: existing.id } });
+    try {
+      await prisma.$transaction(async (tx) => {
+        const existing = await tx.liveEvent.findFirst({ where: { id: params.data.id, userId } });
+        if (!existing) throw new Error('NOT_FOUND');
 
-    await prisma.liveEvent.delete({ where: { id: existing.id } });
-    return { ok: true };
+        // Cascade delete: Memories -> LiveEvent
+        await tx.memory.deleteMany({ where: { eventId: existing.id } });
+        await tx.liveEvent.delete({ where: { id: existing.id } });
+      });
+
+      return { ok: true };
+    } catch (error: any) {
+      if (error.message === 'NOT_FOUND') {
+        return reply.code(404).send({ code: 'NOT_FOUND' });
+      }
+      console.error('Delete live event error:', error);
+      return reply.code(500).send({ code: 'INTERNAL_SERVER_ERROR', message: error.message });
+    }
   });
 }

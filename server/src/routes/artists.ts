@@ -49,19 +49,31 @@ export async function artistRoutes(app: FastifyInstance) {
     if (!params.success) return reply.code(400).send({ code: 'INVALID_ID' });
     if (skipDb) return { ok: true };
     const userId = req.user.sub;
-    const existing = await prisma.artist.findFirst({ where: { id: params.data.id, userId } });
-    if (!existing) return reply.code(404).send({ code: 'NOT_FOUND' });
 
-    // Cascade delete: Memories -> LiveEvents -> Artist
-    const events = await prisma.liveEvent.findMany({ where: { artistId: existing.id } });
-    const eventIds = events.map(e => e.id);
-    
-    if (eventIds.length > 0) {
-      await prisma.memory.deleteMany({ where: { eventId: { in: eventIds } } });
-      await prisma.liveEvent.deleteMany({ where: { artistId: existing.id } });
+    try {
+      await prisma.$transaction(async (tx) => {
+        const existing = await tx.artist.findFirst({ where: { id: params.data.id, userId } });
+        if (!existing) throw new Error('NOT_FOUND');
+
+        // Cascade delete: Memories -> LiveEvents -> Artist
+        const events = await tx.liveEvent.findMany({ where: { artistId: existing.id } });
+        const eventIds = events.map(e => e.id);
+        
+        if (eventIds.length > 0) {
+          await tx.memory.deleteMany({ where: { eventId: { in: eventIds } } });
+          await tx.liveEvent.deleteMany({ where: { artistId: existing.id } });
+        }
+
+        await tx.artist.delete({ where: { id: existing.id } });
+      });
+      
+      return { ok: true };
+    } catch (error: any) {
+      if (error.message === 'NOT_FOUND') {
+        return reply.code(404).send({ code: 'NOT_FOUND' });
+      }
+      console.error('Delete artist error:', error);
+      return reply.code(500).send({ code: 'INTERNAL_SERVER_ERROR', message: error.message });
     }
-
-    await prisma.artist.delete({ where: { id: existing.id } });
-    return { ok: true };
   });
 }
