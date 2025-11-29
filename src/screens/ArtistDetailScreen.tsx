@@ -4,6 +4,7 @@ import {
     Alert,
     Image,
     Linking,
+    Platform,
     ScrollView,
     StyleSheet,
     Text,
@@ -13,6 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useApp } from '../context/AppContext';
 import { theme, typography } from '../styles/theme';
+import { confirmDelete } from '../utils/alert';
 
 const ArtistDetailScreen = ({ navigation, route }: any) => {
   const { artists, liveEvents, deleteArtist } = useApp();
@@ -42,25 +44,22 @@ const ArtistDetailScreen = ({ navigation, route }: any) => {
   const pastEvents = sortedEvents.filter(e => new Date(e.date) < today).reverse(); // Most recent past event first
 
   const handleDelete = () => {
-    Alert.alert(
+    confirmDelete(
       '削除確認',
       `「${artist.name}」を削除しますか？`,
-      [
-        { text: 'キャンセル', style: 'cancel' },
-        {
-          text: '削除',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteArtist(artist.id!);
-              navigation.goBack();
-            } catch (error) {
-              console.error('Delete error:', error);
-              Alert.alert('エラー', '削除に失敗しました。関連するデータがある可能性があります。');
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          await deleteArtist(artist.id!);
+          navigation.goBack();
+        } catch (error) {
+          console.error('Delete error:', error);
+          if (Platform.OS === 'web') {
+            window.alert('削除に失敗しました。関連するデータがある可能性があります。');
+          } else {
+            Alert.alert('エラー', '削除に失敗しました。関連するデータがある可能性があります。');
+          }
+        }
+      }
     );
   };
 
@@ -194,6 +193,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: theme.colors.background,
+    ...(Platform.OS === 'web' ? { height: '100vh', overflow: 'hidden' } : {}),
   },
   container: {
     flex: 1,

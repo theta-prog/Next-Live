@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
     Alert,
+    Platform,
     ScrollView,
     StyleSheet,
     Text,
@@ -11,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useApp } from '../context/AppContext';
 import { theme, typography } from '../styles/theme';
+import { confirmDelete } from '../utils/alert';
 
 const LiveEventDetailScreen = ({ navigation, route }: any) => {
   const { liveEvents, deleteLiveEvent, memories } = useApp();
@@ -53,25 +55,22 @@ const LiveEventDetailScreen = ({ navigation, route }: any) => {
   };
 
   const handleDelete = () => {
-    Alert.alert(
+    confirmDelete(
       '削除確認',
       `「${event.title}」を削除しますか？`,
-      [
-        { text: 'キャンセル', style: 'cancel' },
-        {
-          text: '削除',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteLiveEvent(event.id!);
-              navigation.goBack();
-            } catch (error) {
-              console.error('Delete error:', error);
-              Alert.alert('エラー', '削除に失敗しました。もう一度お試しください。');
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          await deleteLiveEvent(event.id!);
+          navigation.goBack();
+        } catch (error) {
+          console.error('Delete error:', error);
+          if (Platform.OS === 'web') {
+            window.alert('削除に失敗しました。もう一度お試しください。');
+          } else {
+            Alert.alert('エラー', '削除に失敗しました。もう一度お試しください。');
+          }
+        }
+      }
     );
   };
 
@@ -251,6 +250,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: theme.colors.background,
+    ...(Platform.OS === 'web' ? { height: '100vh', overflow: 'hidden' } : {}),
   },
   container: {
     flex: 1,
