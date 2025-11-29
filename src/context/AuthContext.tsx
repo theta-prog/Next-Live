@@ -45,6 +45,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     androidClientId: process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID,
     iosClientId: process.env.EXPO_PUBLIC_IOS_CLIENT_ID,
     webClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID,
+    responseType: 'id_token',
+    scopes: ['profile', 'email'],
     redirectUri: makeRedirectUri({
       scheme: 'livesch',
       // Web環境では明示的にwindow.location.originを使用
@@ -58,9 +60,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     if (response?.type === 'success') {
-      const { id_token } = response.params;
-      if (id_token) {
-        handleGoogleLogin(id_token);
+      const idToken = response.authentication?.idToken ?? response.params?.id_token;
+      if (idToken) {
+        handleGoogleLogin(idToken);
+      } else {
+        console.warn('Google login succeeded but no ID token was returned');
       }
     }
   }, [response]);
