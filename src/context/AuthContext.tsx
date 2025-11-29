@@ -1,12 +1,12 @@
 import axios from 'axios';
+import { makeRedirectUri } from 'expo-auth-session';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { Platform } from 'react-native';
 import client from '../api/client';
 import { API_BASE_URL } from '../config';
 import { storage } from '../utils/storage';
-
-WebBrowser.maybeCompleteAuthSession();
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -45,6 +45,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     androidClientId: process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID,
     iosClientId: process.env.EXPO_PUBLIC_IOS_CLIENT_ID,
     webClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID,
+    redirectUri: makeRedirectUri({
+      scheme: 'livesch',
+      // Web環境では明示的にwindow.location.originを使用
+      path: Platform.OS === 'web' ? undefined : 'auth',
+    }),
   });
 
   useEffect(() => {
