@@ -36,6 +36,7 @@ import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import * as WebBrowser from 'expo-web-browser';
 import React from 'react';
+import { Platform } from 'react-native';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -44,6 +45,20 @@ import { AuthProvider } from '../src/context/AuthContext';
 import AppNavigator from '../src/navigation/AppNavigator';
 
 WebBrowser.maybeCompleteAuthSession();
+
+// Inject global styles for Web to ensure full height
+if (Platform.OS === 'web' && typeof document !== 'undefined') {
+  const style = document.createElement('style');
+  style.textContent = `
+    html, body, #root {
+      height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+  `;
+  document.head.appendChild(style);
+}
 
 export default function RootLayout() {
   let [fontsLoaded] = useFonts({

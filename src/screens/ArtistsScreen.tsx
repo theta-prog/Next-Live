@@ -4,6 +4,7 @@ import {
     Alert,
     FlatList,
     Image,
+    Platform,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -14,6 +15,7 @@ import { Card, IconButton } from '../components/UI';
 import { useApp } from '../context/AppContext';
 import { Artist } from '../database/asyncDatabase';
 import { theme, typography } from '../styles/theme';
+import { confirmDelete } from '../utils/alert';
 
 const ArtistsScreen = ({ navigation, route }: any) => {
   // route.params.openAdd が true の場合初回レンダー後にモーダルを開く
@@ -27,17 +29,21 @@ const ArtistsScreen = ({ navigation, route }: any) => {
 
 
   const handleDelete = (artist: Artist) => {
-    Alert.alert(
+    confirmDelete(
       '削除確認',
       `「${artist.name}」を削除しますか？`,
-      [
-        { text: 'キャンセル', style: 'cancel' },
-        {
-          text: '削除',
-          style: 'destructive',
-          onPress: async () => await deleteArtist(artist.id!),
-        },
-      ]
+      async () => {
+        try {
+          await deleteArtist(artist.id!);
+        } catch (error) {
+          console.error('Error deleting artist:', error);
+          if (Platform.OS === 'web') {
+            window.alert('削除に失敗しました。もう一度お試しください。');
+          } else {
+            Alert.alert('エラー', '削除に失敗しました。もう一度お試しください。');
+          }
+        }
+      }
     );
   };
 

@@ -122,7 +122,6 @@ const LiveEventDetailScreen = ({ navigation, route }: any) => {
         <ScrollView 
           style={styles.scrollContent}
           contentContainerStyle={styles.scrollContainer}
-          showsVerticalScrollIndicator={false}
         >
           <View style={styles.content}>
         <View style={styles.mainInfo}>
@@ -250,7 +249,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: theme.colors.background,
-    ...(Platform.OS === 'web' ? { height: '100vh', overflow: 'hidden' } : {}),
   },
   container: {
     flex: 1,
@@ -264,6 +262,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
+    zIndex: 10,
   },
   headerActions: {
     flexDirection: 'row',
@@ -275,6 +274,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContainer: {
+    flexGrow: 1,
     paddingBottom: 100,
   },
   content: {

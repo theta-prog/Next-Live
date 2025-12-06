@@ -10,13 +10,14 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
+    useWindowDimensions,
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useApp } from '../context/AppContext';
 import { confirmDelete } from '../utils/alert';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 const MemoryDetailScreen = ({ navigation, route }: any) => {
   const { memories, deleteMemory, liveEvents } = useApp();
@@ -24,6 +25,8 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
   const memory = memories.find(m => m.id === memoryId);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  
+  const windowDimensions = useWindowDimensions();
 
   if (!memory) {
     return (
@@ -76,7 +79,7 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+      <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} color="#007AFF" />
@@ -100,92 +103,99 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
           </View>
         </View>
 
-        <View style={styles.content}>
-          <View style={styles.eventInfo}>
-            <Text style={styles.eventTitle}>{memory.event_title}</Text>
-            <Text style={styles.artistName}>{memory.artist_name}</Text>
-            <Text style={styles.eventDate}>{formatDate(memory.event_date)}</Text>
-          </View>
+        <ScrollView 
+          style={styles.scrollContent}
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={true}
+        >
+          <View style={styles.content} onStartShouldSetResponder={() => true}>
+            <View style={styles.eventInfo}>
+              <Text style={styles.eventTitle}>{memory.event_title}</Text>
+              <Text style={styles.artistName}>{memory.artist_name}</Text>
+              <Text style={styles.eventDate}>{formatDate(memory.event_date)}</Text>
+            </View>
 
-          {photos.length > 0 && (
-            <View style={styles.photosSection}>
-              <Text style={styles.sectionTitle}>写真</Text>
-              <ScrollView
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                onMomentumScrollEnd={(event) => {
-                  const index = Math.round(event.nativeEvent.contentOffset.x / (width - 72));
-                  setSelectedPhotoIndex(index);
-                }}
-              >
-                {photos.map((photo: string, index: number) => (
-                  <TouchableOpacity 
-                    key={index} 
-                    onPress={() => {
-                      setSelectedPhotoIndex(index);
-                      setIsModalVisible(true);
-                    }}
-                  >
-                    <Image
-                      source={{ uri: photo }}
-                      style={styles.photo}
-                      resizeMode="contain"
-                    />
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-              
-              {photos.length > 1 && (
-                <View style={styles.photoIndicators}>
-                  {photos.map((_: any, index: number) => (
-                    <View
-                      key={index}
-                      style={[
-                        styles.indicator,
-                        { opacity: index === selectedPhotoIndex ? 1 : 0.3 }
-                      ]}
-                    />
+            {photos.length > 0 && (
+              <View style={styles.photosSection}>
+                <Text style={styles.sectionTitle}>写真</Text>
+                <ScrollView
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  nestedScrollEnabled
+                  onMomentumScrollEnd={(event) => {
+                    const index = Math.round(event.nativeEvent.contentOffset.x / (width - 72));
+                    setSelectedPhotoIndex(index);
+                  }}
+                >
+                  {photos.map((photo: string, index: number) => (
+                    <TouchableOpacity 
+                      key={index} 
+                      onPress={() => {
+                        setSelectedPhotoIndex(index);
+                        setIsModalVisible(true);
+                      }}
+                    >
+                      <Image
+                        source={{ uri: photo }}
+                        style={styles.photo}
+                        resizeMode="contain"
+                      />
+                    </TouchableOpacity>
                   ))}
-                </View>
-              )}
-            </View>
-          )}
-
-          {memory.review && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>感想</Text>
-              <Text style={styles.reviewText}>{memory.review}</Text>
-            </View>
-          )}
-
-          {memory.setlist && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>セットリスト</Text>
-              <View style={styles.setlistContainer}>
-                {renderSetlistLines(memory.setlist)}
+                </ScrollView>
+                
+                {photos.length > 1 && (
+                  <View style={styles.photoIndicators}>
+                    {photos.map((_: any, index: number) => (
+                      <View
+                        key={index}
+                        style={[
+                          styles.indicator,
+                          { opacity: index === selectedPhotoIndex ? 1 : 0.3 }
+                        ]}
+                      />
+                    ))}
+                  </View>
+                )}
               </View>
-            </View>
-          )}
+            )}
 
-          {event && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>ライブ詳細</Text>
-              <TouchableOpacity
-                style={styles.eventDetailButton}
-                onPress={() => navigation.navigate('LiveEventDetail', { eventId: event.id })}
-              >
-                <View style={styles.eventDetailInfo}>
-                  <Text style={styles.eventDetailTitle}>{event.title}</Text>
-                  <Text style={styles.eventDetailVenue}>{event.venue_name}</Text>
-                  <Text style={styles.eventDetailDate}>{formatDate(event.date)}</Text>
+            {memory.review && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>感想</Text>
+                <Text style={styles.reviewText}>{memory.review}</Text>
+              </View>
+            )}
+
+            {memory.setlist && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>セットリスト</Text>
+                <View style={styles.setlistContainer}>
+                  {renderSetlistLines(memory.setlist)}
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#ccc" />
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
-      </ScrollView>
+              </View>
+            )}
+
+            {event && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>ライブ詳細</Text>
+                <TouchableOpacity
+                  style={styles.eventDetailButton}
+                  onPress={() => navigation.navigate('LiveEventDetail', { eventId: event.id })}
+                >
+                  <View style={styles.eventDetailInfo}>
+                    <Text style={styles.eventDetailTitle}>{event.title}</Text>
+                    <Text style={styles.eventDetailVenue}>{event.venue_name}</Text>
+                    <Text style={styles.eventDetailDate}>{formatDate(event.date)}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#ccc" />
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        </ScrollView>
+      </View>
 
       {/* Full Screen Image Modal */}
       <Modal
@@ -212,10 +222,10 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
             }}
           >
             {photos.map((photo: string, index: number) => (
-              <View key={index} style={styles.modalImageContainer}>
+              <View key={index} style={[styles.modalImageContainer, { height: windowDimensions.height }]}>
                 <Image
                   source={{ uri: photo }}
-                  style={styles.modalImage}
+                  style={[styles.modalImage, { height: windowDimensions.height * 0.8 }]}
                   resizeMode="contain"
                 />
               </View>
@@ -231,14 +241,12 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-    ...(Platform.OS === 'web' ? { height: '100vh', overflow: 'hidden' } : {}),
   },
   container: {
     flex: 1,
-  },
-  contentContainer: {
-    flexGrow: 1,
-    paddingBottom: 100,
+    backgroundColor: '#f5f5f5',
+    display: 'flex',
+    flexDirection: 'column',
   },
   header: {
     flexDirection: 'row',
@@ -248,6 +256,15 @@ const styles = StyleSheet.create({
     padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+    zIndex: 10,
+    flexShrink: 0,
+  },
+  scrollContent: {
+    flex: 1,
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingBottom: 100,
   },
   headerActions: {
     flexDirection: 'row',
@@ -399,13 +416,11 @@ const styles = StyleSheet.create({
   },
   modalImageContainer: {
     width: width,
-    height: height,
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalImage: {
     width: width,
-    height: height * 0.8,
   },
 });
 
