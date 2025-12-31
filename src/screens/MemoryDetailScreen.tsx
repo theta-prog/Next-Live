@@ -1,17 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-    Alert,
-    Dimensions,
-    Image,
-    Modal,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    useWindowDimensions,
-    View,
+  Alert,
+  Dimensions,
+  Image,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useApp } from '../context/AppContext';
@@ -28,11 +28,16 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
   
   const windowDimensions = useWindowDimensions();
 
+  // Webの場合はSafeAreaViewの代わりにViewを使用
+  const Wrapper = Platform.OS === 'web' ? View : SafeAreaView;
+
   if (!memory) {
     return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>思い出が見つかりません</Text>
-      </View>
+      <Wrapper style={styles.safeArea} edges={['top']}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>思い出が見つかりません</Text>
+        </View>
+      </Wrapper>
     );
   }
 
@@ -78,7 +83,7 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <Wrapper style={styles.safeArea} edges={['top']}>
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -103,12 +108,13 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
           </View>
         </View>
 
-        <ScrollView 
+        <ScrollView
           style={styles.scrollContent}
           contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={true}
+          scrollEventThrottle={16}
         >
-          <View style={styles.content} onStartShouldSetResponder={() => true}>
+          <View style={styles.content}>
             <View style={styles.eventInfo}>
               <Text style={styles.eventTitle}>{memory.event_title}</Text>
               <Text style={styles.artistName}>{memory.artist_name}</Text>
@@ -196,7 +202,6 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
           </View>
         </ScrollView>
       </View>
-
       {/* Full Screen Image Modal */}
       <Modal
         visible={isModalVisible}
@@ -233,20 +238,19 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
           </ScrollView>
         </View>
       </Modal>
-    </SafeAreaView>
+    </Wrapper>
   );
 };
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    minHeight: Platform.OS === 'web' ? '100vh' : 'auto',
     backgroundColor: '#f5f5f5',
   },
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-    display: 'flex',
-    flexDirection: 'column',
   },
   header: {
     flexDirection: 'row',
@@ -257,10 +261,15 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
     zIndex: 10,
-    flexShrink: 0,
   },
   scrollContent: {
     flex: 1,
+    ...Platform.select({
+      web: {
+        height: 'calc(100vh - 60px)',
+        overflowY: 'auto',
+      },
+    }),
   },
   scrollContainer: {
     flexGrow: 1,

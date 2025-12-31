@@ -66,3 +66,4 @@ rclone.conf.b64
 rclone
 android-apk.yml
 android-apk-build.md
+.vercel

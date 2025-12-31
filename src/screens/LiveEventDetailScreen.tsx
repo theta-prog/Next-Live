@@ -1,13 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
-    Alert,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useApp } from '../context/AppContext';
@@ -20,13 +20,16 @@ const LiveEventDetailScreen = ({ navigation, route }: any) => {
   const event = liveEvents.find(e => e.id === eventId);
   const memory = memories.find(m => m.live_event_id === eventId);
 
+  // Webの場合はSafeAreaViewの代わりにViewを使用
+  const Wrapper = Platform.OS === 'web' ? View : SafeAreaView;
+
   if (!event) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <Wrapper style={styles.safeArea} edges={['top']}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>イベントが見つかりません</Text>
         </View>
-      </SafeAreaView>
+      </Wrapper>
     );
   }
 
@@ -95,7 +98,7 @@ const LiveEventDetailScreen = ({ navigation, route }: any) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <Wrapper style={styles.safeArea} edges={['top']}>
       <View style={styles.container}>
         {/* 固定ヘッダー */}
         <View style={styles.header}>
@@ -119,9 +122,11 @@ const LiveEventDetailScreen = ({ navigation, route }: any) => {
         </View>
 
         {/* スクロール可能なコンテンツ */}
-        <ScrollView 
+        <ScrollView
           style={styles.scrollContent}
           contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={true}
+          scrollEventThrottle={16}
         >
           <View style={styles.content}>
         <View style={styles.mainInfo}>
@@ -241,13 +246,14 @@ const LiveEventDetailScreen = ({ navigation, route }: any) => {
           </View>
         </ScrollView>
       </View>
-    </SafeAreaView>
+    </Wrapper>
   );
 };
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    minHeight: Platform.OS === 'web' ? '100vh' : 'auto',
     backgroundColor: theme.colors.background,
   },
   container: {
@@ -272,6 +278,12 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flex: 1,
+    ...Platform.select({
+      web: {
+        height: 'calc(100vh - 60px)',
+        overflowY: 'auto',
+      },
+    }),
   },
   scrollContainer: {
     flexGrow: 1,
