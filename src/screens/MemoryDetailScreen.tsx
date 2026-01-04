@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { memo, useCallback, useMemo, useState } from 'react';
+import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Dimensions,
@@ -11,11 +11,14 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
+  ActivityIndicator
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useApp } from '../context/AppContext';
 import { confirmDelete } from '../utils/alert';
+import ShareableMemoryCard from '../components/ShareableMemoryCard';
+import { captureViewAsImage, shareImage, generateShareMessage } from '../utils/share';
 
 // Get initial dimensions once
 const INITIAL_WIDTH = Dimensions.get('window').width;
@@ -26,15 +29,19 @@ interface HeaderProps {
   onBack: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onShare: () => void;
 }
 
-const Header = memo(function Header({ onBack, onEdit, onDelete }: HeaderProps) {
+const Header = memo(function Header({ onBack, onEdit, onDelete, onShare }: HeaderProps) {
   return (
     <View style={styles.header}>
       <TouchableOpacity onPress={onBack} style={styles.backButton}>
         <Ionicons name="arrow-back" size={24} color="#007AFF" />
       </TouchableOpacity>
       <View style={styles.headerActions}>
+        <TouchableOpacity style={styles.headerButton} onPress={onShare}>
+          <Ionicons name="share-outline" size={24} color="#007AFF" />
+        </TouchableOpacity>
         <TouchableOpacity style={styles.headerButton} onPress={onEdit}>
           <Ionicons name="create-outline" size={24} color="#007AFF" />
         </TouchableOpacity>
@@ -122,6 +129,9 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [containerWidth, setContainerWidth] = useState(INITIAL_WIDTH - 72);
+  const [isShareModalVisible, setIsShareModalVisible] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+  const shareCardRef = useRef<View>(null);
 
   // Parse photos using useMemo
   const photos = useMemo(() => {
@@ -168,7 +178,49 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
         }
       );
     },
+    onShare: () => {
+      setIsShareModalVisible(true);
+    },
   }), [navigation, memoryId, memory?.live_event_id, deleteMemory]);
+
+  // 共有処理
+  const handleShare = useCallback(async () => {
+    if (!memory || !shareCardRef.current) return;
+
+    setIsSharing(true);
+    try {
+      // カードを画像としてキャプチャ
+      const imageUri = await captureViewAsImage(shareCardRef);
+      if (!imageUri) {
+        throw new Error('Failed to capture image');
+      }
+
+      // 共有メッセージを生成
+      const message = generateShareMessage({
+        eventTitle: memory.event_title,
+        artistName: memory.artist_name,
+        eventDate: memory.event_date,
+        review: memory.review,
+      });
+
+      // 画像を共有
+      await shareImage(imageUri, {
+        title: '思い出を共有',
+        message,
+      });
+
+      setIsShareModalVisible(false);
+    } catch (error) {
+      console.error('Share error:', error);
+      if (Platform.OS === 'web') {
+        window.alert('共有に失敗しました。もう一度お試しください。');
+      } else {
+        Alert.alert('エラー', '共有に失敗しました。もう一度お試しください。');
+      }
+    } finally {
+      setIsSharing(false);
+    }
+  }, [memory]);
 
   const handleContainerLayout = useCallback((event: any) => {
     const { width } = event.nativeEvent.layout;
@@ -250,6 +302,20 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
             <Ionicons name="arrow-back" size={24} color="#007AFF" />
           </button>
           <div style={{ display: 'flex', gap: 16 }}>
+            <button
+              onClick={headerCallbacks.onShare}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 8,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Ionicons name="share-outline" size={24} color="#007AFF" />
+            </button>
             <button
               onClick={headerCallbacks.onEdit}
               style={{
@@ -519,6 +585,122 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
             </div>
           </div>
         )}
+
+        {/* Web Share Modal */}
+        {isShareModalVisible && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 10001,
+              padding: 20,
+            }}
+            onClick={() => setIsShareModalVisible(false)}
+          >
+            <div
+              style={{
+                backgroundColor: '#fff',
+                borderRadius: 16,
+                maxWidth: 420,
+                width: '100%',
+                maxHeight: '90vh',
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: 16,
+                  borderBottom: '1px solid #eee',
+                }}
+              >
+                <span style={{ fontSize: 18, fontWeight: 600, color: '#333' }}>
+                  思い出を共有
+                </span>
+                <button
+                  onClick={() => setIsShareModalVisible(false)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 4,
+                  }}
+                >
+                  <Ionicons name="close" size={24} color="#333" />
+                </button>
+              </div>
+
+              <div
+                style={{
+                  flex: 1,
+                  overflowY: 'auto',
+                  padding: 20,
+                  display: 'flex',
+                  justifyContent: 'center',
+                }}
+              >
+                <ShareableMemoryCard
+                  ref={shareCardRef}
+                  eventTitle={memory.event_title || ''}
+                  artistName={memory.artist_name || ''}
+                  eventDate={memory.event_date || ''}
+                  venueName={event?.venue_name}
+                  review={memory.review}
+                  photo={photos.length > 0 ? photos[0] : undefined}
+                  setlist={memory.setlist}
+                />
+              </div>
+
+              <div
+                style={{
+                  padding: 16,
+                  borderTop: '1px solid #eee',
+                }}
+              >
+                <button
+                  onClick={handleShare}
+                  disabled={isSharing}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    width: '100%',
+                    backgroundColor: isSharing ? '#b2dffc' : '#0095f6',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 8,
+                    padding: '14px 20px',
+                    fontSize: 16,
+                    fontWeight: 600,
+                    cursor: isSharing ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {isSharing ? (
+                    <span>共有中...</span>
+                  ) : (
+                    <>
+                      <Ionicons name="share-outline" size={20} color="#fff" />
+                      <span>画像を共有</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -531,6 +713,7 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
           onBack={headerCallbacks.onBack}
           onEdit={headerCallbacks.onEdit}
           onDelete={headerCallbacks.onDelete}
+          onShare={headerCallbacks.onShare}
         />
 
         <ScrollView
@@ -620,6 +803,62 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
               </View>
             ))}
           </ScrollView>
+        </View>
+      </Modal>
+
+      {/* Share Modal */}
+      <Modal
+        visible={isShareModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setIsShareModalVisible(false)}
+      >
+        <View style={styles.shareModalOverlay}>
+          <View style={styles.shareModalContainer}>
+            <View style={styles.shareModalHeader}>
+              <Text style={styles.shareModalTitle}>思い出を共有</Text>
+              <TouchableOpacity
+                onPress={() => setIsShareModalVisible(false)}
+                style={styles.shareModalCloseButton}
+              >
+                <Ionicons name="close" size={24} color="#333" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView 
+              style={styles.shareCardScrollView}
+              contentContainerStyle={styles.shareCardScrollContent}
+              showsVerticalScrollIndicator={true}
+            >
+              <ShareableMemoryCard
+                ref={shareCardRef}
+                eventTitle={memory.event_title || ''}
+                artistName={memory.artist_name || ''}
+                eventDate={memory.event_date || ''}
+                venueName={event?.venue_name}
+                review={memory.review}
+                photo={photos.length > 0 ? photos[0] : undefined}
+                setlist={memory.setlist}
+              />
+            </ScrollView>
+
+            <View style={styles.shareModalActions}>
+              <TouchableOpacity
+                style={[styles.shareButton, isSharing && styles.shareButtonDisabled]}
+                onPress={handleShare}
+                disabled={isSharing}
+              >
+                {isSharing ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <>
+                    <Ionicons name="share-outline" size={20} color="#fff" />
+                    <Text style={styles.shareButtonText}>画像を共有</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </Modal>
     </Wrapper>
@@ -841,6 +1080,68 @@ const styles = StyleSheet.create({
   },
   modalImage: {
     height: '80%',
+  },
+  // Share Modal Styles
+  shareModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  shareModalContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    width: '100%',
+    maxWidth: 400,
+    maxHeight: '90%',
+    overflow: 'hidden',
+  },
+  shareModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  shareModalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+  },
+  shareModalCloseButton: {
+    padding: 4,
+  },
+  shareCardScrollView: {
+    maxHeight: 500,
+  },
+  shareCardScrollContent: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  shareModalActions: {
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+  },
+  shareButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#0095f6',
+    borderRadius: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+  },
+  shareButtonDisabled: {
+    backgroundColor: '#b2dffc',
+  },
+  shareButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
   },
 });
 
