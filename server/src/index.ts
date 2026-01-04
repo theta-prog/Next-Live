@@ -17,7 +17,8 @@ async function build() {
   const app = Fastify({
     logger: true,
     requestTimeout: 15_000,      // 15s request timeout
-    connectionTimeout: 5_000     // Connection timeout
+    connectionTimeout: 5_000,    // Connection timeout
+    bodyLimit: 10 * 1024 * 1024  // 10MB body limit for image uploads
   });
 
   await app.register(cors, { origin: true, credentials: true });

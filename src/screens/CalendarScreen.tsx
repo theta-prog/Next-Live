@@ -10,10 +10,12 @@ import {
 import { Calendar, DateData } from 'react-native-calendars';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useApp } from '../context/AppContext';
+import { useResponsive } from '../context/ResponsiveContext';
 import { theme, typography } from '../styles/theme';
 
 const CalendarScreen = ({ navigation }: any) => {
   const { liveEvents } = useApp();
+  const { isPC } = useResponsive();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   // ライブイベントの日付をマークするためのオブジェクトを作成
@@ -59,16 +61,18 @@ const CalendarScreen = ({ navigation }: any) => {
   };  return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.container}>
-        {/* 固定ヘッダー */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>カレンダー</Text>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => navigation.navigate('LiveEventForm')}
-          >
-            <Ionicons name="add" size={24} color="#007AFF" />
-          </TouchableOpacity>
-        </View>
+        {/* 固定ヘッダー（SPのみ） */}
+        {!isPC && (
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>カレンダー</Text>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => navigation.navigate('LiveEventForm')}
+            >
+              <Ionicons name="add" size={24} color="#007AFF" />
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* スクロール可能なコンテンツ */}
         <ScrollView 

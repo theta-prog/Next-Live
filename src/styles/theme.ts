@@ -109,7 +109,7 @@ export const typography = {
     fontFamily: theme.fonts.accentBold,
     fontSize: 40,
     lineHeight: 48,
-    color: theme.colors.text.primary,
+    color: theme.colors.accent, // ブランドカラー（青）に統一
     letterSpacing: 2,
     textTransform: 'uppercase' as const,
   },

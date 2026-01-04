@@ -11,10 +11,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useApp } from '../context/AppContext';
+import { useResponsive } from '../context/ResponsiveContext';
 import { theme, typography } from '../styles/theme';
 
 const MemoriesScreen = ({ navigation }: any) => {
   const { memories } = useApp();
+  const { isPC } = useResponsive();
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -88,17 +90,19 @@ const MemoriesScreen = ({ navigation }: any) => {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.container}>
-        {/* 固定ヘッダー */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>思い出</Text>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => navigation.navigate('MemoryForm')}
-            testID="add-memory-button"
-          >
-            <Ionicons name="add" size={24} color={theme.colors.accent} />
-          </TouchableOpacity>
-        </View>
+        {/* 固定ヘッダー（SPのみ） */}
+        {!isPC && (
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>思い出</Text>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => navigation.navigate('MemoryForm')}
+              testID="add-memory-button"
+            >
+              <Ionicons name="add" size={24} color={theme.colors.accent} />
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* スクロール可能なコンテンツ */}
         <ScrollView

@@ -48,6 +48,12 @@ WebBrowser.maybeCompleteAuthSession();
 
 // Inject global styles for Web to ensure full height
 if (Platform.OS === 'web' && typeof document !== 'undefined') {
+  // Load Oswald font from Google Fonts for Web
+  const link = document.createElement('link');
+  link.href = 'https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap';
+  link.rel = 'stylesheet';
+  document.head.appendChild(link);
+
   const style = document.createElement('style');
   style.textContent = `
     html, body, #root {

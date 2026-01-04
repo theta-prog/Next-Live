@@ -3,11 +3,13 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Dimensions, Platform, View } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import ResponsiveLayout, { PC_BREAKPOINT } from '../components/ResponsiveLayout';
 import { useAuth } from '../context/AuthContext';
+import { ResponsiveProvider } from '../context/ResponsiveContext';
 import ArtistDetailScreen from '../screens/ArtistDetailScreen';
 import ArtistFormScreen from '../screens/ArtistFormScreen';
 import ArtistsScreen from '../screens/ArtistsScreen';
@@ -22,6 +24,28 @@ import MemoryFormScreen from '../screens/MemoryFormScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
+
+const BRAND_COLOR = '#0095f6';
+
+// Hook to detect PC mode
+const useIsPC = () => {
+  const [isPC, setIsPC] = useState(
+    Platform.OS === 'web' && Dimensions.get('window').width >= PC_BREAKPOINT
+  );
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+
+    const handleResize = () => {
+      setIsPC(window.innerWidth >= PC_BREAKPOINT);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return isPC;
+};
 
 export const getTabIconName = (
   routeName: string,
@@ -41,7 +65,9 @@ export const getTabIconName = (
 
 const TabNavigator = () => {
   const insets = useSafeAreaInsets();
-  const bottomPad = Math.max(insets.bottom, 12); // ensure a minimum padding for devices without inset
+  const bottomPad = Math.max(insets.bottom, 12);
+  const isPC = useIsPC();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -49,15 +75,15 @@ const TabNavigator = () => {
           const iconName = getTabIconName(route.name, focused);
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#007AFF',
+        tabBarActiveTintColor: BRAND_COLOR,
         tabBarInactiveTintColor: '#999',
-        tabBarStyle: {
+        tabBarStyle: isPC ? { display: 'none' } : {
           backgroundColor: '#fff',
           borderTopWidth: 1,
             borderTopColor: '#eee',
             paddingTop: 6,
             paddingBottom: bottomPad,
-            height: 62 + bottomPad, // dynamic height based on inset
+            height: 62 + bottomPad,
             position: 'absolute',
             left: 0,
             right: 0,
@@ -97,27 +123,97 @@ const TabNavigator = () => {
 // Export TabNavigator for testing
 export { TabNavigator };
 
+// Wrapper component to handle responsive layout with navigation
+const ResponsiveNavigationWrapper: React.FC<{ 
+  children: React.ReactNode;
+  userName?: string;
+  userPicture?: string;
+  onLogout?: () => void;
+}> = ({ children, userName, userPicture, onLogout }) => {
+  const navigationRef = React.useRef<any>(null);
+  const [currentRoute, setCurrentRoute] = useState('Home');
+
+  // タブ画面かどうかを判定
+  const tabScreens = ['Home', 'Calendar', 'Memories', 'Artists'];
+
+  const handleNavigate = useCallback((routeName: string) => {
+    if (navigationRef.current) {
+      if (tabScreens.includes(routeName)) {
+        // タブ画面への遷移
+        navigationRef.current.navigate('Main', { screen: routeName });
+        setCurrentRoute(routeName);
+      } else {
+        // Stack画面（フォーム等）への遷移
+        navigationRef.current.navigate(routeName);
+      }
+    }
+  }, []);
+
+  const onStateChange = useCallback(() => {
+    if (navigationRef.current) {
+      const state = navigationRef.current.getRootState();
+      if (state) {
+        // 現在のルートを確認
+        const currentIndex = state.index;
+        const currentMainRoute = state.routes[currentIndex];
+        
+        // Mainルート（タブナビゲーター）の場合
+        if (currentMainRoute?.name === 'Main' && currentMainRoute?.state) {
+          const tabState = currentMainRoute.state;
+          const tabIndex = tabState.index ?? 0;
+          const currentTab = tabState.routes[tabIndex];
+          if (currentTab) {
+            setCurrentRoute(currentTab.name);
+          }
+        }
+        // Mainルート以外（Stack画面）の場合はcurrentRouteを変更しない
+        // これにより、フォーム画面でもヘッダーは前のタブ名を維持
+      }
+    }
+  }, []);
+
+  return (
+    <ResponsiveLayout
+      currentRoute={currentRoute}
+      onNavigate={handleNavigate}
+      showSideNav={true}
+      userName={userName}
+      userPicture={userPicture}
+      onLogout={onLogout}
+    >
+      <NavigationContainer ref={navigationRef} onStateChange={onStateChange}>
+        {children}
+      </NavigationContainer>
+    </ResponsiveLayout>
+  );
+};
+
 const AppNavigator = () => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user, logout } = useAuth();
 
   if (isLoading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color={BRAND_COLOR} />
       </View>
     );
   }
 
   return (
-    <SafeAreaProvider>
-      <NavigationContainer>
-        <StatusBar style="auto" />
-        <Stack.Navigator 
-          screenOptions={{
-            headerShown: false,
-            cardStyle: { backgroundColor: '#f5f5f5' },
-          }}
+    <ResponsiveProvider>
+      <SafeAreaProvider>
+        <ResponsiveNavigationWrapper
+          userName={user?.name}
+          userPicture={user?.picture}
+          onLogout={logout}
         >
+          <StatusBar style="auto" />
+          <Stack.Navigator 
+            screenOptions={{
+              headerShown: false,
+              cardStyle: { backgroundColor: '#f5f5f5' },
+            }}
+          >
           {isAuthenticated ? (
             <>
               <Stack.Screen name="Main" component={TabNavigator} />
@@ -171,8 +267,9 @@ const AppNavigator = () => {
             <Stack.Screen name="Login" component={LoginScreen} />
           )}
         </Stack.Navigator>
-      </NavigationContainer>
+      </ResponsiveNavigationWrapper>
     </SafeAreaProvider>
+  </ResponsiveProvider>
   );
 };
 

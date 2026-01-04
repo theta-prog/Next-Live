@@ -11,11 +11,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button, Card, IconButton, SectionHeader } from '../components/UI';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
+import { useResponsive } from '../context/ResponsiveContext';
 import { theme, typography } from '../styles/theme';
 
 const HomeScreen = ({ navigation }: any) => {
   const { upcomingEvents } = useApp();
   const { logout } = useAuth();
+  const { isPC } = useResponsive();
 
   const nextEvent = upcomingEvents[0];
 
@@ -40,7 +42,8 @@ const HomeScreen = ({ navigation }: any) => {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.container}>
-        {/* 固定ヘッダー */}
+        {/* 固定ヘッダー - PC時は非表示 */}
+        {!isPC && (
                 <View style={styles.header}>
           <View style={styles.headerTopRow}>
             <View>
@@ -49,6 +52,7 @@ const HomeScreen = ({ navigation }: any) => {
             </View>
           </View>
         </View>
+        )}
 
 
         {/* スクロール可能なコンテンツ */}

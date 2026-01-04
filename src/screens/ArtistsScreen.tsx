@@ -13,11 +13,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Card, IconButton } from '../components/UI';
 import { useApp } from '../context/AppContext';
+import { useResponsive } from '../context/ResponsiveContext';
 import { Artist } from '../database/asyncDatabase';
 import { theme, typography } from '../styles/theme';
 import { confirmDelete } from '../utils/alert';
 
 const ArtistsScreen = ({ navigation, route }: any) => {
+  const { isPC } = useResponsive();
   // route.params.openAdd が true の場合初回レンダー後にモーダルを開く
   useEffect(() => {
     if (route?.params?.openAdd) {
@@ -92,17 +94,20 @@ const ArtistsScreen = ({ navigation, route }: any) => {
   return (
   <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>推しアーティスト</Text>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => navigation.navigate('ArtistForm')}
-            testID="add-artist-button"
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Ionicons name="add" size={24} color={theme.colors.accent} />
-          </TouchableOpacity>
-        </View>
+        {/* ヘッダー（SPのみ） */}
+        {!isPC && (
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>推しアーティスト</Text>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => navigation.navigate('ArtistForm')}
+              testID="add-artist-button"
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons name="add" size={24} color={theme.colors.accent} />
+            </TouchableOpacity>
+          </View>
+        )}
 
       {artists.length === 0 ? (
         <Card variant="outlined" style={styles.emptyState}>

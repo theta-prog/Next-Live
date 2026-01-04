@@ -220,7 +220,10 @@ const LiveEventDetailScreen = ({ navigation, route }: any) => {
               <Text style={styles.sectionTitle}>思い出</Text>
               <TouchableOpacity
                 style={styles.addMemoryButton}
-                onPress={() => navigation.navigate('MemoryForm', { eventId: event.id })}
+                onPress={() => navigation.navigate('MemoryForm', { 
+                  eventId: event.id,
+                  memoryId: memory?.id 
+                })}
               >
                 <Text style={styles.addMemoryButtonText}>
                   {memory ? '編集' : '追加'}

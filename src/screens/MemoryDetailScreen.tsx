@@ -1,23 +1,119 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { memo, useCallback, useMemo, useState } from 'react';
 import {
   Alert,
   Dimensions,
   Image,
+  ImageStyle,
   Modal,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  useWindowDimensions,
   View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useApp } from '../context/AppContext';
 import { confirmDelete } from '../utils/alert';
 
-const { width } = Dimensions.get('window');
+// Get initial dimensions once
+const INITIAL_WIDTH = Dimensions.get('window').width;
+const PHOTO_HEIGHT = 220;
+
+// Native用ヘッダーコンポーネント
+interface HeaderProps {
+  onBack: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+const Header = memo(function Header({ onBack, onEdit, onDelete }: HeaderProps) {
+  return (
+    <View style={styles.header}>
+      <TouchableOpacity onPress={onBack} style={styles.backButton}>
+        <Ionicons name="arrow-back" size={24} color="#007AFF" />
+      </TouchableOpacity>
+      <View style={styles.headerActions}>
+        <TouchableOpacity style={styles.headerButton} onPress={onEdit}>
+          <Ionicons name="create-outline" size={24} color="#007AFF" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.headerButton} onPress={onDelete}>
+          <Ionicons name="trash-outline" size={24} color="#FF3B30" />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+});
+
+// Memoized Photo Carousel - isolated from header
+interface PhotoCarouselProps {
+  photos: string[];
+  containerWidth: number;
+  selectedPhotoIndex: number;
+  onPhotoPress: (index: number) => void;
+  onIndexChange: (index: number) => void;
+  onLayout: (e: any) => void;
+}
+
+// Native用写真カルーセル
+const PhotoCarousel = memo(function PhotoCarousel({
+  photos,
+  containerWidth,
+  selectedPhotoIndex,
+  onPhotoPress,
+  onIndexChange,
+  onLayout,
+}: PhotoCarouselProps) {
+  if (photos.length === 0) return null;
+  
+  return (
+    <View style={styles.photosSection}>
+      <Text style={styles.sectionTitle}>写真</Text>
+      <View style={styles.photoCarouselContainer} onLayout={onLayout}>
+        <ScrollView
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          nestedScrollEnabled
+          onMomentumScrollEnd={(event) => {
+            const w = event.nativeEvent.layoutMeasurement.width || containerWidth;
+            const index = Math.round(event.nativeEvent.contentOffset.x / w);
+            onIndexChange(index);
+          }}
+        >
+          {photos.map((photo: string, index: number) => (
+            <TouchableOpacity
+              key={index}
+              onPress={() => onPhotoPress(index)}
+              style={[styles.photoTouchable, { width: containerWidth }]}
+            >
+              <Image
+                source={{ uri: photo }}
+                style={[styles.photo, { width: containerWidth }] as ImageStyle[]}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+      
+      {photos.length > 1 && (
+        <View style={styles.photoIndicators}>
+          {photos.map((_: any, index: number) => (
+            <View
+              key={index}
+              style={[
+                styles.indicator,
+                { opacity: index === selectedPhotoIndex ? 1 : 0.3 }
+              ]}
+            />
+          ))}
+        </View>
+      )}
+    </View>
+  );
+});
 
 const MemoryDetailScreen = ({ navigation, route }: any) => {
   const { memories, deleteMemory, liveEvents } = useApp();
@@ -25,11 +121,70 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
   const memory = memories.find(m => m.id === memoryId);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  
-  const windowDimensions = useWindowDimensions();
+  const [containerWidth, setContainerWidth] = useState(INITIAL_WIDTH - 72);
 
-  // Webの場合はSafeAreaViewの代わりにViewを使用
+  // Parse photos using useMemo
+  const photos = useMemo(() => {
+    if (!memory?.photos) return [];
+    try {
+      return JSON.parse(memory.photos);
+    } catch {
+      return [];
+    }
+  }, [memory?.photos]);
+
+  const event = memory ? liveEvents.find(e => e.id === memory.live_event_id) : null;
+
   const Wrapper = Platform.OS === 'web' ? View : SafeAreaView;
+
+  // Stable callbacks using useMemo to prevent Header re-renders
+  const headerCallbacks = useMemo(() => ({
+    onBack: () => navigation.goBack(),
+    onEdit: () => {
+      if (memoryId && memory?.live_event_id) {
+        navigation.navigate('MemoryForm', {
+          eventId: memory.live_event_id,
+          memoryId: memoryId
+        });
+      }
+    },
+    onDelete: () => {
+      if (!memoryId) return;
+      confirmDelete(
+        '削除確認',
+        'この思い出を削除しますか？',
+        async () => {
+          try {
+            await deleteMemory(memoryId);
+            navigation.goBack();
+          } catch (error) {
+            console.error('Delete error:', error);
+            if (Platform.OS === 'web') {
+              window.alert('削除に失敗しました。もう一度お試しください。');
+            } else {
+              Alert.alert('エラー', '削除に失敗しました。もう一度お試しください。');
+            }
+          }
+        }
+      );
+    },
+  }), [navigation, memoryId, memory?.live_event_id, deleteMemory]);
+
+  const handleContainerLayout = useCallback((event: any) => {
+    const { width } = event.nativeEvent.layout;
+    if (width > 0 && Math.abs(width - containerWidth) > 1) {
+      setContainerWidth(width);
+    }
+  }, [containerWidth]);
+
+  const handlePhotoPress = useCallback((index: number) => {
+    setSelectedPhotoIndex(index);
+    setIsModalVisible(true);
+  }, []);
+
+  const handleIndexChange = useCallback((index: number) => {
+    setSelectedPhotoIndex(index);
+  }, []);
 
   if (!memory) {
     return (
@@ -41,9 +196,6 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
     );
   }
 
-  const photos = memory.photos ? JSON.parse(memory.photos) : [];
-  const event = liveEvents.find(e => e.id === memory.live_event_id);
-
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('ja-JP', {
@@ -54,26 +206,6 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
     });
   };
 
-  const handleDelete = () => {
-    confirmDelete(
-      '削除確認',
-      'この思い出を削除しますか？',
-      async () => {
-        try {
-          await deleteMemory(memory.id!);
-          navigation.goBack();
-        } catch (error) {
-          console.error('Delete error:', error);
-          if (Platform.OS === 'web') {
-            window.alert('削除に失敗しました。もう一度お試しください。');
-          } else {
-            Alert.alert('エラー', '削除に失敗しました。もう一度お試しください。');
-          }
-        }
-      }
-    );
-  };
-
   const renderSetlistLines = (setlist: string) => {
     return setlist.split('\n').map((line, index) => (
       <Text key={index} style={styles.setlistLine}>
@@ -82,37 +214,329 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
     ));
   };
 
+  // Web用のレンダリング
+  if (Platform.OS === 'web') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#f5f5f5' }}>
+        {/* Web用固定ヘッダー */}
+        <div 
+          style={{
+            position: 'sticky',
+            top: 0,
+            height: 64,
+            backgroundColor: '#fff',
+            borderBottom: '1px solid #eee',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '0 20px',
+            zIndex: 9999,
+            boxSizing: 'border-box',
+            flexShrink: 0,
+          }}
+        >
+          <button
+            onClick={headerCallbacks.onBack}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 8,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          </button>
+          <div style={{ display: 'flex', gap: 16 }}>
+            <button
+              onClick={headerCallbacks.onEdit}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 8,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Ionicons name="create-outline" size={24} color="#007AFF" />
+            </button>
+            <button
+              onClick={headerCallbacks.onDelete}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 8,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Ionicons name="trash-outline" size={24} color="#FF3B30" />
+            </button>
+          </div>
+        </div>
+
+        {/* スクロールコンテンツ */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
+          {/* イベント情報 */}
+          <div style={{
+            backgroundColor: '#fff',
+            borderRadius: 12,
+            padding: 20,
+            marginBottom: 16,
+            textAlign: 'center',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          }}>
+            <div style={{ fontSize: 20, fontWeight: 'bold', color: '#333', marginBottom: 8 }}>
+              {memory.event_title}
+            </div>
+            <div style={{ fontSize: 16, color: '#007AFF', marginBottom: 4 }}>
+              {memory.artist_name}
+            </div>
+            <div style={{ fontSize: 14, color: '#666' }}>
+              {formatDate(memory.event_date)}
+            </div>
+          </div>
+
+          {/* 写真セクション */}
+          {photos.length > 0 && (
+            <div style={{
+              backgroundColor: '#fff',
+              borderRadius: 12,
+              padding: 20,
+              marginBottom: 16,
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            }}>
+              <div style={{ fontSize: 18, fontWeight: 'bold', color: '#333', marginBottom: 16 }}>
+                写真
+              </div>
+              <div
+                style={{
+                  height: PHOTO_HEIGHT,
+                  overflow: 'hidden',
+                  display: 'flex',
+                  scrollSnapType: 'x mandatory',
+                  overflowX: 'auto',
+                  scrollbarWidth: 'none',
+                }}
+                onScroll={(e) => {
+                  const target = e.target as HTMLDivElement;
+                  const w = target.clientWidth || 1;
+                  const index = Math.round(target.scrollLeft / w);
+                  if (index !== selectedPhotoIndex) {
+                    setSelectedPhotoIndex(index);
+                  }
+                }}
+              >
+                {photos.map((photo: string, index: number) => (
+                  <div
+                    key={index}
+                    onClick={() => {
+                      setSelectedPhotoIndex(index);
+                      setIsModalVisible(true);
+                    }}
+                    style={{
+                      flex: '0 0 100%',
+                      height: PHOTO_HEIGHT,
+                      scrollSnapAlign: 'start',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: '#000',
+                      borderRadius: 8,
+                    }}
+                  >
+                    <img
+                      src={photo}
+                      alt={`Photo ${index + 1}`}
+                      style={{
+                        maxWidth: '100%',
+                        maxHeight: '100%',
+                        objectFit: 'contain',
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+              
+              {photos.length > 1 && (
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: 12, gap: 8 }}>
+                  {photos.map((_: any, index: number) => (
+                    <div
+                      key={index}
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: 4,
+                        backgroundColor: '#007AFF',
+                        opacity: index === selectedPhotoIndex ? 1 : 0.3,
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 感想セクション */}
+          {memory.review && (
+            <div style={{
+              backgroundColor: '#fff',
+              borderRadius: 12,
+              padding: 20,
+              marginBottom: 16,
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            }}>
+              <div style={{ fontSize: 18, fontWeight: 'bold', color: '#333', marginBottom: 16 }}>
+                感想
+              </div>
+              <div style={{ fontSize: 16, color: '#333', lineHeight: 1.5 }}>
+                {memory.review}
+              </div>
+            </div>
+          )}
+
+          {/* セットリストセクション */}
+          {memory.setlist && (
+            <div style={{
+              backgroundColor: '#fff',
+              borderRadius: 12,
+              padding: 20,
+              marginBottom: 16,
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            }}>
+              <div style={{ fontSize: 18, fontWeight: 'bold', color: '#333', marginBottom: 16 }}>
+                セットリスト
+              </div>
+              <div style={{ backgroundColor: '#f8f8f8', borderRadius: 8, padding: 16 }}>
+                {memory.setlist.split('\n').map((line: string, index: number) => (
+                  <div key={index} style={{ fontSize: 14, color: '#333', lineHeight: 1.5, marginBottom: 4 }}>
+                    {line}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ライブ詳細セクション */}
+          {event && (
+            <div style={{
+              backgroundColor: '#fff',
+              borderRadius: 12,
+              padding: 20,
+              marginBottom: 100,
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            }}>
+              <div style={{ fontSize: 18, fontWeight: 'bold', color: '#333', marginBottom: 16 }}>
+                ライブ詳細
+              </div>
+              <button
+                onClick={() => navigation.navigate('LiveEventDetail', { eventId: event.id })}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  width: '100%',
+                  padding: 16,
+                  backgroundColor: '#f8f8f8',
+                  borderRadius: 8,
+                  border: 'none',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                }}
+              >
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 4 }}>
+                    {event.title}
+                  </div>
+                  <div style={{ fontSize: 14, color: '#666', marginBottom: 2 }}>
+                    {event.venue_name}
+                  </div>
+                  <div style={{ fontSize: 14, color: '#666' }}>
+                    {formatDate(event.date)}
+                  </div>
+                </div>
+                <Ionicons name="chevron-forward" size={20} color="#ccc" />
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Full Screen Image Modal */}
+        {isModalVisible && (
+          <div 
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.9)',
+              display: 'flex',
+              flexDirection: 'column',
+              zIndex: 10000,
+            }}
+          >
+            <button
+              onClick={() => setIsModalVisible(false)}
+              style={{
+                position: 'absolute',
+                top: 40,
+                right: 20,
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 10,
+                zIndex: 1,
+              }}
+            >
+              <Ionicons name="close" size={30} color="#fff" />
+            </button>
+            <div 
+              style={{ 
+                flex: 1, 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                overflow: 'hidden',
+              }}
+            >
+              <img
+                src={photos[selectedPhotoIndex]}
+                alt="Full size"
+                style={{
+                  maxWidth: '90%',
+                  maxHeight: '80%',
+                  objectFit: 'contain',
+                }}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Native用レンダリング
   return (
     <Wrapper style={styles.safeArea} edges={['top']}>
       <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color="#007AFF" />
-          </TouchableOpacity>
-          <View style={styles.headerActions}>
-            <TouchableOpacity
-              style={styles.headerButton}
-              onPress={() => navigation.navigate('MemoryForm', { 
-                eventId: memory.live_event_id,
-                memoryId: memory.id 
-              })}
-            >
-              <Ionicons name="create-outline" size={24} color="#007AFF" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.headerButton}
-              onPress={handleDelete}
-            >
-              <Ionicons name="trash-outline" size={24} color="#FF3B30" />
-            </TouchableOpacity>
-          </View>
-        </View>
+        <Header
+          onBack={headerCallbacks.onBack}
+          onEdit={headerCallbacks.onEdit}
+          onDelete={headerCallbacks.onDelete}
+        />
 
         <ScrollView
           style={styles.scrollContent}
           contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={true}
-          scrollEventThrottle={16}
         >
           <View style={styles.content}>
             <View style={styles.eventInfo}>
@@ -121,51 +545,14 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
               <Text style={styles.eventDate}>{formatDate(memory.event_date)}</Text>
             </View>
 
-            {photos.length > 0 && (
-              <View style={styles.photosSection}>
-                <Text style={styles.sectionTitle}>写真</Text>
-                <ScrollView
-                  horizontal
-                  pagingEnabled
-                  showsHorizontalScrollIndicator={false}
-                  nestedScrollEnabled
-                  onMomentumScrollEnd={(event) => {
-                    const index = Math.round(event.nativeEvent.contentOffset.x / (width - 72));
-                    setSelectedPhotoIndex(index);
-                  }}
-                >
-                  {photos.map((photo: string, index: number) => (
-                    <TouchableOpacity 
-                      key={index} 
-                      onPress={() => {
-                        setSelectedPhotoIndex(index);
-                        setIsModalVisible(true);
-                      }}
-                    >
-                      <Image
-                        source={{ uri: photo }}
-                        style={styles.photo}
-                        resizeMode="contain"
-                      />
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-                
-                {photos.length > 1 && (
-                  <View style={styles.photoIndicators}>
-                    {photos.map((_: any, index: number) => (
-                      <View
-                        key={index}
-                        style={[
-                          styles.indicator,
-                          { opacity: index === selectedPhotoIndex ? 1 : 0.3 }
-                        ]}
-                      />
-                    ))}
-                  </View>
-                )}
-              </View>
-            )}
+            <PhotoCarousel
+              photos={photos}
+              containerWidth={containerWidth}
+              selectedPhotoIndex={selectedPhotoIndex}
+              onPhotoPress={handlePhotoPress}
+              onIndexChange={handleIndexChange}
+              onLayout={handleContainerLayout}
+            />
 
             {memory.review && (
               <View style={styles.section}>
@@ -202,6 +589,7 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
           </View>
         </ScrollView>
       </View>
+
       {/* Full Screen Image Modal */}
       <Modal
         visible={isModalVisible}
@@ -220,17 +608,13 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
-            contentOffset={{ x: selectedPhotoIndex * width, y: 0 }}
-            onMomentumScrollEnd={(event) => {
-              const index = Math.round(event.nativeEvent.contentOffset.x / width);
-              setSelectedPhotoIndex(index);
-            }}
+            contentOffset={{ x: selectedPhotoIndex * INITIAL_WIDTH, y: 0 }}
           >
             {photos.map((photo: string, index: number) => (
-              <View key={index} style={[styles.modalImageContainer, { height: windowDimensions.height }]}>
+              <View key={index} style={[styles.modalImageContainer, { width: INITIAL_WIDTH }]}>
                 <Image
                   source={{ uri: photo }}
-                  style={[styles.modalImage, { height: windowDimensions.height * 0.8 }]}
+                  style={[styles.modalImage, { width: INITIAL_WIDTH }] as ImageStyle[]}
                   resizeMode="contain"
                 />
               </View>
@@ -245,7 +629,6 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    minHeight: Platform.OS === 'web' ? '100vh' : 'auto',
     backgroundColor: '#f5f5f5',
   },
   container: {
@@ -258,18 +641,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
     padding: 20,
+    minHeight: 64,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
     zIndex: 10,
+    // Web: ハードウェアアクセラレーションで振動を防止
+    ...(Platform.OS === 'web' ? {
+      transform: [{ translateZ: 0 }],
+      willChange: 'transform',
+    } : {}),
+  } as any,
+  backButton: {
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   scrollContent: {
     flex: 1,
-    ...Platform.select({
-      web: {
-        height: 'calc(100vh - 60px)',
-        overflowY: 'auto',
-      },
-    }),
   },
   scrollContainer: {
     flexGrow: 1,
@@ -277,9 +666,16 @@ const styles = StyleSheet.create({
   },
   headerActions: {
     flexDirection: 'row',
+    alignItems: 'center',
+    minWidth: 80,
+    justifyContent: 'flex-end',
   },
   headerButton: {
     marginLeft: 16,
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   content: {
     padding: 16,
@@ -322,6 +718,22 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    overflow: 'hidden',
+    // Web: 画像の再レンダリングがヘッダーに影響しないよう隔離
+    ...(Platform.OS === 'web' ? {
+      contain: 'layout paint',
+    } : {}),
+  } as any,
+  photoCarouselContainer: {
+    height: PHOTO_HEIGHT,
+    overflow: 'hidden',
+    // Web: GPUレイヤーで分離
+    ...(Platform.OS === 'web' ? {
+      transform: [{ translateZ: 0 }],
+    } : {}),
+  } as any,
+  photoTouchable: {
+    height: PHOTO_HEIGHT,
   },
   section: {
     backgroundColor: '#fff',
@@ -341,8 +753,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   photo: {
-    width: width - 72, // padding + margin를 고려
-    height: 200,
+    height: PHOTO_HEIGHT,
     borderRadius: 8,
     backgroundColor: '#000',
   },
@@ -424,12 +835,12 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   modalImageContainer: {
-    width: width,
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalImage: {
-    width: width,
+    height: '80%',
   },
 });
 

@@ -21,10 +21,18 @@ const MemoryFormScreen = ({ navigation, route }: any) => {
   const { addMemory, updateMemory, memories, liveEvents } = useApp();
   const initialEventId = route.params?.eventId as string | undefined;
   const memoryId = route.params?.memoryId;
-  const editingMemory = memoryId ? memories.find(m => m.id === memoryId) : null;
+  
   const [selectedEventId, setSelectedEventId] = useState<string | null>(initialEventId ?? null);
   const [query, setQuery] = useState('');
   const event = liveEvents.find(e => e.id === selectedEventId);
+
+  // memoryIdが渡されていればそれを使い、なければ選択中のイベントに対応する既存の思い出を編集モードにする
+  const existingMemoryForEvent = selectedEventId 
+    ? memories.find(m => m.live_event_id === selectedEventId) 
+    : null;
+  const editingMemory = memoryId 
+    ? memories.find(m => m.id === memoryId) 
+    : existingMemoryForEvent;
 
   const [review, setReview] = useState('');
   const [setlist, setSetlist] = useState('');
