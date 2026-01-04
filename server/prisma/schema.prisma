@@ -49,17 +49,24 @@ model Artist {
 }
 
 model LiveEvent {
-  id          String   @id @default(uuid())
-  user        User     @relation(fields: [userId], references: [id])
-  userId      String
-  artist      Artist?  @relation(fields: [artistId], references: [id])
-  artistId    String?
-  title       String
-  date        DateTime
-  venue       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  memories    Memory[]
+  id            String    @id @default(uuid())
+  user          User      @relation(fields: [userId], references: [id])
+  userId        String
+  artist        Artist?   @relation(fields: [artistId], references: [id])
+  artistId      String?
+  title         String
+  date          DateTime
+  venue         String?
+  venueAddress  String?
+  doorsOpen     String?
+  showStart     String?
+  ticketStatus  String?   // 'won' | 'lost' | 'pending' | 'purchased'
+  ticketPrice   Int?
+  seatNumber    String?
+  memo          String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  memories      Memory[]
 }
 
 model Memory {

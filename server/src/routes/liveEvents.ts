@@ -4,9 +4,16 @@ import { prisma } from '../lib/prisma.js';
 
 const createSchema = z.object({
   title: z.string().min(1),
-  artistId: z.string().uuid().optional(),
+  artistId: z.string().uuid().optional().nullable(),
   date: z.string().datetime(),
-  venue: z.string().optional()
+  venue: z.string().optional().nullable(),
+  venueAddress: z.string().optional().nullable(),
+  doorsOpen: z.string().optional().nullable(),
+  showStart: z.string().optional().nullable(),
+  ticketStatus: z.enum(['won', 'lost', 'pending', 'purchased']).optional().nullable(),
+  ticketPrice: z.number().int().optional().nullable(),
+  seatNumber: z.string().optional().nullable(),
+  memo: z.string().optional().nullable()
 });
 
 const updateSchema = createSchema.partial();

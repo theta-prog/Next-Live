@@ -78,16 +78,15 @@ export const liveEventService = {
       ...item,
       artist_id: item.artistId,
       venue_name: item.venue,
+      venue_address: item.venueAddress,
+      doors_open: item.doorsOpen,
+      show_start: item.showStart,
+      ticket_status: item.ticketStatus,
+      ticket_price: item.ticketPrice,
+      seat_number: item.seatNumber,
+      memo: item.memo,
       created_at: item.createdAt,
       updated_at: item.updatedAt,
-      // Default values for missing fields
-      doors_open: undefined,
-      show_start: undefined,
-      venue_address: undefined,
-      ticket_status: undefined,
-      ticket_price: undefined,
-      seat_number: undefined,
-      memo: undefined,
     }));
   },
 
@@ -98,6 +97,13 @@ export const liveEventService = {
       ...item,
       artist_id: item.artistId,
       venue_name: item.venue,
+      venue_address: item.venueAddress,
+      doors_open: item.doorsOpen,
+      show_start: item.showStart,
+      ticket_status: item.ticketStatus,
+      ticket_price: item.ticketPrice,
+      seat_number: item.seatNumber,
+      memo: item.memo,
       created_at: item.createdAt,
       updated_at: item.updatedAt,
     };
@@ -109,6 +115,13 @@ export const liveEventService = {
       artistId: data.artist_id,
       date: data.date,
       venue: data.venue_name,
+      venueAddress: data.venue_address,
+      doorsOpen: data.doors_open,
+      showStart: data.show_start,
+      ticketStatus: data.ticket_status,
+      ticketPrice: data.ticket_price,
+      seatNumber: data.seat_number,
+      memo: data.memo,
     };
     const response = await client.post<any>('/v1/live-events', payload);
     const item = response.data;
@@ -116,6 +129,13 @@ export const liveEventService = {
       ...item,
       artist_id: item.artistId,
       venue_name: item.venue,
+      venue_address: item.venueAddress,
+      doors_open: item.doorsOpen,
+      show_start: item.showStart,
+      ticket_status: item.ticketStatus,
+      ticket_price: item.ticketPrice,
+      seat_number: item.seatNumber,
+      memo: item.memo,
       created_at: item.createdAt,
       updated_at: item.updatedAt,
     };
@@ -127,6 +147,13 @@ export const liveEventService = {
       artistId: data.artist_id,
       date: data.date,
       venue: data.venue_name,
+      venueAddress: data.venue_address,
+      doorsOpen: data.doors_open,
+      showStart: data.show_start,
+      ticketStatus: data.ticket_status,
+      ticketPrice: data.ticket_price,
+      seatNumber: data.seat_number,
+      memo: data.memo,
     };
     const response = await client.patch<any>(`/v1/live-events/${id}`, payload);
     const item = response.data;
@@ -134,6 +161,13 @@ export const liveEventService = {
       ...item,
       artist_id: item.artistId,
       venue_name: item.venue,
+      venue_address: item.venueAddress,
+      doors_open: item.doorsOpen,
+      show_start: item.showStart,
+      ticket_status: item.ticketStatus,
+      ticket_price: item.ticketPrice,
+      seat_number: item.seatNumber,
+      memo: item.memo,
       created_at: item.createdAt,
       updated_at: item.updatedAt,
     };
