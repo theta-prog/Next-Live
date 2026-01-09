@@ -45,7 +45,12 @@ const ShareableMemoryCard = forwardRef<View, ShareableMemoryCardProps>(
     const setlistData = getDisplaySetlist(setlist);
 
     return (
-      <View ref={ref} style={styles.container} collapsable={false}>
+      <View 
+        ref={ref} 
+        style={styles.container} 
+        collapsable={false}
+        data-testid="shareable-memory-card"
+      >
         {/* ヘッダー部分 - グラデーション風 */}
         <View style={styles.header}>
           <View style={styles.headerContent}>
