@@ -1,24 +1,24 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
 import {
-  Alert,
-  Dimensions,
-  Image,
-  ImageStyle,
-  Modal,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ActivityIndicator
+    ActivityIndicator,
+    Alert,
+    Dimensions,
+    Image,
+    ImageStyle,
+    Modal,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import ShareableMemoryCard from '../components/ShareableMemoryCard';
 import { useApp } from '../context/AppContext';
 import { confirmDelete } from '../utils/alert';
-import ShareableMemoryCard from '../components/ShareableMemoryCard';
-import { captureViewAsImage, shareImage, generateShareMessage } from '../utils/share';
+import { captureViewAsImage, generateShareMessage, shareImage } from '../utils/share';
 
 // Get initial dimensions once
 const INITIAL_WIDTH = Dimensions.get('window').width;

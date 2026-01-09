@@ -66,3 +66,21 @@ global.console = {
   warn: jest.fn(),
   error: jest.fn(),
 };
+
+// Mock Expo EventEmitter
+global.EventEmitter = class EventEmitter {
+  constructor() {}
+  addListener() {}
+  removeListener() {}
+  emit() {}
+  removeAllListeners() {}
+};
+
+// Mock global fetch for API calls
+global.fetch = jest.fn(() =>
+  Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve({}),
+    text: () => Promise.resolve(''),
+  })
+);

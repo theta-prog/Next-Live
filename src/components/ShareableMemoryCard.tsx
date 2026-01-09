@@ -1,10 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { forwardRef } from 'react';
 import {
-  Image,
-  StyleSheet,
-  Text,
-  View,
+    Image,
+    StyleSheet,
+    Text,
+    View,
 } from 'react-native';
 import { theme } from '../styles/theme';
 

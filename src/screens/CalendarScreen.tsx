@@ -21,7 +21,7 @@ const CalendarScreen = ({ navigation }: any) => {
   const getTodayJST = (): string => {
     const now = new Date();
     const japanNow = new Date(now.getTime() + (9 * 60 * 60 * 1000));
-    return japanNow.toISOString().split('T')[0];
+    return japanNow.toISOString().split('T')[0] || '';
   };
 
   const today = getTodayJST();
@@ -32,7 +32,7 @@ const CalendarScreen = ({ navigation }: any) => {
     const date = new Date(dateString);
     // 日本時間（UTC+9）に調整
     const japanDate = new Date(date.getTime() + (9 * 60 * 60 * 1000));
-    return japanDate.toISOString().split('T')[0]; // YYYY-MM-DD形式に変換
+    return japanDate.toISOString().split('T')[0] || ''; // YYYY-MM-DD形式に変換
   };
 
   // ライブイベントの日付をマークするためのオブジェクトを作成

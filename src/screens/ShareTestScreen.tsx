@@ -1,8 +1,8 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import ShareableMemoryCard from '../components/ShareableMemoryCard';
-import { captureViewAsImage, shareImage, generateShareMessage } from '../utils/share';
-import { DEMO_MEMORY, DEMO_EVENT } from '../utils/demoData';
+import { DEMO_EVENT, DEMO_MEMORY } from '../utils/demoData';
+import { captureViewAsImage, generateShareMessage, shareImage } from '../utils/share';
 
 /**
  * 開発環境用の共有テストページ

@@ -1,7 +1,7 @@
-import { Platform, Alert } from 'react-native';
-import * as Sharing from 'expo-sharing';
-import { captureRef } from 'react-native-view-shot';
 import Constants from 'expo-constants';
+import * as Sharing from 'expo-sharing';
+import { Alert, Platform } from 'react-native';
+import { captureRef } from 'react-native-view-shot';
 
 export interface ShareContent {
   title?: string;
