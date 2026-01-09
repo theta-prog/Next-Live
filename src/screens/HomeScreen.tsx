@@ -214,6 +214,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
   },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   headerTitle: {
     marginBottom: theme.spacing.sm,
     fontSize: 32, // ヘッダー用に少し小さく調整

@@ -1,11 +1,6 @@
 import { Artist, LiveEvent, Memory } from '../database/asyncDatabase';
 import client from './client';
 
-// API Response types (adjust based on actual server response)
-interface ApiResponse<T> {
-  data: T;
-}
-
 export const artistService = {
   getAll: async (): Promise<Artist[]> => {
     const response = await client.get<{ items: any[] }>('/v1/artists');

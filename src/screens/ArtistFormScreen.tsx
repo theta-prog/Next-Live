@@ -41,10 +41,19 @@ const ArtistFormScreen: React.FC<Props> = ({ navigation, route }) => {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 0.8,
+      quality: 0.7, // 画質を下げてデータサイズを制限
+      base64: true, // Base64データを取得
     });
     if (!result.canceled && result.assets && result.assets[0]) {
-      setPhoto(result.assets[0].uri);
+      const asset = result.assets[0];
+      if (asset.base64) {
+        // Base64データをdata URLとして保存
+        const mimeType = asset.mimeType || 'image/jpeg';
+        const base64Image = `data:${mimeType};base64,${asset.base64}`;
+        setPhoto(base64Image);
+      } else {
+        Alert.alert('エラー', '画像の処理に失敗しました');
+      }
     }
   };
 

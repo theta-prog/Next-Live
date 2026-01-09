@@ -26,6 +26,7 @@ const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 const BRAND_COLOR = '#0095f6';
+const TAB_SCREENS = ['Home', 'Calendar', 'Memories', 'Artists'];
 
 // Hook to detect PC mode
 const useIsPC = () => {
@@ -134,7 +135,7 @@ const ResponsiveNavigationWrapper: React.FC<{
   const [currentRoute, setCurrentRoute] = useState('Home');
 
   // タブ画面かどうかを判定
-  const tabScreens = ['Home', 'Calendar', 'Memories', 'Artists'];
+  const tabScreens = TAB_SCREENS;
 
   const handleNavigate = useCallback((routeName: string) => {
     if (navigationRef.current) {

@@ -1,11 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { Calendar, DateData } from 'react-native-calendars';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,24 +16,62 @@ import { theme, typography } from '../styles/theme';
 const CalendarScreen = ({ navigation }: any) => {
   const { liveEvents } = useApp();
   const { isPC } = useResponsive();
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+
+  // 今日の日付（日本時間）を取得
+  const getTodayJST = (): string => {
+    const now = new Date();
+    const japanNow = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+    return japanNow.toISOString().split('T')[0] || '';
+  };
+
+  const today = getTodayJST();
+  const [selectedDate, setSelectedDate] = useState<string | null>(today);
+
+  // 日付を正規化する関数（ISO datetimeを日本時間のYYYY-MM-DD形式に変換）
+  const normalizeDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    // 日本時間（UTC+9）に調整
+    const japanDate = new Date(date.getTime() + (9 * 60 * 60 * 1000));
+    return japanDate.toISOString().split('T')[0] || ''; // YYYY-MM-DD形式に変換
+  };
 
   // ライブイベントの日付をマークするためのオブジェクトを作成
   const markedDates = liveEvents.reduce((acc, event) => {
-    const dateKey = event.date;
+    const dateKey = normalizeDate(event.date); // 日付を正規化
+    const isSelected = selectedDate === dateKey;
+    const isToday = dateKey === today;
+    
+    // 今日かつライブ日の場合の色設定
+    let containerColor, borderColor, textColor;
+    if (isSelected) {
+      containerColor = '#007AFF';
+      borderColor = 'transparent';
+      textColor = '#fff';
+    } else if (isToday) {
+      // 今日かつライブ日：オレンジ系
+      containerColor = '#FFE4B5';
+      borderColor = '#FF8C00';
+      textColor = '#FF8C00';
+    } else {
+      // ライブ日のみ：ピンク系
+      containerColor = '#FFE5E5';
+      borderColor = '#FF6B6B';
+      textColor = '#FF6B6B';
+    }
+    
     acc[dateKey] = {
-      marked: true,
-      dotColor: '#007AFF',
-      selectedColor: '#007AFF',
-      selected: selectedDate === dateKey,
+      marked: false, // dotを無効化してマーカー重複を防ぐ
+      selected: isSelected,
       customStyles: {
         container: {
-          backgroundColor: selectedDate === dateKey ? '#007AFF' : 'transparent',
+          backgroundColor: containerColor,
           borderRadius: 16,
+          borderWidth: isSelected ? 0 : 2,
+          borderColor: borderColor,
         },
         text: {
-          color: selectedDate === dateKey ? '#fff' : '#333',
-          fontWeight: selectedDate === dateKey ? 'bold' : 'normal',
+          color: textColor,
+          fontWeight: 'bold',
         },
       },
     };
@@ -45,7 +83,7 @@ const CalendarScreen = ({ navigation }: any) => {
   };
 
   const getEventsForDate = (date: string) => {
-    return liveEvents.filter(event => event.date === date);
+    return liveEvents.filter(event => normalizeDate(event.date) === date);
   };
 
   const selectedDateEvents = selectedDate ? getEventsForDate(selectedDate) : [];
@@ -64,7 +102,9 @@ const CalendarScreen = ({ navigation }: any) => {
         {/* 固定ヘッダー（SPのみ） */}
         {!isPC && (
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>カレンダー</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text style={styles.headerTitle}>カレンダー</Text>
+            </View>
             <TouchableOpacity
               style={styles.addButton}
               onPress={() => navigation.navigate('LiveEventForm')}
@@ -89,7 +129,8 @@ const CalendarScreen = ({ navigation }: any) => {
                 textSectionTitleColor: '#b6c1cd',
                 selectedDayBackgroundColor: '#007AFF',
                 selectedDayTextColor: '#ffffff',
-                todayTextColor: '#007AFF',
+                todayTextColor: '#007AFF', // 今日の日付は青文字（ライブ日と区別）
+                todayBackgroundColor: 'transparent', // 今日の背景は透明（カスタムスタイルを優先）
                 dayTextColor: '#2d4150',
                 textDisabledColor: '#d9e1e8',
                 dotColor: '#007AFF',

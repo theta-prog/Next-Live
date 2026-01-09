@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "live-sch",
-    "slug": "live-sch",
+    "name": "MEMOLIVE",
+    "slug": "memolive",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
