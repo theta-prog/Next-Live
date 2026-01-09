@@ -131,6 +131,7 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
   const [containerWidth, setContainerWidth] = useState(INITIAL_WIDTH - 72);
   const [isShareModalVisible, setIsShareModalVisible] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  const [isDownloadCompleteModalVisible, setIsDownloadCompleteModalVisible] = useState(false);
   const shareCardRef = useRef<View>(null);
 
   // Parse photos using useMemo
@@ -207,6 +208,10 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
       const success = await shareImage(imageUri, {
         title: '思い出を共有',
         message,
+      }, () => {
+        // Web環境でダウンロードが完了した時のコールバック
+        setIsShareModalVisible(false);
+        setIsDownloadCompleteModalVisible(true);
       });
 
       if (success) {
@@ -602,6 +607,7 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
               padding: 20,
             }}
             onClick={() => setIsShareModalVisible(false)}
+            data-share-modal
           >
             <div
               style={{
@@ -649,6 +655,7 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
                   display: 'flex',
                   justifyContent: 'center',
                 }}
+                data-share-card-container
               >
                 <ShareableMemoryCard
                   ref={shareCardRef}
@@ -696,6 +703,139 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
                     </>
                   )}
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Download Complete Modal */}
+        {isDownloadCompleteModalVisible && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 10002,
+              padding: 20,
+            }}
+            onClick={() => setIsDownloadCompleteModalVisible(false)}
+          >
+            <div
+              style={{
+                backgroundColor: '#fff',
+                borderRadius: 16,
+                maxWidth: 400,
+                width: '100%',
+                overflow: 'hidden',
+                boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div
+                style={{
+                  padding: 20,
+                  textAlign: 'center',
+                  borderBottom: '1px solid #f0f0f0',
+                }}
+              >
+                <div
+                  style={{
+                    width: 64,
+                    height: 64,
+                    backgroundColor: '#4CAF50',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 16px',
+                  }}
+                >
+                  <Ionicons name="checkmark" size={32} color="#fff" />
+                </div>
+                <h3 style={{ margin: 0, fontSize: 20, fontWeight: 600, color: '#333' }}>
+                  ダウンロード完了！
+                </h3>
+              </div>
+
+              {/* Content */}
+              <div style={{ padding: 20, textAlign: 'center' }}>
+                <p style={{ margin: '0 0 20px', fontSize: 16, color: '#666', lineHeight: 1.5 }}>
+                  画像が正常にダウンロードされました。<br />
+                  SNSアプリで投稿して思い出を共有してください！
+                </p>
+
+                <div style={{ display: 'flex', gap: 12, flexDirection: 'column' }}>
+                  {/* Popular SNS buttons */}
+                  <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+                    <button
+                      onClick={() => window.open('https://twitter.com/intent/tweet', '_blank')}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        padding: '10px 16px',
+                        backgroundColor: '#1DA1F2',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: 8,
+                        fontSize: 14,
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                        flex: 1,
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Ionicons name="logo-twitter" size={16} color="#fff" />
+                      <span>X (Twitter)</span>
+                    </button>
+                    <button
+                      onClick={() => window.open('https://www.instagram.com/', '_blank')}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        padding: '10px 16px',
+                        backgroundColor: '#E4405F',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: 8,
+                        fontSize: 14,
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                        flex: 1,
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Ionicons name="logo-instagram" size={16} color="#fff" />
+                      <span>Instagram</span>
+                    </button>
+                  </div>
+
+                  {/* Close button */}
+                  <button
+                    onClick={() => setIsDownloadCompleteModalVisible(false)}
+                    style={{
+                      padding: '12px 20px',
+                      backgroundColor: '#f8f9fa',
+                      color: '#666',
+                      border: '1px solid #ddd',
+                      borderRadius: 8,
+                      fontSize: 16,
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      width: '100%',
+                    }}
+                  >
+                    閉じる
+                  </button>
+                </div>
               </div>
             </div>
           </div>

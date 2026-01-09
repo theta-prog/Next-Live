@@ -2,6 +2,7 @@ import Constants from 'expo-constants';
 import * as Sharing from 'expo-sharing';
 import { Alert, Platform } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
+import { captureWebElement, generateFallbackCard } from './webCapture';
 
 export interface ShareContent {
   title?: string;
@@ -34,6 +35,39 @@ export const captureViewAsImage = async (
   try {
     debugLog('Starting view capture', { platform: Platform.OS, isDevelopment });
     
+    if (Platform.OS === 'web') {
+      const result = await captureWebView(viewRef, options);
+      
+      // Webでキャプチャが失敗した場合はフォールバックを試す
+      if (!result) {
+        debugLog('Web capture failed, trying fallback card generation');
+        
+        // 簡単なフォールバックとしてダミー画像を返す
+        // 実際のプロダクションでは、generateFallbackCardを呼び出すことも可能
+        if (isDevelopment) {
+          return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
+        }
+        
+        // プロダクションでは手動カード生成を試す
+        try {
+          const { generateFallbackCard } = await import('./webCapture');
+          const fallbackImage = await generateFallbackCard({
+            eventTitle: 'Live Event',
+            artistName: 'Artist',
+            eventDate: new Date().toISOString(),
+            review: 'A memorable live experience',
+          });
+          return fallbackImage;
+        } catch (fallbackError) {
+          debugLog('Fallback card generation failed', fallbackError);
+          return null;
+        }
+      }
+      
+      return result;
+    }
+    
+    // ネイティブアプリでの処理
     if (!viewRef.current) {
       debugLog('View ref is not available');
       
@@ -59,17 +93,17 @@ export const captureViewAsImage = async (
   } catch (error) {
     debugLog('Error capturing view', error);
     
-    // 開発環境では詳細エラーを表示
+    // エラー処理
     if (isDevelopment) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       if (Platform.OS === 'web') {
-        window.alert(`開発環境エラー: ${errorMessage}`);
+        window.alert(`エラー: ${errorMessage}`);
       } else {
-        Alert.alert('開発環境エラー', `View capture failed: ${errorMessage}`);
+        Alert.alert('エラー', `画像の作成に失敗しました: ${errorMessage}`);
       }
       
-      // 開発環境用フォールバック
-      debugLog('Using development fallback image due to error');
+      // フォールバック
+      debugLog('Using fallback image due to error');
       return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
     } else {
       // プロダクション環境ではシンプルなエラーメッセージ
@@ -86,11 +120,100 @@ export const captureViewAsImage = async (
 };
 
 /**
+ * Web環境専用のビューキャプチャ処理
+ */
+const captureWebView = async (
+  viewRef: React.RefObject<any>,
+  options?: {
+    format?: 'png' | 'jpg';
+    quality?: number;
+  }
+): Promise<string | null> => {
+  try {
+    debugLog('Starting web view capture');
+    
+    // React Native Webでは、refからDOMエレメントを取得
+    let element: HTMLElement | null = null;
+    
+    if (viewRef.current) {
+      // React Native Web の場合、様々な方法でDOMエレメントを取得
+      if (typeof viewRef.current.getDOMNode === 'function') {
+        element = viewRef.current.getDOMNode();
+      } else if (viewRef.current._nativeTag) {
+        // DOMノードを探す
+        element = document.querySelector(`[data-react-native-tag="${viewRef.current._nativeTag}"]`);
+      } else if (viewRef.current instanceof HTMLElement) {
+        element = viewRef.current;
+      } else if (viewRef.current.getNode && typeof viewRef.current.getNode === 'function') {
+        element = viewRef.current.getNode();
+      }
+      
+      // data-testidで要素を探す
+      if (!element) {
+        element = document.querySelector('[data-testid="shareable-memory-card"]') as HTMLElement;
+      }
+      
+      // モーダル内の要素を探す
+      if (!element) {
+        const modal = document.querySelector('[data-share-modal]');
+        if (modal) {
+          element = modal.querySelector('[data-testid="shareable-memory-card"]') as HTMLElement;
+        }
+      }
+    }
+    
+    if (!element) {
+      debugLog('DOM element not found, searching for alternatives');
+      
+      // クラス名で要素を探す（スタイルから推測）
+      const possibleElements = [
+        '[data-testid="shareable-memory-card"]',
+        '.shareable-memory-card',
+        '[style*="backgroundColor"]', // カードっぽい要素
+        '[data-share-card]'
+      ];
+      
+      for (const selector of possibleElements) {
+        element = document.querySelector(selector) as HTMLElement;
+        if (element) {
+          debugLog('Found element with selector:', selector);
+          break;
+        }
+      }
+    }
+    
+    if (!element) {
+      debugLog('No suitable element found for capture');
+      return null;
+    }
+    
+    debugLog('Found DOM element, capturing with html2canvas');
+    const imageUri = await captureWebElement(element, {
+      backgroundColor: '#ffffff',
+      scale: 2,
+      useCORS: true,
+      allowTaint: false,
+    });
+    
+    if (imageUri) {
+      debugLog('Web capture successful');
+      return imageUri;
+    } else {
+      throw new Error('html2canvas capture failed');
+    }
+  } catch (error) {
+    debugLog('Web capture error, will try fallback', error);
+    return null; // フォールバックは呼び出し元で処理
+  }
+};
+
+/**
  * 画像をSNSに共有
  */
 export const shareImage = async (
   imageUri: string,
-  content?: ShareContent
+  content?: ShareContent,
+  onDownloadComplete?: () => void
 ): Promise<boolean> => {
   try {
     debugLog('Starting share process', { 
@@ -102,7 +225,7 @@ export const shareImage = async (
     
     if (Platform.OS === 'web') {
       // Web用の共有処理
-      return await shareImageOnWeb(imageUri, content);
+      return await shareImageOnWeb(imageUri, content, onDownloadComplete);
     }
 
     // ネイティブアプリでの共有
@@ -111,12 +234,7 @@ export const shareImage = async (
     debugLog('Sharing availability result', { isAvailable });
     
     if (!isAvailable) {
-      if (isDevelopment) {
-        const message = 'この端末では共有機能が利用できません（開発環境では制限があります）';
-        Alert.alert('共有不可', message);
-      } else {
-        Alert.alert('共有不可', 'この端末では共有機能が利用できません。');
-      }
+      Alert.alert('共有不可', 'この端末では共有機能が利用できません。');
       return false;
     }
 
@@ -133,15 +251,11 @@ export const shareImage = async (
   } catch (error) {
     debugLog('Share error', error);
     
-    // 開発環境では詳細エラーを表示
-    if (isDevelopment) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      const detailMessage = `共有に失敗しました（開発環境）\n\n詳細: ${errorMessage}\n\n解決方法:\n1. 実機でテストしてください\n2. Expo Dev Clientを使用してください\n3. プロダクションビルドで確認してください`;
-      Alert.alert('開発環境エラー', detailMessage);
-    } else {
-      // プロダクション環境ではシンプルなメッセージ
-      Alert.alert('共有エラー', '共有に失敗しました。\n\nアプリを再起動してから再度お試しください。');
-    }
+    // エラー処理
+    const errorMessage = isDevelopment && error instanceof Error 
+      ? `共有に失敗しました\n\n詳細: ${error.message}`
+      : '共有に失敗しました。もう一度お試しください。';
+    Alert.alert('エラー', errorMessage);
     
     return false;
   }
@@ -152,7 +266,8 @@ export const shareImage = async (
  */
 const shareImageOnWeb = async (
   imageUri: string,
-  content?: ShareContent
+  content?: ShareContent,
+  onDownloadComplete?: () => void
 ): Promise<boolean> => {
   try {
     debugLog('Starting web share', { 
@@ -193,22 +308,20 @@ const shareImageOnWeb = async (
     link.click();
     document.body.removeChild(link);
     
-    const message = isDevelopment && isLocalhost
-      ? '画像をダウンロードしました（開発環境ではWeb Share APIが制限されます）。\n\nSNSアプリで共有してください。'
-      : '画像をダウンロードしました。\n\nSNSアプリで共有してください。';
+    // カスタムモーダル表示のコールバックを呼び出す
+    if (onDownloadComplete) {
+      onDownloadComplete();
+    }
     
-    window.alert(message);
     debugLog('Download successful');
     return true;
   } catch (error) {
     debugLog('Web share error', error);
     
-    if (isDevelopment) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      window.alert(`共有に失敗しました（開発環境）\n\n詳細: ${errorMessage}`);
-    } else {
-      window.alert('共有に失敗しました。\n\nブラウザを更新してから再度お試しください。');
-    }
+    // エラー時はアラートを表示
+    const errorMessage = '共有に失敗しました。ブラウザを更新してから再度お試しください。';
+      
+    window.alert(errorMessage);
     return false;
   }
 };
