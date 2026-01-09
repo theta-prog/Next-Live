@@ -256,7 +256,7 @@ const LiveEventDetailScreen = ({ navigation, route }: any) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    minHeight: Platform.OS === 'web' ? '100vh' : 'auto',
+    ...(Platform.OS === 'web' && { minHeight: '100vh' as any }),
     backgroundColor: theme.colors.background,
   },
   container: {
@@ -283,8 +283,8 @@ const styles = StyleSheet.create({
     flex: 1,
     ...Platform.select({
       web: {
-        height: 'calc(100vh - 60px)',
-        overflowY: 'auto',
+        height: 'calc(100vh - 60px)' as any,
+        overflowY: 'auto' as any,
       },
     }),
   },

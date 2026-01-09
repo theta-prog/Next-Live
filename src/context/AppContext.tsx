@@ -1,4 +1,4 @@
-import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import React, { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import { artistService, liveEventService, memoryService } from '../api/services';
 import { Artist, BaseEntity, LiveEvent, Memory } from '../database/asyncDatabase';
 import { useAuth } from './AuthContext';
@@ -49,7 +49,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [memories, setMemories] = useState<(Memory & { event_title: string; artist_name: string; event_date: string })[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<(LiveEvent & { artist_name: string })[]>([]);
 
-  const refreshData = async () => {
+  const refreshData = useCallback(async () => {
     if (!isAuthenticated) return;
 
     try {
@@ -103,7 +103,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     } catch (error) {
       console.error('Error refreshing data:', error);
     }
-  };
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -115,7 +115,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       setMemories([]);
       setUpcomingEvents([]);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, refreshData]);
 
   // Artist methods
   const addArtist = async (artist: Omit<Artist, keyof BaseEntity>) => {

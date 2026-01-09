@@ -21,19 +21,23 @@ const CalendarScreen = ({ navigation }: any) => {
   // ライブイベントの日付をマークするためのオブジェクトを作成
   const markedDates = liveEvents.reduce((acc, event) => {
     const dateKey = event.date;
+    const isSelected = selectedDate === dateKey;
+    
     acc[dateKey] = {
       marked: true,
-      dotColor: '#007AFF',
+      dotColor: isSelected ? '#ffffff' : '#007AFF',
       selectedColor: '#007AFF',
-      selected: selectedDate === dateKey,
+      selected: isSelected,
       customStyles: {
         container: {
-          backgroundColor: selectedDate === dateKey ? '#007AFF' : 'transparent',
+          backgroundColor: isSelected ? '#007AFF' : '#FFE5E5', // ライブがある日は薄いピンク色
           borderRadius: 16,
+          borderWidth: isSelected ? 0 : 2,
+          borderColor: isSelected ? 'transparent' : '#FF6B6B', // 赤いボーダーで目立たせる
         },
         text: {
-          color: selectedDate === dateKey ? '#fff' : '#333',
-          fontWeight: selectedDate === dateKey ? 'bold' : 'normal',
+          color: isSelected ? '#fff' : '#FF6B6B', // ライブがある日は赤文字
+          fontWeight: 'bold', // ライブがある日は常に太字
         },
       },
     };

@@ -67,19 +67,31 @@ const MemoryFormScreen = ({ navigation, route }: any) => {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [4, 3],
-      quality: 0.5, // Reduce quality to keep payload size small
+      quality: 0.5, // データサイズを抑制
       allowsMultipleSelection: true,
-      base64: true, // Request Base64
+      base64: true, // Base64データを取得
     });
 
     if (!result.canceled) {
-      const newPhotos = result.assets.map(asset => {
-        if (asset.base64) {
-          return `data:${asset.mimeType || 'image/jpeg'};base64,${asset.base64}`;
+      try {
+        // 各画像をBase64形式のdata URLに変換
+        const base64Images = result.assets.map(asset => {
+          if (asset.base64) {
+            const mimeType = asset.mimeType || 'image/jpeg';
+            return `data:${mimeType};base64,${asset.base64}`;
+          }
+          return null;
+        }).filter((img): img is string => img !== null);
+        
+        if (base64Images.length > 0) {
+          setPhotos(prev => [...prev, ...base64Images]);
+        } else {
+          Alert.alert('エラー', '画像の処理に失敗しました');
         }
-        return asset.uri;
-      });
-      setPhotos(prev => [...prev, ...newPhotos]);
+      } catch (error) {
+        console.error('Error processing images:', error);
+        Alert.alert('エラー', '画像の処理に失敗しました');
+      }
     }
   };
 
