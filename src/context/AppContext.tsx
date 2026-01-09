@@ -1,6 +1,6 @@
 import React, { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import { artistService, liveEventService, memoryService } from '../api/services';
-import { Artist, BaseEntity, LiveEvent, Memory } from '../database/asyncDatabase';
+import { Artist, BaseEntity, database, LiveEvent, Memory } from '../database/asyncDatabase';
 import { useAuth } from './AuthContext';
 
 interface AppContextType {
@@ -50,51 +50,78 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [upcomingEvents, setUpcomingEvents] = useState<(LiveEvent & { artist_name: string })[]>([]);
 
   const refreshData = useCallback(async () => {
-    if (!isAuthenticated) return;
-
     try {
-      // Fetch all data in parallel
-      const [artistsData, eventsData, memoriesData] = await Promise.all([
-        artistService.getAll(),
-        liveEventService.getAll(),
-        memoryService.getAll(),
-      ]);
+      // ローカル環境では直接asyncDatabaseからデータを取得
+      // プロダクションではAPI経由でデータを取得
+      const useLocalDatabase = !isAuthenticated || process.env.NODE_ENV === 'development';
+      
+      let artistsData, eventsData, memoriesData;
+      
+      if (useLocalDatabase) {
+        // Local database access
+        console.log('Using local database for data access');
+        const [localArtists, localEvents, localMemories] = await Promise.all([
+          database.getAllArtists(),
+          database.getLiveEventsWithArtists(), 
+          database.getMemoriesWithEventDetails(),
+        ]);
+        
+        console.log('Local data retrieved:', {
+          artists: localArtists.length,
+          events: localEvents.length,
+          memories: localMemories.length
+        });
+        
+        artistsData = localArtists;
+        eventsData = localEvents;
+        memoriesData = localMemories;
+      } else {
+        // API access for authenticated users
+        const [apiArtists, apiEvents, apiMemories] = await Promise.all([
+          artistService.getAll(),
+          liveEventService.getAll(),
+          memoryService.getAll(),
+        ]);
+        
+        artistsData = apiArtists;
+        eventsData = apiEvents.map(event => {
+          const artist = apiArtists.find(a => a.id === event.artist_id);
+          return {
+            ...event,
+            artist_name: artist?.name || 'Unknown Artist',
+          };
+        });
+        memoriesData = apiMemories.map(memory => {
+          const event = apiEvents.find(e => e.id === memory.live_event_id);
+          const artist = event ? apiArtists.find(a => a.id === event.artist_id) : null;
+          
+          return {
+            ...memory,
+            event_title: event?.title || 'Unknown Event',
+            artist_name: artist?.name || 'Unknown Artist',
+            event_date: event?.date || '',
+          };
+        });
+      }
       
       // Sort artists
       const sortedArtists = artistsData.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
       setArtists(sortedArtists);
 
-      // Join events with artists
-      const eventsWithArtists = eventsData.map(event => {
-        const artist = artistsData.find(a => a.id === event.artist_id);
-        return {
-          ...event,
-          artist_name: artist?.name || 'Unknown Artist',
-        };
-      }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-      
-      setLiveEvents(eventsWithArtists);
+      // Set events (already includes artist_name from database query)
+      const sortedEvents = eventsData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      console.log('Setting liveEvents:', sortedEvents);
+      setLiveEvents(sortedEvents);
 
-      // Join memories with events and artists
-      const memoriesWithDetails = memoriesData.map(memory => {
-        const event = eventsData.find(e => e.id === memory.live_event_id);
-        const artist = event ? artistsData.find(a => a.id === event.artist_id) : null;
-        
-        return {
-          ...memory,
-          event_title: event?.title || 'Unknown Event',
-          artist_name: artist?.name || 'Unknown Artist',
-          event_date: event?.date || '',
-        };
-      }).sort((a, b) => 
+      // Set memories (already includes event details from database query)
+      const sortedMemories = memoriesData.sort((a, b) => 
         new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
       );
-
-      setMemories(memoriesWithDetails);
+      setMemories(sortedMemories);
 
       // Filter upcoming events
       const today = new Date().toISOString().split('T')[0]!;
-      const upcoming = eventsWithArtists
+      const upcoming = sortedEvents
         .filter(event => event.date >= today)
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
       
@@ -106,21 +133,20 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   }, [isAuthenticated]);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      refreshData();
-    } else {
-      // Clear data on logout
-      setArtists([]);
-      setLiveEvents([]);
-      setMemories([]);
-      setUpcomingEvents([]);
-    }
-  }, [isAuthenticated, refreshData]);
+    // ローカル環境では常にデータを読み込む
+    refreshData();
+  }, [refreshData]);
 
   // Artist methods
   const addArtist = async (artist: Omit<Artist, keyof BaseEntity>) => {
     try {
-      await artistService.create(artist);
+      const useLocalDatabase = !isAuthenticated || process.env.NODE_ENV === 'development';
+      
+      if (useLocalDatabase) {
+        await database.createArtist(artist);
+      } else {
+        await artistService.create(artist);
+      }
       await refreshData();
     } catch (error) {
       console.error('Error adding artist:', error);
@@ -130,7 +156,13 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   const updateArtist = async (id: string, artist: Partial<Artist>) => {
     try {
-      await artistService.update(id, artist);
+      const useLocalDatabase = !isAuthenticated || process.env.NODE_ENV === 'development';
+      
+      if (useLocalDatabase) {
+        await database.updateArtist(id, artist);
+      } else {
+        await artistService.update(id, artist);
+      }
       await refreshData();
     } catch (error) {
       console.error('Error updating artist:', error);
@@ -140,7 +172,13 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   const deleteArtist = async (id: string) => {
     try {
-      await artistService.delete(id);
+      const useLocalDatabase = !isAuthenticated || process.env.NODE_ENV === 'development';
+      
+      if (useLocalDatabase) {
+        await database.deleteArtist(id);
+      } else {
+        await artistService.delete(id);
+      }
       await refreshData();
     } catch (error) {
       console.error('Error deleting artist:', error);
@@ -151,7 +189,13 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   // Live event methods
   const addLiveEvent = async (event: Omit<LiveEvent, keyof BaseEntity>) => {
     try {
-      await liveEventService.create(event);
+      const useLocalDatabase = !isAuthenticated || process.env.NODE_ENV === 'development';
+      
+      if (useLocalDatabase) {
+        await database.createLiveEvent(event);
+      } else {
+        await liveEventService.create(event);
+      }
       await refreshData();
     } catch (error) {
       console.error('Error adding live event:', error);
@@ -161,7 +205,13 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   const updateLiveEvent = async (id: string, event: Partial<LiveEvent>) => {
     try {
-      await liveEventService.update(id, event);
+      const useLocalDatabase = !isAuthenticated || process.env.NODE_ENV === 'development';
+      
+      if (useLocalDatabase) {
+        await database.updateLiveEvent(id, event);
+      } else {
+        await liveEventService.update(id, event);
+      }
       await refreshData();
     } catch (error) {
       console.error('Error updating live event:', error);
@@ -171,7 +221,13 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   const deleteLiveEvent = async (id: string) => {
     try {
-      await liveEventService.delete(id);
+      const useLocalDatabase = !isAuthenticated || process.env.NODE_ENV === 'development';
+      
+      if (useLocalDatabase) {
+        await database.deleteLiveEvent(id);
+      } else {
+        await liveEventService.delete(id);
+      }
       await refreshData();
     } catch (error) {
       console.error('Error deleting live event:', error);
@@ -182,7 +238,13 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   // Memory methods
   const addMemory = async (memory: Omit<Memory, keyof BaseEntity>) => {
     try {
-      await memoryService.create(memory);
+      const useLocalDatabase = !isAuthenticated || process.env.NODE_ENV === 'development';
+      
+      if (useLocalDatabase) {
+        await database.createMemory(memory);
+      } else {
+        await memoryService.create(memory);
+      }
       await refreshData();
     } catch (error) {
       console.error('Error adding memory:', error);
@@ -192,7 +254,13 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   const updateMemory = async (id: string, memory: Partial<Memory>) => {
     try {
-      await memoryService.update(id, memory);
+      const useLocalDatabase = !isAuthenticated || process.env.NODE_ENV === 'development';
+      
+      if (useLocalDatabase) {
+        await database.updateMemory(id, memory);
+      } else {
+        await memoryService.update(id, memory);
+      }
       await refreshData();
     } catch (error) {
       console.error('Error updating memory:', error);
@@ -202,7 +270,13 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   const deleteMemory = async (id: string) => {
     try {
-      await memoryService.delete(id);
+      const useLocalDatabase = !isAuthenticated || process.env.NODE_ENV === 'development';
+      
+      if (useLocalDatabase) {
+        await database.deleteMemory(id);
+      } else {
+        await memoryService.delete(id);
+      }
       await refreshData();
     } catch (error) {
       console.error('Error deleting memory:', error);

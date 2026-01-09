@@ -204,19 +204,18 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
       });
 
       // 画像を共有
-      await shareImage(imageUri, {
+      const success = await shareImage(imageUri, {
         title: '思い出を共有',
         message,
       });
 
-      setIsShareModalVisible(false);
+      if (success) {
+        setIsShareModalVisible(false);
+      }
     } catch (error) {
       console.error('Share error:', error);
-      if (Platform.OS === 'web') {
-        window.alert('共有に失敗しました。もう一度お試しください。');
-      } else {
-        Alert.alert('エラー', '共有に失敗しました。もう一度お試しください。');
-      }
+      // shareImage内で適切なエラーメッセージが表示されるため、
+      // ここでは追加のエラーメッセージは表示しない
     } finally {
       setIsSharing(false);
     }

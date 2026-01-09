@@ -71,6 +71,14 @@ export const captureViewAsImage = async (
       // 開発環境用フォールバック
       debugLog('Using development fallback image due to error');
       return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
+    } else {
+      // プロダクション環境ではシンプルなエラーメッセージ
+      const message = '画像の作成に失敗しました。もう一度お試しください。';
+      if (Platform.OS === 'web') {
+        window.alert(message);
+      } else {
+        Alert.alert('エラー', message);
+      }
     }
     
     return null;
@@ -103,10 +111,12 @@ export const shareImage = async (
     debugLog('Sharing availability result', { isAvailable });
     
     if (!isAvailable) {
-      const message = isDevelopment 
-        ? 'この端末では共有機能が利用できません（開発環境では制限があります）'
-        : 'この端末では共有機能が利用できません';
-      Alert.alert('共有不可', message);
+      if (isDevelopment) {
+        const message = 'この端末では共有機能が利用できません（開発環境では制限があります）';
+        Alert.alert('共有不可', message);
+      } else {
+        Alert.alert('共有不可', 'この端末では共有機能が利用できません。');
+      }
       return false;
     }
 
@@ -129,7 +139,8 @@ export const shareImage = async (
       const detailMessage = `共有に失敗しました（開発環境）\n\n詳細: ${errorMessage}\n\n解決方法:\n1. 実機でテストしてください\n2. Expo Dev Clientを使用してください\n3. プロダクションビルドで確認してください`;
       Alert.alert('開発環境エラー', detailMessage);
     } else {
-      Alert.alert('エラー', '共有に失敗しました');
+      // プロダクション環境ではシンプルなメッセージ
+      Alert.alert('共有エラー', '共有に失敗しました。\n\nアプリを再起動してから再度お試しください。');
     }
     
     return false;
@@ -184,7 +195,7 @@ const shareImageOnWeb = async (
     
     const message = isDevelopment && isLocalhost
       ? '画像をダウンロードしました（開発環境ではWeb Share APIが制限されます）。\n\nSNSアプリで共有してください。'
-      : '画像をダウンロードしました。SNSアプリで共有してください。';
+      : '画像をダウンロードしました。\n\nSNSアプリで共有してください。';
     
     window.alert(message);
     debugLog('Download successful');
@@ -196,7 +207,7 @@ const shareImageOnWeb = async (
       const errorMessage = error instanceof Error ? error.message : String(error);
       window.alert(`共有に失敗しました（開発環境）\n\n詳細: ${errorMessage}`);
     } else {
-      window.alert('共有に失敗しました');
+      window.alert('共有に失敗しました。\n\nブラウザを更新してから再度お試しください。');
     }
     return false;
   }
