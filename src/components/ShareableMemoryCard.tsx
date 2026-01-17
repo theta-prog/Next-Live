@@ -160,7 +160,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
     marginBottom: 4,
-    textTransform: 'uppercase',
     letterSpacing: 1,
   },
   eventTitle: {

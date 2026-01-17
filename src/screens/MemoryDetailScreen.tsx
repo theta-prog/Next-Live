@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
+import React, { memo, useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -8,6 +8,7 @@ import {
     ImageStyle,
     Modal,
     Platform,
+  Share,
     ScrollView,
     StyleSheet,
     Text,
@@ -133,6 +134,25 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
   const [isSharing, setIsSharing] = useState(false);
   const [isDownloadCompleteModalVisible, setIsDownloadCompleteModalVisible] = useState(false);
   const shareCardRef = useRef<View>(null);
+  const initialShareSettings = useMemo(() => {
+    let shared = !!route.params?.shared;
+    let showSetlist = !!route.params?.showSetlist;
+
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      shared = params.get('share') === '1' || params.get('shared') === '1' || shared;
+      showSetlist = params.get('setlist') === '1' || showSetlist;
+    }
+
+    return { shared, showSetlist };
+  }, [route.params]);
+  const [isSharedView, setIsSharedView] = useState(initialShareSettings.shared);
+  const [showSetlist, setShowSetlist] = useState(initialShareSettings.showSetlist);
+
+  useEffect(() => {
+    setIsSharedView(initialShareSettings.shared);
+    setShowSetlist(initialShareSettings.showSetlist);
+  }, [initialShareSettings, memoryId]);
 
   // Parse photos using useMemo
   const photos = useMemo(() => {
@@ -241,6 +261,80 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
   const handleIndexChange = useCallback((index: number) => {
     setSelectedPhotoIndex(index);
   }, []);
+
+  const updateShareUrlSetlist = useCallback((nextShowSetlist: boolean) => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+    if (!memoryId) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set('memoryId', memoryId);
+    url.searchParams.set('share', '1');
+    url.searchParams.set('setlist', nextShowSetlist ? '1' : '0');
+    window.history.replaceState({}, '', url.toString());
+  }, [memoryId]);
+
+  const handleToggleSetlist = useCallback(() => {
+    setShowSetlist((prev) => {
+      const next = !prev;
+      updateShareUrlSetlist(next);
+      return next;
+    });
+  }, [updateShareUrlSetlist]);
+
+  const buildShareUrl = useCallback((includeSetlist: boolean) => {
+    const baseUrl =
+      (Platform.OS === 'web' && typeof window !== 'undefined' && window.location.origin)
+        ? window.location.origin
+        : (process.env.EXPO_PUBLIC_WEB_URL || '');
+    if (!baseUrl || !memoryId) return null;
+    const url = new URL(baseUrl);
+    url.searchParams.set('memoryId', memoryId);
+    url.searchParams.set('share', '1');
+    url.searchParams.set('setlist', includeSetlist ? '1' : '0');
+    return url.toString();
+  }, [memoryId]);
+
+  const handleShareLink = useCallback(async () => {
+    if (!memory) return;
+    const link = buildShareUrl(false);
+    if (!link) {
+      const message = '共有リンクを作成できませんでした。もう一度お試しください。';
+      if (Platform.OS === 'web') {
+        window.alert(message);
+      } else {
+        Alert.alert('エラー', message);
+      }
+      return;
+    }
+
+    const message = generateShareMessage({
+      eventTitle: memory.event_title,
+      artistName: memory.artist_name,
+      eventDate: memory.event_date,
+      review: memory.review,
+    });
+
+    if (Platform.OS === 'web') {
+      if (navigator.share) {
+        await navigator.share({
+          title: '思い出を共有',
+          text: message,
+          url: link,
+        });
+        return;
+      }
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(link);
+        window.alert('共有リンクをコピーしました');
+        return;
+      }
+      window.open(link, '_blank');
+      return;
+    }
+
+    await Share.share({
+      message: `${message}\n${link}`,
+    });
+  }, [memory, buildShareUrl]);
 
   if (!memory) {
     return (
@@ -703,6 +797,29 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
                     </>
                   )}
                 </button>
+                <button
+                  onClick={handleShareLink}
+                  disabled={isSharing}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    width: '100%',
+                    marginTop: 12,
+                    backgroundColor: isSharing ? '#b2dffc' : '#0095f6',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 8,
+                    padding: '14px 20px',
+                    fontSize: 16,
+                    fontWeight: 600,
+                    cursor: isSharing ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  <Ionicons name="link-outline" size={20} color="#fff" />
+                  <span>リンクを共有</span>
+                </button>
               </div>
             </div>
           </div>
@@ -883,7 +1000,18 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
               </View>
             )}
 
-            {memory.setlist && (
+            {isSharedView && memory.setlist && (
+              <TouchableOpacity
+                style={styles.setlistToggle}
+                onPress={handleToggleSetlist}
+              >
+                <Text style={styles.setlistToggleText}>
+                  {showSetlist ? 'セットリストを隠す' : 'セットリストを表示'}
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            {memory.setlist && (!isSharedView || showSetlist) && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>セットリスト</Text>
                 <View style={styles.setlistContainer}>
@@ -995,6 +1123,14 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
                     <Text style={styles.shareButtonText}>画像を共有</Text>
                   </>
                 )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.linkShareButton, isSharing && styles.shareButtonDisabled]}
+                onPress={handleShareLink}
+                disabled={isSharing}
+              >
+                <Ionicons name="link-outline" size={20} color="#fff" />
+                <Text style={styles.shareButtonText}>リンクを共有</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1273,6 +1409,16 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 20,
   },
+  linkShareButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#0095f6',
+    borderRadius: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    marginTop: 12,
+  },
   shareButtonDisabled: {
     backgroundColor: '#b2dffc',
   },
@@ -1281,6 +1427,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,
+  },
+  setlistToggle: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#fff',
+    borderColor: '#0095f6',
+    borderWidth: 1,
+    borderRadius: 16,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+  },
+  setlistToggleText: {
+    color: '#0095f6',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });
 

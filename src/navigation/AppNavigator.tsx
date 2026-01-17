@@ -134,6 +134,23 @@ const ResponsiveNavigationWrapper: React.FC<{
   const navigationRef = React.useRef<any>(null);
   const [currentRoute, setCurrentRoute] = useState('Home');
 
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const memoryId = params.get('memoryId');
+    if (!memoryId) return;
+    const shared = params.get('share') === '1' || params.get('shared') === '1';
+    const showSetlist = params.get('setlist') === '1';
+    if (navigationRef.current) {
+      navigationRef.current.navigate('MemoryDetail', {
+        memoryId,
+        shared,
+        showSetlist,
+      });
+      setCurrentRoute('Memories');
+    }
+  }, []);
+
   const handleNavigate = useCallback((routeName: string) => {
     if (navigationRef.current) {
       if (TAB_SCREENS.includes(routeName)) {
