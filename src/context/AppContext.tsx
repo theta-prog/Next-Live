@@ -2,6 +2,7 @@ import React, { createContext, ReactNode, useCallback, useContext, useEffect, us
 import { artistService, liveEventService, memoryService } from '../api/services';
 import { Artist, BaseEntity, database, LiveEvent, Memory } from '../database/asyncDatabase';
 import { isEventToday } from '../utils';
+import { storage } from '../utils/storage';
 import { useAuth } from './AuthContext';
 
 interface AppContextType {
@@ -54,7 +55,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     try {
       // ローカル環境では直接asyncDatabaseからデータを取得
       // プロダクションではAPI経由でデータを取得
-      const useLocalDatabase = !isAuthenticated || process.env.NODE_ENV === 'development';
+      const accessToken = await storage.getItem('accessToken');
+      const useLocalDatabase = !isAuthenticated || !accessToken || process.env.NODE_ENV === 'development';
       
       let artistsData, eventsData, memoriesData;
       
@@ -154,7 +156,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   // Artist methods
   const addArtist = async (artist: Omit<Artist, keyof BaseEntity>) => {
     try {
-      const useLocalDatabase = !isAuthenticated || process.env.NODE_ENV === 'development';
+      const accessToken = await storage.getItem('accessToken');
+      const useLocalDatabase = !isAuthenticated || !accessToken || process.env.NODE_ENV === 'development';
       
       if (useLocalDatabase) {
         await database.createArtist(artist);
@@ -170,7 +173,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   const updateArtist = async (id: string, artist: Partial<Artist>) => {
     try {
-      const useLocalDatabase = !isAuthenticated || process.env.NODE_ENV === 'development';
+      const accessToken = await storage.getItem('accessToken');
+      const useLocalDatabase = !isAuthenticated || !accessToken || process.env.NODE_ENV === 'development';
       
       if (useLocalDatabase) {
         await database.updateArtist(id, artist);
@@ -186,7 +190,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   const deleteArtist = async (id: string) => {
     try {
-      const useLocalDatabase = !isAuthenticated || process.env.NODE_ENV === 'development';
+      const accessToken = await storage.getItem('accessToken');
+      const useLocalDatabase = !isAuthenticated || !accessToken || process.env.NODE_ENV === 'development';
       
       if (useLocalDatabase) {
         await database.deleteArtist(id);
@@ -203,7 +208,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   // Live event methods
   const addLiveEvent = async (event: Omit<LiveEvent, keyof BaseEntity>) => {
     try {
-      const useLocalDatabase = !isAuthenticated || process.env.NODE_ENV === 'development';
+      const accessToken = await storage.getItem('accessToken');
+      const useLocalDatabase = !isAuthenticated || !accessToken || process.env.NODE_ENV === 'development';
       
       if (useLocalDatabase) {
         await database.createLiveEvent(event);
@@ -219,7 +225,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   const updateLiveEvent = async (id: string, event: Partial<LiveEvent>) => {
     try {
-      const useLocalDatabase = !isAuthenticated || process.env.NODE_ENV === 'development';
+      const accessToken = await storage.getItem('accessToken');
+      const useLocalDatabase = !isAuthenticated || !accessToken || process.env.NODE_ENV === 'development';
       
       if (useLocalDatabase) {
         await database.updateLiveEvent(id, event);
@@ -235,7 +242,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   const deleteLiveEvent = async (id: string) => {
     try {
-      const useLocalDatabase = !isAuthenticated || process.env.NODE_ENV === 'development';
+      const accessToken = await storage.getItem('accessToken');
+      const useLocalDatabase = !isAuthenticated || !accessToken || process.env.NODE_ENV === 'development';
       
       if (useLocalDatabase) {
         await database.deleteLiveEvent(id);
@@ -252,7 +260,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   // Memory methods
   const addMemory = async (memory: Omit<Memory, keyof BaseEntity>) => {
     try {
-      const useLocalDatabase = !isAuthenticated || process.env.NODE_ENV === 'development';
+      const accessToken = await storage.getItem('accessToken');
+      const useLocalDatabase = !isAuthenticated || !accessToken || process.env.NODE_ENV === 'development';
       
       if (useLocalDatabase) {
         await database.createMemory(memory);
@@ -268,7 +277,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   const updateMemory = async (id: string, memory: Partial<Memory>) => {
     try {
-      const useLocalDatabase = !isAuthenticated || process.env.NODE_ENV === 'development';
+      const accessToken = await storage.getItem('accessToken');
+      const useLocalDatabase = !isAuthenticated || !accessToken || process.env.NODE_ENV === 'development';
       
       if (useLocalDatabase) {
         await database.updateMemory(id, memory);

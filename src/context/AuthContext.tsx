@@ -3,7 +3,7 @@ import { makeRedirectUri } from 'expo-auth-session';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import client from '../api/client';
 import { API_BASE_URL } from '../config';
 import { storage } from '../utils/storage';
@@ -59,6 +59,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   useEffect(() => {
+    const handleAppStateChange = (state: string) => {
+      if (state === 'active') {
+        checkLoginStatus();
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkLoginStatus();
+      }
+    };
+
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+    }
+
+    return () => {
+      subscription.remove();
+      if (Platform.OS === 'web' && typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     if (response?.type === 'success') {
       const idToken = response.authentication?.idToken ?? response.params?.id_token;
       if (idToken) {
@@ -72,14 +99,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const checkLoginStatus = async () => {
     try {
       const accessToken = await storage.getItem('accessToken');
-      if (accessToken) {
-        const userInfo = await storage.getItem('userInfo');
-        if (userInfo) {
-            setUser(JSON.parse(userInfo));
-        }
+      const userInfo = await storage.getItem('userInfo');
+      if (accessToken && userInfo) {
+        setUser(JSON.parse(userInfo));
+      } else {
+        setUser(null);
       }
     } catch (error) {
       console.error('Check login status error:', error);
+      setUser(null);
     } finally {
       setIsLoading(false);
     }

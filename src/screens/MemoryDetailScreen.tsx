@@ -1,19 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { memo, useCallback, useMemo, useRef, useState, useEffect } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Dimensions,
-    Image,
-    ImageStyle,
-    Modal,
-    Platform,
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  Image,
+  ImageStyle,
+  Modal,
+  Platform,
+  ScrollView,
   Share,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ShareableMemoryCard from '../components/ShareableMemoryCard';
