@@ -1,10 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { forwardRef } from 'react';
 import {
-    Image,
-    StyleSheet,
-    Text,
-    View,
+  Image,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import { theme } from '../styles/theme';
 
@@ -33,16 +33,7 @@ const ShareableMemoryCard = forwardRef<View, ShareableMemoryCardProps>(
       });
     };
 
-    // セットリストを表示用に加工（最大5曲まで）
-    const getDisplaySetlist = (setlistText?: string) => {
-      if (!setlistText) return null;
-      const songs = setlistText.split('\n').filter(s => s.trim());
-      const displaySongs = songs.slice(0, 5);
-      const hasMore = songs.length > 5;
-      return { songs: displaySongs, hasMore, totalCount: songs.length };
-    };
-
-    const setlistData = getDisplaySetlist(setlist);
+    // セットリストは共有時に表示しない（ネタバレ防止）
 
     return (
       <View 
@@ -101,7 +92,7 @@ const ShareableMemoryCard = forwardRef<View, ShareableMemoryCardProps>(
             </View>
           )}
 
-          {/* セットリスト */}
+          {/* セットリスト - ネタバレ防止のため共有時は非表示
           {setlistData && setlistData.songs.length > 0 && (
             <View style={styles.setlistContainer}>
               <Text style={styles.setlistLabel}>♫ セットリスト</Text>
@@ -117,6 +108,7 @@ const ShareableMemoryCard = forwardRef<View, ShareableMemoryCardProps>(
               )}
             </View>
           )}
+          */}
         </View>
 
         {/* フッター */}

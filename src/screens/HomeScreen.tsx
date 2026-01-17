@@ -13,6 +13,7 @@ import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { useResponsive } from '../context/ResponsiveContext';
 import { theme, typography } from '../styles/theme';
+import { calculateDaysUntil, formatDate } from '../utils';
 
 const HomeScreen = ({ navigation }: any) => {
   const { upcomingEvents } = useApp();
@@ -20,24 +21,6 @@ const HomeScreen = ({ navigation }: any) => {
   const { isPC } = useResponsive();
 
   const nextEvent = upcomingEvents[0];
-
-  const calculateDaysUntil = (date: string) => {
-    const eventDate = new Date(date);
-    const today = new Date();
-    const diffTime = eventDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ja-JP', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      weekday: 'long',
-    });
-  };
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>

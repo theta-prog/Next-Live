@@ -134,12 +134,9 @@ const ResponsiveNavigationWrapper: React.FC<{
   const navigationRef = React.useRef<any>(null);
   const [currentRoute, setCurrentRoute] = useState('Home');
 
-  // タブ画面かどうかを判定
-  const tabScreens = TAB_SCREENS;
-
   const handleNavigate = useCallback((routeName: string) => {
     if (navigationRef.current) {
-      if (tabScreens.includes(routeName)) {
+      if (TAB_SCREENS.includes(routeName)) {
         // タブ画面への遷移
         navigationRef.current.navigate('Main', { screen: routeName });
         setCurrentRoute(routeName);

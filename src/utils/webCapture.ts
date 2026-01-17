@@ -157,7 +157,8 @@ export const generateFallbackCard = async (data: {
       y += 30;
     }
 
-    // セットリスト
+    // セットリスト - ネタバレ防止のため共有時は非表示
+    /*
     if (data.setlist) {
       y += 20;
       ctx.fillStyle = '#0095f6';
@@ -174,6 +175,7 @@ export const generateFallbackCard = async (data: {
         y += 35;
       });
     }
+    */
 
     // フッター
     ctx.fillStyle = '#f8f9fa';
@@ -191,12 +193,17 @@ export const generateFallbackCard = async (data: {
  * テキストを指定幅で改行
  */
 function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
-  const words = text.split(' ');
+  const words = text.split(' ').filter(word => word.trim() !== '');
   const lines: string[] = [];
-  let currentLine = words[0];
+  
+  if (words.length === 0) {
+    return [];
+  }
+  
+  let currentLine = words[0]!;
 
   for (let i = 1; i < words.length; i++) {
-    const word = words[i];
+    const word = words[i]!;
     const width = ctx.measureText(currentLine + ' ' + word).width;
     if (width < maxWidth) {
       currentLine += ' ' + word;

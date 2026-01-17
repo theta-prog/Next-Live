@@ -1,6 +1,7 @@
 import React, { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import { artistService, liveEventService, memoryService } from '../api/services';
 import { Artist, BaseEntity, database, LiveEvent, Memory } from '../database/asyncDatabase';
+import { isEventToday } from '../utils';
 import { useAuth } from './AuthContext';
 
 interface AppContextType {
@@ -119,10 +120,23 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       );
       setMemories(sortedMemories);
 
-      // Filter upcoming events
-      const today = new Date().toISOString().split('T')[0]!;
+      // Filter upcoming events (including today's events)
       const upcoming = sortedEvents
-        .filter(event => event.date >= today)
+        .filter(event => {
+          const eventDate = new Date(event.date);
+          const today = new Date();
+          
+          // Include today's events
+          if (isEventToday(event.date)) {
+            return true;
+          }
+          
+          // Remove time component for proper date comparison
+          const eventDateOnly = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+          const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+          
+          return eventDateOnly > todayOnly;
+        })
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
       
       setUpcomingEvents(upcoming);

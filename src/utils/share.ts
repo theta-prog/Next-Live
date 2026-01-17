@@ -2,7 +2,7 @@ import Constants from 'expo-constants';
 import * as Sharing from 'expo-sharing';
 import { Alert, Platform } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
-import { captureWebElement, generateFallbackCard } from './webCapture';
+import { captureWebElement } from './webCapture';
 
 export interface ShareContent {
   title?: string;
