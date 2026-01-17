@@ -130,7 +130,8 @@ const ResponsiveNavigationWrapper: React.FC<{
   userName?: string;
   userPicture?: string;
   onLogout?: () => void;
-}> = ({ children, userName, userPicture, onLogout }) => {
+  isAuthenticated?: boolean;
+}> = ({ children, userName, userPicture, onLogout, isAuthenticated = false }) => {
   const navigationRef = React.useRef<any>(null);
   const [currentRoute, setCurrentRoute] = useState('Home');
 
@@ -155,6 +156,11 @@ const ResponsiveNavigationWrapper: React.FC<{
 
   const handleNavigate = useCallback((routeName: string) => {
     if (navigationRef.current) {
+      if (!isAuthenticated) {
+        navigationRef.current.navigate('Login');
+        setCurrentRoute('Login');
+        return;
+      }
       if (TAB_SCREENS.includes(routeName)) {
         // タブ画面への遷移
         navigationRef.current.navigate('Main', { screen: routeName });
@@ -164,7 +170,7 @@ const ResponsiveNavigationWrapper: React.FC<{
         navigationRef.current.navigate(routeName);
       }
     }
-  }, []);
+  }, [isAuthenticated]);
 
   const onStateChange = useCallback(() => {
     if (navigationRef.current) {
@@ -237,6 +243,7 @@ const AppNavigator = () => {
           userName={user?.name}
           userPicture={user?.picture}
           onLogout={logout}
+          isAuthenticated={isAuthenticated}
         >
           <StatusBar style="auto" />
           <Stack.Navigator 
@@ -295,12 +302,15 @@ const AppNavigator = () => {
               />
             </>
           ) : sharedLinkParams ? (
-            <Stack.Screen
-              name="MemoryDetail"
-              component={MemoryDetailScreen}
-              options={{ headerShown: false }}
-              initialParams={sharedLinkParams}
-            />
+            <>
+              <Stack.Screen
+                name="MemoryDetail"
+                component={MemoryDetailScreen}
+                options={{ headerShown: false }}
+                initialParams={sharedLinkParams}
+              />
+              <Stack.Screen name="Login" component={LoginScreen} />
+            </>
           ) : (
             <Stack.Screen name="Login" component={LoginScreen} />
           )}

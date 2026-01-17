@@ -19,6 +19,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { memoryService } from '../api/services';
 import ShareableMemoryCard from '../components/ShareableMemoryCard';
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 import { Memory } from '../database/asyncDatabase';
 import { confirmDelete } from '../utils/alert';
 import { captureViewAsImage, generateShareMessage, shareImage } from '../utils/share';
@@ -139,6 +140,7 @@ const PhotoCarousel = memo(function PhotoCarousel({
 
 const MemoryDetailScreen = ({ navigation, route }: any) => {
   const { memories, deleteMemory, liveEvents } = useApp();
+  const { isAuthenticated } = useAuth();
   const memoryId = route.params?.memoryId;
   const memory = memories.find(m => m.id === memoryId);
   const [sharedMemory, setSharedMemory] = useState<MemoryWithDetails | null>(null);
@@ -236,7 +238,17 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
 
   // Stable callbacks using useMemo to prevent Header re-renders
   const headerCallbacks = useMemo(() => ({
-    onBack: () => navigation.goBack(),
+    onBack: () => {
+      if (isSharedView) {
+        if (!isAuthenticated) {
+          navigation.navigate('Login');
+        } else {
+          navigation.navigate('Main', { screen: 'Home' });
+        }
+        return;
+      }
+      navigation.goBack();
+    },
     onEdit: () => {
       if (memoryId && resolvedMemory?.live_event_id) {
         navigation.navigate('MemoryForm', {
@@ -268,7 +280,14 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
     onShare: () => {
       setIsShareModalVisible(true);
     },
-  }), [navigation, memoryId, resolvedMemory?.live_event_id, deleteMemory]);
+  }), [navigation, memoryId, resolvedMemory?.live_event_id, deleteMemory, isSharedView, isAuthenticated]);
+  const handleProtectedNavigate = useCallback(() => {
+    if (!isAuthenticated) {
+      navigation.navigate('Login');
+      return;
+    }
+    navigation.navigate('Main', { screen: 'Home' });
+  }, [isAuthenticated, navigation]);
 
   // 共有処理
   const handleShare = useCallback(async () => {
@@ -720,7 +739,13 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
                 ライブ詳細
               </div>
               <button
-                onClick={() => navigation.navigate('LiveEventDetail', { eventId: event.id })}
+                onClick={() => {
+                  if (isSharedView) {
+                    handleProtectedNavigate();
+                    return;
+                  }
+                  navigation.navigate('LiveEventDetail', { eventId: event.id });
+                }}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -1145,7 +1170,13 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
                 <Text style={styles.sectionTitle}>ライブ詳細</Text>
                 <TouchableOpacity
                   style={styles.eventDetailButton}
-                  onPress={() => navigation.navigate('LiveEventDetail', { eventId: event.id })}
+                  onPress={() => {
+                    if (isSharedView) {
+                      handleProtectedNavigate();
+                      return;
+                    }
+                    navigation.navigate('LiveEventDetail', { eventId: event.id });
+                  }}
                 >
                   <View style={styles.eventDetailInfo}>
                     <Text style={styles.eventDetailTitle}>{event.title}</Text>
