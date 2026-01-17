@@ -78,6 +78,9 @@ model Memory {
   review      String?
   setlist     String?
   photos      Json?     // array of urls
+  shareToken  String?   @unique
+  shareEnabled Boolean  @default(false)
+  sharedAt    DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }

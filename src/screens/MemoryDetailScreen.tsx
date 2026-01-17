@@ -16,8 +16,10 @@ import {
   View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { memoryService } from '../api/services';
 import ShareableMemoryCard from '../components/ShareableMemoryCard';
 import { useApp } from '../context/AppContext';
+import { Memory } from '../database/asyncDatabase';
 import { confirmDelete } from '../utils/alert';
 import { captureViewAsImage, generateShareMessage, shareImage } from '../utils/share';
 
@@ -25,15 +27,23 @@ import { captureViewAsImage, generateShareMessage, shareImage } from '../utils/s
 const INITIAL_WIDTH = Dimensions.get('window').width;
 const PHOTO_HEIGHT = 220;
 
+type MemoryWithDetails = Memory & {
+  event_title: string;
+  artist_name: string;
+  event_date: string;
+  venue_name?: string;
+};
+
 // Native用ヘッダーコンポーネント
 interface HeaderProps {
   onBack: () => void;
   onEdit: () => void;
   onDelete: () => void;
   onShare: () => void;
+  showEditDelete?: boolean;
 }
 
-const Header = memo(function Header({ onBack, onEdit, onDelete, onShare }: HeaderProps) {
+const Header = memo(function Header({ onBack, onEdit, onDelete, onShare, showEditDelete = true }: HeaderProps) {
   return (
     <View style={styles.header}>
       <TouchableOpacity onPress={onBack} style={styles.backButton}>
@@ -43,12 +53,16 @@ const Header = memo(function Header({ onBack, onEdit, onDelete, onShare }: Heade
         <TouchableOpacity style={styles.headerButton} onPress={onShare}>
           <Ionicons name="share-outline" size={24} color="#007AFF" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.headerButton} onPress={onEdit}>
-          <Ionicons name="create-outline" size={24} color="#007AFF" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.headerButton} onPress={onDelete}>
-          <Ionicons name="trash-outline" size={24} color="#FF3B30" />
-        </TouchableOpacity>
+        {showEditDelete && (
+          <>
+            <TouchableOpacity style={styles.headerButton} onPress={onEdit}>
+              <Ionicons name="create-outline" size={24} color="#007AFF" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.headerButton} onPress={onDelete}>
+              <Ionicons name="trash-outline" size={24} color="#FF3B30" />
+            </TouchableOpacity>
+          </>
+        )}
       </View>
     </View>
   );
@@ -127,6 +141,8 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
   const { memories, deleteMemory, liveEvents } = useApp();
   const memoryId = route.params?.memoryId;
   const memory = memories.find(m => m.id === memoryId);
+  const [sharedMemory, setSharedMemory] = useState<MemoryWithDetails | null>(null);
+  const [isSharedLoading, setIsSharedLoading] = useState(false);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [containerWidth, setContainerWidth] = useState(INITIAL_WIDTH - 72);
@@ -137,34 +153,84 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
   const initialShareSettings = useMemo(() => {
     let shared = !!route.params?.shared;
     let showSetlist = !!route.params?.showSetlist;
+    let shareToken = route.params?.shareToken as string | undefined;
 
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       shared = params.get('share') === '1' || params.get('shared') === '1' || shared;
       showSetlist = params.get('setlist') === '1' || showSetlist;
+      shareToken = params.get('token') || shareToken;
     }
 
-    return { shared, showSetlist };
+    return { shared, showSetlist, shareToken };
   }, [route.params]);
   const [isSharedView, setIsSharedView] = useState(initialShareSettings.shared);
   const [showSetlist, setShowSetlist] = useState(initialShareSettings.showSetlist);
+  const [shareToken, setShareToken] = useState<string | undefined>(initialShareSettings.shareToken);
 
   useEffect(() => {
     setIsSharedView(initialShareSettings.shared);
     setShowSetlist(initialShareSettings.showSetlist);
+    setShareToken(initialShareSettings.shareToken);
   }, [initialShareSettings, memoryId]);
 
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+    const existing = document.querySelector('meta[name="robots"]') as HTMLMetaElement | null;
+    if (!isSharedView) {
+      const meta = existing || document.createElement('meta');
+      meta.name = 'robots';
+      meta.content = 'noindex, nofollow';
+      if (!existing) {
+        document.head.appendChild(meta);
+      }
+    } else if (existing) {
+      existing.content = 'index, follow';
+    }
+  }, [isSharedView]);
+
+  useEffect(() => {
+    if (!isSharedView || !shareToken) return;
+    if (sharedMemory) return;
+    let cancelled = false;
+    setIsSharedLoading(true);
+    memoryService
+      .getSharedByToken(shareToken)
+      .then((data) => {
+        if (!cancelled) {
+          setSharedMemory(data);
+        }
+      })
+      .catch((error) => {
+        console.error('Shared memory fetch error:', error);
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsSharedLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isSharedView, shareToken, sharedMemory]);
+
   // Parse photos using useMemo
+  const resolvedMemory = (sharedMemory || memory) as MemoryWithDetails | undefined;
+
   const photos = useMemo(() => {
-    if (!memory?.photos) return [];
+    if (!resolvedMemory?.photos) return [];
     try {
-      return JSON.parse(memory.photos);
+      return JSON.parse(resolvedMemory.photos);
     } catch {
       return [];
     }
-  }, [memory?.photos]);
+  }, [resolvedMemory?.photos]);
 
-  const event = memory ? liveEvents.find(e => e.id === memory.live_event_id) : null;
+  const event = !isSharedView && resolvedMemory
+    ? liveEvents.find(e => e.id === resolvedMemory.live_event_id)
+    : null;
+  const venueName = isSharedView ? resolvedMemory?.venue_name : event?.venue_name;
 
   const Wrapper = Platform.OS === 'web' ? View : SafeAreaView;
 
@@ -172,9 +238,9 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
   const headerCallbacks = useMemo(() => ({
     onBack: () => navigation.goBack(),
     onEdit: () => {
-      if (memoryId && memory?.live_event_id) {
+      if (memoryId && resolvedMemory?.live_event_id) {
         navigation.navigate('MemoryForm', {
-          eventId: memory.live_event_id,
+          eventId: resolvedMemory.live_event_id,
           memoryId: memoryId
         });
       }
@@ -202,11 +268,11 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
     onShare: () => {
       setIsShareModalVisible(true);
     },
-  }), [navigation, memoryId, memory?.live_event_id, deleteMemory]);
+  }), [navigation, memoryId, resolvedMemory?.live_event_id, deleteMemory]);
 
   // 共有処理
   const handleShare = useCallback(async () => {
-    if (!memory || !shareCardRef.current) return;
+    if (!resolvedMemory || !shareCardRef.current) return;
 
     setIsSharing(true);
     try {
@@ -218,10 +284,10 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
 
       // 共有メッセージを生成
       const message = generateShareMessage({
-        eventTitle: memory.event_title,
-        artistName: memory.artist_name,
-        eventDate: memory.event_date,
-        review: memory.review,
+        eventTitle: resolvedMemory.event_title,
+        artistName: resolvedMemory.artist_name,
+        eventDate: resolvedMemory.event_date,
+        review: resolvedMemory.review,
       });
 
       // 画像を共有
@@ -244,7 +310,7 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
     } finally {
       setIsSharing(false);
     }
-  }, [memory]);
+  }, [resolvedMemory]);
 
   const handleContainerLayout = useCallback((event: any) => {
     const { width } = event.nativeEvent.layout;
@@ -264,13 +330,13 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
 
   const updateShareUrlSetlist = useCallback((nextShowSetlist: boolean) => {
     if (Platform.OS !== 'web' || typeof window === 'undefined') return;
-    if (!memoryId) return;
+    if (!shareToken) return;
     const url = new URL(window.location.href);
-    url.searchParams.set('memoryId', memoryId);
     url.searchParams.set('share', '1');
+    url.searchParams.set('token', shareToken);
     url.searchParams.set('setlist', nextShowSetlist ? '1' : '0');
     window.history.replaceState({}, '', url.toString());
-  }, [memoryId]);
+  }, [shareToken]);
 
   const handleToggleSetlist = useCallback(() => {
     setShowSetlist((prev) => {
@@ -280,22 +346,41 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
     });
   }, [updateShareUrlSetlist]);
 
-  const buildShareUrl = useCallback((includeSetlist: boolean) => {
+  const buildShareUrl = useCallback((token: string, includeSetlist: boolean) => {
     const baseUrl =
       (Platform.OS === 'web' && typeof window !== 'undefined' && window.location.origin)
         ? window.location.origin
         : (process.env.EXPO_PUBLIC_WEB_URL || '');
-    if (!baseUrl || !memoryId) return null;
+    if (!baseUrl || !token) return null;
     const url = new URL(baseUrl);
-    url.searchParams.set('memoryId', memoryId);
     url.searchParams.set('share', '1');
+    url.searchParams.set('token', token);
     url.searchParams.set('setlist', includeSetlist ? '1' : '0');
     return url.toString();
-  }, [memoryId]);
+  }, []);
 
   const handleShareLink = useCallback(async () => {
-    if (!memory) return;
-    const link = buildShareUrl(false);
+    if (!resolvedMemory) return;
+    let token = shareToken;
+    if (!token && resolvedMemory.id) {
+      try {
+        const result = await memoryService.createShareLink(resolvedMemory.id);
+        token = result.shareToken;
+        setShareToken(token);
+      } catch (error) {
+        console.error('Share link creation error:', error);
+      }
+    }
+    if (!token) {
+      const message = '共有リンクを作成できませんでした。もう一度お試しください。';
+      if (Platform.OS === 'web') {
+        window.alert(message);
+      } else {
+        Alert.alert('エラー', message);
+      }
+      return;
+    }
+    const link = buildShareUrl(token, false);
     if (!link) {
       const message = '共有リンクを作成できませんでした。もう一度お試しください。';
       if (Platform.OS === 'web') {
@@ -307,10 +392,10 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
     }
 
     const message = generateShareMessage({
-      eventTitle: memory.event_title,
-      artistName: memory.artist_name,
-      eventDate: memory.event_date,
-      review: memory.review,
+      eventTitle: resolvedMemory.event_title,
+      artistName: resolvedMemory.artist_name,
+      eventDate: resolvedMemory.event_date,
+      review: resolvedMemory.review,
     });
 
     if (Platform.OS === 'web') {
@@ -334,9 +419,19 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
     await Share.share({
       message: `${message}\n${link}`,
     });
-  }, [memory, buildShareUrl]);
+  }, [resolvedMemory, shareToken, buildShareUrl]);
 
-  if (!memory) {
+  if (isSharedView && isSharedLoading) {
+    return (
+      <Wrapper style={styles.safeArea} edges={['top']}>
+        <View style={styles.errorContainer}>
+          <ActivityIndicator size="large" color="#0095f6" />
+        </View>
+      </Wrapper>
+    );
+  }
+
+  if (!resolvedMemory) {
     return (
       <Wrapper style={styles.safeArea} edges={['top']}>
         <View style={styles.errorContainer}>
@@ -414,34 +509,38 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
             >
               <Ionicons name="share-outline" size={24} color="#007AFF" />
             </button>
-            <button
-              onClick={headerCallbacks.onEdit}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                padding: 8,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Ionicons name="create-outline" size={24} color="#007AFF" />
-            </button>
-            <button
-              onClick={headerCallbacks.onDelete}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                padding: 8,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Ionicons name="trash-outline" size={24} color="#FF3B30" />
-            </button>
+            {!isSharedView && (
+              <>
+                <button
+                  onClick={headerCallbacks.onEdit}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 8,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Ionicons name="create-outline" size={24} color="#007AFF" />
+                </button>
+                <button
+                  onClick={headerCallbacks.onDelete}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 8,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Ionicons name="trash-outline" size={24} color="#FF3B30" />
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -457,13 +556,13 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
             boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
           }}>
             <div style={{ fontSize: 20, fontWeight: 'bold', color: '#333', marginBottom: 8 }}>
-              {memory.event_title}
+              {resolvedMemory.event_title}
             </div>
             <div style={{ fontSize: 16, color: '#007AFF', marginBottom: 4 }}>
-              {memory.artist_name}
+              {resolvedMemory.artist_name}
             </div>
             <div style={{ fontSize: 14, color: '#666' }}>
-              {formatDate(memory.event_date)}
+              {formatDate(resolvedMemory.event_date)}
             </div>
           </div>
 
@@ -549,7 +648,7 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
           )}
 
           {/* 感想セクション */}
-          {memory.review && (
+          {resolvedMemory.review && (
             <div style={{
               backgroundColor: '#fff',
               borderRadius: 12,
@@ -561,13 +660,33 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
                 感想
               </div>
               <div style={{ fontSize: 16, color: '#333', lineHeight: 1.5 }}>
-                {memory.review}
+                {resolvedMemory.review}
               </div>
             </div>
           )}
 
           {/* セットリストセクション */}
-          {memory.setlist && (
+          {isSharedView && resolvedMemory.setlist && (
+            <div style={{ marginBottom: 12 }}>
+              <button
+                onClick={handleToggleSetlist}
+                style={{
+                  backgroundColor: '#fff',
+                  border: '1px solid #0095f6',
+                  color: '#0095f6',
+                  borderRadius: 16,
+                  padding: '6px 12px',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                {showSetlist ? 'セットリストを隠す' : 'セットリストを表示'}
+              </button>
+            </div>
+          )}
+
+          {resolvedMemory.setlist && (!isSharedView || showSetlist) && (
             <div style={{
               backgroundColor: '#fff',
               borderRadius: 12,
@@ -579,7 +698,7 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
                 セットリスト
               </div>
               <div style={{ backgroundColor: '#f8f8f8', borderRadius: 8, padding: 16 }}>
-                {memory.setlist.split('\n').map((line: string, index: number) => (
+                {resolvedMemory.setlist.split('\n').map((line: string, index: number) => (
                   <div key={index} style={{ fontSize: 14, color: '#333', lineHeight: 1.5, marginBottom: 4 }}>
                     {line}
                   </div>
@@ -589,7 +708,7 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
           )}
 
           {/* ライブ詳細セクション */}
-          {event && (
+          {!isSharedView && event && (
             <div style={{
               backgroundColor: '#fff',
               borderRadius: 12,
@@ -753,13 +872,13 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
               >
                 <ShareableMemoryCard
                   ref={shareCardRef}
-                  eventTitle={memory.event_title || ''}
-                  artistName={memory.artist_name || ''}
-                  eventDate={memory.event_date || ''}
-                  venueName={event?.venue_name}
-                  review={memory.review}
+                  eventTitle={resolvedMemory.event_title || ''}
+                  artistName={resolvedMemory.artist_name || ''}
+                  eventDate={resolvedMemory.event_date || ''}
+                  venueName={venueName}
+                  review={resolvedMemory.review}
                   photo={photos.length > 0 ? photos[0] : undefined}
-                  setlist={memory.setlist}
+                  setlist={resolvedMemory.setlist}
                 />
               </div>
 
@@ -970,6 +1089,7 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
           onEdit={headerCallbacks.onEdit}
           onDelete={headerCallbacks.onDelete}
           onShare={headerCallbacks.onShare}
+          showEditDelete={!isSharedView}
         />
 
         <ScrollView
@@ -979,9 +1099,9 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
         >
           <View style={styles.content}>
             <View style={styles.eventInfo}>
-              <Text style={styles.eventTitle}>{memory.event_title}</Text>
-              <Text style={styles.artistName}>{memory.artist_name}</Text>
-              <Text style={styles.eventDate}>{formatDate(memory.event_date)}</Text>
+              <Text style={styles.eventTitle}>{resolvedMemory.event_title}</Text>
+              <Text style={styles.artistName}>{resolvedMemory.artist_name}</Text>
+              <Text style={styles.eventDate}>{formatDate(resolvedMemory.event_date)}</Text>
             </View>
 
             <PhotoCarousel
@@ -993,14 +1113,14 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
               onLayout={handleContainerLayout}
             />
 
-            {memory.review && (
+            {resolvedMemory.review && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>感想</Text>
-                <Text style={styles.reviewText}>{memory.review}</Text>
+                <Text style={styles.reviewText}>{resolvedMemory.review}</Text>
               </View>
             )}
 
-            {isSharedView && memory.setlist && (
+            {isSharedView && resolvedMemory.setlist && (
               <TouchableOpacity
                 style={styles.setlistToggle}
                 onPress={handleToggleSetlist}
@@ -1011,16 +1131,16 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
               </TouchableOpacity>
             )}
 
-            {memory.setlist && (!isSharedView || showSetlist) && (
+            {resolvedMemory.setlist && (!isSharedView || showSetlist) && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>セットリスト</Text>
                 <View style={styles.setlistContainer}>
-                  {renderSetlistLines(memory.setlist)}
+                  {renderSetlistLines(resolvedMemory.setlist)}
                 </View>
               </View>
             )}
 
-            {event && (
+            {!isSharedView && event && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>ライブ詳細</Text>
                 <TouchableOpacity
@@ -1099,13 +1219,13 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
             >
               <ShareableMemoryCard
                 ref={shareCardRef}
-                eventTitle={memory.event_title || ''}
-                artistName={memory.artist_name || ''}
-                eventDate={memory.event_date || ''}
-                venueName={event?.venue_name}
-                review={memory.review}
+                eventTitle={resolvedMemory.event_title || ''}
+                artistName={resolvedMemory.artist_name || ''}
+                eventDate={resolvedMemory.event_date || ''}
+                venueName={venueName}
+                review={resolvedMemory.review}
                 photo={photos.length > 0 ? photos[0] : undefined}
-                setlist={memory.setlist}
+                setlist={resolvedMemory.setlist}
               />
             </ScrollView>
 

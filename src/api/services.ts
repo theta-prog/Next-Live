@@ -230,4 +230,25 @@ export const memoryService = {
   delete: async (id: string): Promise<void> => {
     await client.delete(`/v1/memories/${id}`);
   },
+
+  createShareLink: async (id: string): Promise<{ shareToken: string }> => {
+    const response = await client.post<{ shareToken: string }>(`/v1/memories/${id}/share`);
+    return response.data;
+  },
+
+  getSharedByToken: async (token: string): Promise<Memory & { event_title: string; artist_name: string; event_date: string; venue_name?: string }> => {
+    const response = await client.get<any>(`/v1/public/memories/${token}`);
+    const item = response.data;
+    return {
+      ...item,
+      live_event_id: item.eventId || item.event?.id,
+      event_title: item.event?.title || 'Unknown Event',
+      artist_name: item.event?.artist?.name || 'Unknown Artist',
+      event_date: item.event?.date || '',
+      venue_name: item.event?.venue || item.event?.venue_name,
+      created_at: item.createdAt || item.created_at,
+      updated_at: item.updatedAt || item.updated_at,
+      photos: item.photos ? JSON.stringify(item.photos) : undefined,
+    };
+  },
 };

@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Dimensions, Platform, View } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -137,13 +137,15 @@ const ResponsiveNavigationWrapper: React.FC<{
   useEffect(() => {
     if (Platform.OS !== 'web' || typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
     const memoryId = params.get('memoryId');
-    if (!memoryId) return;
+    if (!token && !memoryId) return;
     const shared = params.get('share') === '1' || params.get('shared') === '1';
     const showSetlist = params.get('setlist') === '1';
     if (navigationRef.current) {
       navigationRef.current.navigate('MemoryDetail', {
-        memoryId,
+        memoryId: memoryId || undefined,
+        shareToken: token || undefined,
         shared,
         showSetlist,
       });
@@ -205,6 +207,20 @@ const ResponsiveNavigationWrapper: React.FC<{
 
 const AppNavigator = () => {
   const { isAuthenticated, isLoading, user, logout } = useAuth();
+  const sharedLinkParams = useMemo(() => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return null;
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const memoryId = params.get('memoryId');
+    const shared = params.get('share') === '1' || params.get('shared') === '1';
+    if (!shared || (!token && !memoryId)) return null;
+    return {
+      shared: true,
+      shareToken: token || undefined,
+      memoryId: memoryId || undefined,
+      showSetlist: params.get('setlist') === '1',
+    };
+  }, []);
 
   if (isLoading) {
     return (
@@ -278,6 +294,13 @@ const AppNavigator = () => {
                 }}
               />
             </>
+          ) : sharedLinkParams ? (
+            <Stack.Screen
+              name="MemoryDetail"
+              component={MemoryDetailScreen}
+              options={{ headerShown: false }}
+              initialParams={sharedLinkParams}
+            />
           ) : (
             <Stack.Screen name="Login" component={LoginScreen} />
           )}
