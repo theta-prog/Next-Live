@@ -22,7 +22,8 @@ export default fp(async function (app: FastifyInstance) {
   app.register(fastifyJwt, {
     secret: accessSecret,
     sign: {
-      expiresIn: process.env.ACCESS_TOKEN_TTL || '10m'
+      // アクセストークンの有効期限を7日間に延長（頻繁な再ログインを防ぐため）
+      expiresIn: process.env.ACCESS_TOKEN_TTL || '7d'
     }
   });
 

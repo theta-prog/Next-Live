@@ -2,22 +2,38 @@ import { render, waitFor } from '@testing-library/react-native';
 import React from 'react';
 import { Text, View } from 'react-native';
 import { AppProvider, useApp } from '../../context/AppContext';
+import { AuthProvider } from '../../context/AuthContext';
 
 // Mock the database module
 jest.mock('../../database/asyncDatabase', () => ({
-  getAllArtists: jest.fn().mockResolvedValue([]),
-  getLiveEventsWithArtists: jest.fn().mockResolvedValue([]),
-  getMemoriesWithEventDetails: jest.fn().mockResolvedValue([]),
-  getUpcomingLiveEvents: jest.fn().mockResolvedValue([]),
-  addArtist: jest.fn().mockResolvedValue(1),
-  updateArtist: jest.fn().mockResolvedValue(true),
-  deleteArtist: jest.fn().mockResolvedValue(true),
-  addLiveEvent: jest.fn().mockResolvedValue(1),
-  updateLiveEvent: jest.fn().mockResolvedValue(true),
-  deleteLiveEvent: jest.fn().mockResolvedValue(true),
-  addMemory: jest.fn().mockResolvedValue(1),
-  updateMemory: jest.fn().mockResolvedValue(true),
-  deleteMemory: jest.fn().mockResolvedValue(true),
+  database: {
+    getAllArtists: jest.fn().mockResolvedValue([]),
+    getLiveEventsWithArtists: jest.fn().mockResolvedValue([]),
+    getMemoriesWithEventDetails: jest.fn().mockResolvedValue([]),
+    getUpcomingLiveEvents: jest.fn().mockResolvedValue([]),
+    createArtist: jest.fn().mockResolvedValue('1'),
+    updateArtist: jest.fn().mockResolvedValue(true),
+    deleteArtist: jest.fn().mockResolvedValue(true),
+    createLiveEvent: jest.fn().mockResolvedValue('1'),
+    updateLiveEvent: jest.fn().mockResolvedValue(true),
+    deleteLiveEvent: jest.fn().mockResolvedValue(true),
+    createMemory: jest.fn().mockResolvedValue('1'),
+    updateMemory: jest.fn().mockResolvedValue(true),
+    deleteMemory: jest.fn().mockResolvedValue(true),
+  },
+}));
+
+// Mock AuthContext
+jest.mock('../../context/AuthContext', () => ({
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useAuth: () => ({
+    user: null,
+    isLoading: false,
+    isAuthenticated: false,
+    login: jest.fn(),
+    loginAsGuest: jest.fn(),
+    logout: jest.fn(),
+  }),
 }));
 
 const TestComponent = () => {

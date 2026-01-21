@@ -2,9 +2,9 @@ import axios from 'axios';
 import { makeRedirectUri } from 'expo-auth-session';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { AppState, Platform } from 'react-native';
-import client from '../api/client';
+import client, { authEvents } from '../api/client';
 import { API_BASE_URL } from '../config';
 import { storage } from '../utils/storage';
 
@@ -54,8 +54,82 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }),
   });
 
+  // トークンをリフレッシュする関数
+  const refreshTokens = useCallback(async (): Promise<boolean> => {
+    try {
+      const refreshToken = await storage.getItem('refreshToken');
+      if (!refreshToken) {
+        return false;
+      }
+
+      const res = await axios.post(`${API_BASE_URL}/v1/auth/refresh`, {
+        refreshToken,
+      });
+
+      const { accessToken, refreshToken: newRefreshToken } = res.data;
+
+      await storage.setItem('accessToken', accessToken);
+      if (newRefreshToken) {
+        await storage.setItem('refreshToken', newRefreshToken);
+      }
+      console.log('Tokens refreshed successfully');
+      return true;
+    } catch (error) {
+      console.log('Token refresh failed:', error);
+      return false;
+    }
+  }, []);
+
+  const checkLoginStatus = useCallback(async () => {
+    try {
+      const accessToken = await storage.getItem('accessToken');
+      const userInfo = await storage.getItem('userInfo');
+      const refreshToken = await storage.getItem('refreshToken');
+      
+      if (accessToken && userInfo) {
+        setUser(JSON.parse(userInfo));
+        
+        // アクセストークンがあってもリフレッシュトークンが無ければ警告
+        if (!refreshToken) {
+          console.warn('Access token exists but no refresh token found');
+        }
+      } else if (refreshToken && userInfo) {
+        // アクセストークンが無いがリフレッシュトークンがある場合、リフレッシュを試みる
+        console.log('No access token, attempting to refresh...');
+        const success = await refreshTokens();
+        if (success) {
+          setUser(JSON.parse(userInfo));
+        } else {
+          // リフレッシュ失敗時はストレージをクリアしてログアウト
+          await storage.removeItem('accessToken');
+          await storage.removeItem('refreshToken');
+          await storage.removeItem('userInfo');
+          setUser(null);
+        }
+      } else {
+        setUser(null);
+      }
+    } catch (error) {
+      console.error('Check login status error:', error);
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [refreshTokens]);
+
+  // 初期ログイン状態チェック
   useEffect(() => {
     checkLoginStatus();
+  }, [checkLoginStatus]);
+
+  // APIクライアントからのログアウト通知をリッスン
+  useEffect(() => {
+    const unsubscribe = authEvents.addLogoutListener(() => {
+      console.log('Received logout event from API client');
+      setUser(null);
+      setIsLoading(false);
+    });
+    return unsubscribe;
   }, []);
 
   useEffect(() => {
@@ -83,7 +157,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         document.removeEventListener('visibilitychange', handleVisibilityChange);
       }
     };
-  }, []);
+  }, [checkLoginStatus]);
 
   useEffect(() => {
     if (response?.type === 'success') {
@@ -95,23 +169,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
   }, [response]);
-
-  const checkLoginStatus = async () => {
-    try {
-      const accessToken = await storage.getItem('accessToken');
-      const userInfo = await storage.getItem('userInfo');
-      if (accessToken && userInfo) {
-        setUser(JSON.parse(userInfo));
-      } else {
-        setUser(null);
-      }
-    } catch (error) {
-      console.error('Check login status error:', error);
-      setUser(null);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleGoogleLogin = async (idToken: string) => {
     setIsLoading(true);

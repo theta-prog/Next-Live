@@ -3,6 +3,19 @@ import React from 'react';
 import { AppProvider, useApp } from '../../context/AppContext';
 import { database } from '../../database/asyncDatabase';
 
+// Mock AuthContext
+jest.mock('../../context/AuthContext', () => ({
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useAuth: () => ({
+    user: null,
+    isLoading: false,
+    isAuthenticated: false,
+    login: jest.fn(),
+    loginAsGuest: jest.fn(),
+    logout: jest.fn(),
+  }),
+}));
+
 // Mock the database module
 jest.mock('../../database/asyncDatabase');
 const mockDatabase = database as jest.Mocked<typeof database>;

@@ -3,6 +3,19 @@ import React from 'react';
 import { useApp } from '../../context/AppContext';
 import HomeScreen from '../../screens/HomeScreen';
 
+// Mock AuthContext
+jest.mock('../../context/AuthContext', () => ({
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useAuth: () => ({
+    user: null,
+    isLoading: false,
+    isAuthenticated: false,
+    login: jest.fn(),
+    loginAsGuest: jest.fn(),
+    logout: jest.fn(),
+  }),
+}));
+
 // Mock the useApp hook
 jest.mock('../../context/AppContext');
 const mockUseApp = useApp as jest.MockedFunction<typeof useApp>;
@@ -13,6 +26,24 @@ const mockNavigation = {
   setOptions: jest.fn(),
   goBack: jest.fn(),
 };
+
+// Helper to create proper Date mock that preserves UTC and other static methods
+const RealDate = Date;
+function createMockDate(mockDate: Date) {
+  const MockDateClass = jest.fn((dateString?: string | number) => {
+    if (dateString !== undefined) {
+      return new RealDate(dateString);
+    }
+    return mockDate;
+  }) as any;
+  
+  MockDateClass.now = jest.fn(() => mockDate.getTime());
+  MockDateClass.UTC = RealDate.UTC;
+  MockDateClass.parse = RealDate.parse;
+  MockDateClass.prototype = RealDate.prototype;
+  
+  return MockDateClass;
+}
 
 describe('HomeScreen', () => {
   const mockUpcomingEvents = [
@@ -106,14 +137,17 @@ describe('HomeScreen', () => {
     const mockToday = new Date('2024-12-20');
     const realDate = Date;
     
-    global.Date = jest.fn((dateString?: string) => {
+    const MockDate = jest.fn((dateString?: string) => {
       if (dateString) {
         return new realDate(dateString);
       }
       return mockToday;
     }) as any;
     
-    global.Date.now = jest.fn(() => mockToday.getTime());
+    MockDate.now = jest.fn(() => mockToday.getTime());
+    MockDate.UTC = realDate.UTC;
+    MockDate.parse = realDate.parse;
+    global.Date = MockDate;
 
     const { getByText } = render(
       <HomeScreen navigation={mockNavigation} />

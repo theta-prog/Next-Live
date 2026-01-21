@@ -2,6 +2,25 @@ import axios from 'axios';
 import { API_BASE_URL } from '../config';
 import { storage } from '../utils/storage';
 
+// カスタムイベントエミッター（認証失敗時にAuthContextに通知するため）
+type AuthEventListener = () => void;
+const authEventListeners: AuthEventListener[] = [];
+
+export const authEvents = {
+  addLogoutListener: (listener: AuthEventListener) => {
+    authEventListeners.push(listener);
+    return () => {
+      const index = authEventListeners.indexOf(listener);
+      if (index > -1) {
+        authEventListeners.splice(index, 1);
+      }
+    };
+  },
+  emitLogout: () => {
+    authEventListeners.forEach(listener => listener());
+  }
+};
+
 const client = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
@@ -49,10 +68,13 @@ client.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return client(originalRequest);
       } catch (refreshError) {
-        // Logout or handle error
+        // リフレッシュトークンが無効な場合、ストレージをクリアしてログアウトを通知
+        console.log('Token refresh failed, triggering logout');
         await storage.removeItem('accessToken');
         await storage.removeItem('refreshToken');
-        // TODO: Trigger logout action in app
+        await storage.removeItem('userInfo');
+        // AuthContextにログアウトを通知
+        authEvents.emitLogout();
         return Promise.reject(refreshError);
       }
     }

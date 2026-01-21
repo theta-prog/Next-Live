@@ -14,6 +14,19 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
 jest.mock('../../context/AppContext');
 const mockUseApp = useApp as jest.MockedFunction<typeof useApp>;
 
+// Mock AuthContext
+jest.mock('../../context/AuthContext', () => ({
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useAuth: () => ({
+    user: null,
+    isLoading: false,
+    isAuthenticated: false,
+    login: jest.fn(),
+    loginAsGuest: jest.fn(),
+    logout: jest.fn(),
+  }),
+}));
+
 const TestApp = () => {
   const mockNavigation = { navigate: jest.fn() };
   return <HomeScreen navigation={mockNavigation} />;

@@ -5,6 +5,19 @@ import { useApp } from '../../context/AppContext';
 import { LiveEvent, SyncStatus } from '../../database/asyncDatabase';
 import LiveEventDetailScreen from '../../screens/LiveEventDetailScreen';
 
+// Mock AuthContext
+jest.mock('../../context/AuthContext', () => ({
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useAuth: () => ({
+    user: null,
+    isLoading: false,
+    isAuthenticated: false,
+    login: jest.fn(),
+    loginAsGuest: jest.fn(),
+    logout: jest.fn(),
+  }),
+}));
+
 // Mock the useApp hook
 jest.mock('../../context/AppContext');
 const mockUseApp = useApp as jest.MockedFunction<typeof useApp>;
