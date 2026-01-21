@@ -146,8 +146,10 @@ describe('LiveEventDetailScreen', () => {
     const editButton = getByText('編集');
     fireEvent.press(editButton);
 
+    // When editing an existing memory, memoryId is also passed
     expect(mockNavigation.navigate).toHaveBeenCalledWith('MemoryForm', {
       eventId: mockLiveEvents[0]!.id,
+      memoryId: mockMemories[0]!.id,
     });
   });
 

@@ -119,6 +119,26 @@ describe('MemoryFormScreen', () => {
   });
 
   describe('New Memory Form', () => {
+    beforeEach(() => {
+      // For new memory tests, clear the memories so no existing memory for eventId: '1'
+      mockUseApp.mockReturnValue({
+        artists: [],
+        liveEvents: mockLiveEvents,
+        upcomingEvents: [],
+        addArtist: jest.fn(),
+        updateArtist: jest.fn(),
+        deleteArtist: jest.fn(),
+        addLiveEvent: jest.fn(),
+        updateLiveEvent: jest.fn(),
+        deleteLiveEvent: jest.fn(),
+        memories: [], // Empty memories for new memory creation
+        addMemory: mockAddMemory,
+        updateMemory: mockUpdateMemory,
+        deleteMemory: jest.fn(),
+        refreshData: jest.fn(),
+      });
+    });
+
     it('renders correctly for new memory', () => {
       const { getByText } = render(
         <MemoryFormScreen navigation={mockNavigation} route={mockRouteNew} />
@@ -222,6 +242,26 @@ describe('MemoryFormScreen', () => {
   });
 
   describe('Form Validation', () => {
+    beforeEach(() => {
+      // For form validation tests, clear the memories so it's in new memory mode
+      mockUseApp.mockReturnValue({
+        artists: [],
+        liveEvents: mockLiveEvents,
+        upcomingEvents: [],
+        addArtist: jest.fn(),
+        updateArtist: jest.fn(),
+        deleteArtist: jest.fn(),
+        addLiveEvent: jest.fn(),
+        updateLiveEvent: jest.fn(),
+        deleteLiveEvent: jest.fn(),
+        memories: [], // Empty memories for new memory creation
+        addMemory: mockAddMemory,
+        updateMemory: mockUpdateMemory,
+        deleteMemory: jest.fn(),
+        refreshData: jest.fn(),
+      });
+    });
+
     it('shows alert when trying to save empty form', () => {
       const { getByText } = render(
         <MemoryFormScreen navigation={mockNavigation} route={mockRouteNew} />
@@ -237,15 +277,23 @@ describe('MemoryFormScreen', () => {
     });
 
     it('allows saving with only review filled', async () => {
-      const { getByText } = render(
+      const { getByText, getAllByTestId } = render(
         <MemoryFormScreen navigation={mockNavigation} route={mockRouteNew} />
       );
+
+      // Fill in the review field
+      const textInputs = getAllByTestId('TextInput');
+      if (textInputs.length > 0) {
+        fireEvent.changeText(textInputs[0], 'Test review content');
+      }
 
       const saveButton = getByText('保存');
       fireEvent.press(saveButton);
 
-      // Should show validation error first
-      expect(Alert.alert).toHaveBeenCalled();
+      // With review filled, should call addMemory (no validation error)
+      await waitFor(() => {
+        expect(mockAddMemory).toHaveBeenCalled();
+      });
     });
   });
 
@@ -298,6 +346,26 @@ describe('MemoryFormScreen', () => {
   });
 
   describe('Advanced functionality', () => {
+    beforeEach(() => {
+      // For validation tests, clear the memories so it's in new memory mode
+      mockUseApp.mockReturnValue({
+        artists: [],
+        liveEvents: mockLiveEvents,
+        upcomingEvents: [],
+        addArtist: jest.fn(),
+        updateArtist: jest.fn(),
+        deleteArtist: jest.fn(),
+        addLiveEvent: jest.fn(),
+        updateLiveEvent: jest.fn(),
+        deleteLiveEvent: jest.fn(),
+        memories: [], // Empty memories for validation tests
+        addMemory: mockAddMemory,
+        updateMemory: mockUpdateMemory,
+        deleteMemory: jest.fn(),
+        refreshData: jest.fn(),
+      });
+    });
+
     it('handles photo upload functionality', async () => {
       (ExpoImagePicker.launchImageLibraryAsync as jest.Mock).mockResolvedValueOnce({
         canceled: false,

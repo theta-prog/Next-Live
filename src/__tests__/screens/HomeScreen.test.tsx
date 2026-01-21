@@ -799,7 +799,7 @@ describe('HomeScreen - additional coverage', () => {
     });
 
     const { getByText } = render(<HomeScreen navigation={mockNavigation} />);
-    expect(getByText('MEMOLive')).toBeTruthy();
+    expect(getByText('MEMOLIVE')).toBeTruthy();
     expect(getByText('お気に入りのアーティストを管理')).toBeTruthy();
   });
 

@@ -147,11 +147,12 @@ describe('MemoryDetailScreen', () => {
     );
 
     // Edit button should be one of the TouchableOpacity elements
+    // Order: [0] back, [1] share, [2] edit, [3] delete
     const touchableElements = getAllByTestId('TouchableOpacity');
-    expect(touchableElements.length).toBeGreaterThan(1);
+    expect(touchableElements.length).toBeGreaterThan(2);
     
-    // Try pressing the second button (edit button)
-    fireEvent.press(touchableElements[1]);
+    // Press the edit button (index 2)
+    fireEvent.press(touchableElements[2]);
     expect(mockNavigation.navigate).toHaveBeenCalledWith('MemoryForm', {
       eventId: '1',
       memoryId: '1',
@@ -164,15 +165,17 @@ describe('MemoryDetailScreen', () => {
     );
 
     // Delete button should be one of the TouchableOpacity elements
+    // Order: [0] back, [1] share, [2] edit, [3] delete
     const touchableElements = getAllByTestId('TouchableOpacity');
-    expect(touchableElements.length).toBeGreaterThan(2);
+    expect(touchableElements.length).toBeGreaterThan(3);
     
-    // Try pressing the third button (delete button)
-    fireEvent.press(touchableElements[2]);
+    // Press the delete button (index 3)
+    fireEvent.press(touchableElements[3]);
     expect(Alert.alert).toHaveBeenCalledWith(
       '削除確認',
       'この思い出を削除しますか？',
-      expect.any(Array)
+      expect.any(Array),
+      expect.any(Object) // Options argument
     );
   });
 

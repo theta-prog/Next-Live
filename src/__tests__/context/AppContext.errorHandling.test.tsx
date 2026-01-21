@@ -67,7 +67,8 @@ describe('AppContext Error Handling Tests', () => {
     // Mock createArtist to fail
     mockDatabase.createArtist.mockRejectedValueOnce(new Error('Database write failed'));
 
-    await result.current.addArtist({ name: 'Test Artist' });
+    // Catch the re-thrown error
+    await result.current.addArtist({ name: 'Test Artist' }).catch(() => {});
 
     // Should log the error
     expect(consoleSpy).toHaveBeenCalledWith('Error adding artist:', expect.any(Error));
@@ -83,12 +84,13 @@ describe('AppContext Error Handling Tests', () => {
     // Mock createLiveEvent to fail
     mockDatabase.createLiveEvent.mockRejectedValueOnce(new Error('Event creation failed'));
 
+    // Catch the re-thrown error
     await result.current.addLiveEvent({
       title: 'Test Event',
       artist_id: '1',
       venue_name: 'Test Venue',
       date: '2024-01-01'
-    });
+    }).catch(() => {});
 
     // Should log the error
     expect(consoleSpy).toHaveBeenCalledWith('Error adding live event:', expect.any(Error));
@@ -104,11 +106,12 @@ describe('AppContext Error Handling Tests', () => {
     // Mock createMemory to fail
     mockDatabase.createMemory.mockRejectedValueOnce(new Error('Memory creation failed'));
 
+    // Catch the re-thrown error
     await result.current.addMemory({
       live_event_id: '1',
       review: 'Test memory content',
       photos: '[]'
-    });
+    }).catch(() => {});
 
     // Should log the error
     expect(consoleSpy).toHaveBeenCalledWith('Error adding memory:', expect.any(Error));
