@@ -272,6 +272,114 @@ class Database {
     await this.setStoredData(STORAGE_KEYS.MEMORIES, filteredMemories);
     await this.addDeletedItem(id, 'memory');
   }
+
+  // ========== Sync methods ==========
+  
+  /**
+   * 削除されたアイテムを取得
+   */
+  async getDeletedItems(): Promise<DeletedItem[]> {
+    return this.getStoredData<DeletedItem>(STORAGE_KEYS.DELETED_ITEMS);
+  }
+
+  /**
+   * 削除済みアイテムをクリア（同期完了後に呼ぶ）
+   */
+  async clearDeletedItems(): Promise<void> {
+    await this.setStoredData(STORAGE_KEYS.DELETED_ITEMS, []);
+  }
+
+  /**
+   * アーティストをupsert（サーバーからのデータ適用用）
+   */
+  async upsertArtist(artist: Artist): Promise<void> {
+    const artists = await this.getStoredData<Artist>(STORAGE_KEYS.ARTISTS);
+    const index = artists.findIndex(a => a.id === artist.id);
+    if (index !== -1) {
+      // 既存のアーティストを更新（サーバーのデータで上書き）
+      artists[index] = artist;
+    } else {
+      // 新規追加
+      artists.push(artist);
+    }
+    await this.setStoredData(STORAGE_KEYS.ARTISTS, artists);
+  }
+
+  /**
+   * ライブイベントをupsert（サーバーからのデータ適用用）
+   */
+  async upsertLiveEvent(event: LiveEvent): Promise<void> {
+    const events = await this.getStoredData<LiveEvent>(STORAGE_KEYS.LIVE_EVENTS);
+    const index = events.findIndex(e => e.id === event.id);
+    if (index !== -1) {
+      events[index] = event;
+    } else {
+      events.push(event);
+    }
+    await this.setStoredData(STORAGE_KEYS.LIVE_EVENTS, events);
+  }
+
+  /**
+   * メモリをupsert（サーバーからのデータ適用用）
+   */
+  async upsertMemory(memory: Memory): Promise<void> {
+    const memories = await this.getStoredData<Memory>(STORAGE_KEYS.MEMORIES);
+    const index = memories.findIndex(m => m.id === memory.id);
+    if (index !== -1) {
+      memories[index] = memory;
+    } else {
+      memories.push(memory);
+    }
+    await this.setStoredData(STORAGE_KEYS.MEMORIES, memories);
+  }
+
+  /**
+   * アーティストを同期済みにマーク
+   */
+  async markArtistAsSynced(id: string): Promise<void> {
+    const artists = await this.getStoredData<Artist>(STORAGE_KEYS.ARTISTS);
+    const index = artists.findIndex(a => a.id === id);
+    if (index !== -1) {
+      artists[index] = { ...artists[index]!, sync_status: 'synced' };
+      await this.setStoredData(STORAGE_KEYS.ARTISTS, artists);
+    }
+  }
+
+  /**
+   * ライブイベントを同期済みにマーク
+   */
+  async markLiveEventAsSynced(id: string): Promise<void> {
+    const events = await this.getStoredData<LiveEvent>(STORAGE_KEYS.LIVE_EVENTS);
+    const index = events.findIndex(e => e.id === id);
+    if (index !== -1) {
+      events[index] = { ...events[index]!, sync_status: 'synced' };
+      await this.setStoredData(STORAGE_KEYS.LIVE_EVENTS, events);
+    }
+  }
+
+  /**
+   * メモリを同期済みにマーク
+   */
+  async markMemoryAsSynced(id: string): Promise<void> {
+    const memories = await this.getStoredData<Memory>(STORAGE_KEYS.MEMORIES);
+    const index = memories.findIndex(m => m.id === id);
+    if (index !== -1) {
+      memories[index] = { ...memories[index]!, sync_status: 'synced' };
+      await this.setStoredData(STORAGE_KEYS.MEMORIES, memories);
+    }
+  }
+
+  /**
+   * 全データをクリア（ログアウト時に使用）
+   */
+  async clearAllData(): Promise<void> {
+    await Promise.all([
+      this.setStoredData(STORAGE_KEYS.ARTISTS, []),
+      this.setStoredData(STORAGE_KEYS.LIVE_EVENTS, []),
+      this.setStoredData(STORAGE_KEYS.MEMORIES, []),
+      this.setStoredData(STORAGE_KEYS.DELETED_ITEMS, []),
+    ]);
+  }
 }
 
 export const database = new Database();

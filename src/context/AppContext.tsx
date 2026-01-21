@@ -1,5 +1,6 @@
-import React, { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { artistService, liveEventService, memoryService } from '../api/services';
+import { syncService } from '../api/syncService';
 import { Artist, BaseEntity, database, LiveEvent, Memory } from '../database/asyncDatabase';
 import { isEventToday } from '../utils';
 import { storage } from '../utils/storage';
@@ -10,6 +11,8 @@ interface AppContextType {
   liveEvents: (LiveEvent & { artist_name: string })[];
   memories: (Memory & { event_title: string; artist_name: string; event_date: string })[];
   upcomingEvents: (LiveEvent & { artist_name: string })[];
+  isSyncing: boolean;
+  lastSyncAt: string | null;
   
   // Artist methods
   addArtist: (artist: Omit<Artist, keyof BaseEntity>) => Promise<void>;
@@ -28,6 +31,7 @@ interface AppContextType {
   
   // Utility methods
   refreshData: () => Promise<void>;
+  syncWithServer: () => Promise<{ success: boolean; error?: string }>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -51,6 +55,9 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [memories, setMemories] = useState<(Memory & { event_title: string; artist_name: string; event_date: string })[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<(LiveEvent & { artist_name: string })[]>([]);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncAt, setLastSyncAt] = useState<string | null>(null);
+  const syncIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Helper function to update state with data
   const updateStateWithData = useCallback((
@@ -171,10 +178,70 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     }
   }, [isAuthenticated, isDataLoaded, updateStateWithData]);
 
+  // サーバーとの同期を実行
+  const syncWithServer = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
+    if (isSyncing) {
+      return { success: false, error: 'Sync already in progress' };
+    }
+
+    try {
+      setIsSyncing(true);
+      console.log('Starting sync with server...');
+      
+      const result = await syncService.sync();
+      
+      if (result.success) {
+        // 同期成功後、ローカルデータを再読み込み
+        const [localArtists, localEvents, localMemories] = await Promise.all([
+          database.getAllArtists(),
+          database.getLiveEventsWithArtists(), 
+          database.getMemoriesWithEventDetails(),
+        ]);
+        updateStateWithData(localArtists, localEvents, localMemories);
+        
+        // 最後の同期日時を更新
+        const syncTime = await syncService.getLastSyncTime();
+        setLastSyncAt(syncTime);
+        
+        console.log('Sync completed successfully');
+      }
+      
+      return result;
+    } catch (error: any) {
+      console.error('Sync failed:', error);
+      return { success: false, error: error.message || 'Unknown error' };
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [isSyncing, updateStateWithData]);
+
   useEffect(() => {
     // ローカル環境では常にデータを読み込む
     refreshData();
+    
+    // 最後の同期日時を読み込む
+    syncService.getLastSyncTime().then(setLastSyncAt);
   }, [refreshData]);
+
+  // 認証済みユーザーは定期的に同期を実行（5分ごと）
+  useEffect(() => {
+    if (isAuthenticated && process.env.NODE_ENV !== 'development') {
+      // 初回同期を実行
+      syncWithServer();
+      
+      // 5分ごとに同期
+      syncIntervalRef.current = setInterval(() => {
+        syncWithServer();
+      }, 5 * 60 * 1000);
+      
+      return () => {
+        if (syncIntervalRef.current) {
+          clearInterval(syncIntervalRef.current);
+          syncIntervalRef.current = null;
+        }
+      };
+    }
+  }, [isAuthenticated, syncWithServer]);
 
   // Artist methods
   const addArtist = async (artist: Omit<Artist, keyof BaseEntity>) => {
@@ -336,6 +403,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     liveEvents,
     memories,
     upcomingEvents,
+    isSyncing,
+    lastSyncAt,
     addArtist,
     updateArtist,
     deleteArtist,
@@ -346,6 +415,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     updateMemory,
     deleteMemory,
     refreshData,
+    syncWithServer,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

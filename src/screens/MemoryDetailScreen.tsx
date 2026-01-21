@@ -684,7 +684,7 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
               <div style={{ fontSize: 18, fontWeight: 'bold', color: '#333', marginBottom: 16 }}>
                 感想
               </div>
-              <div style={{ fontSize: 16, color: '#333', lineHeight: 1.5 }}>
+              <div style={{ fontSize: 16, color: '#333', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
                 {resolvedMemory.review}
               </div>
             </div>
