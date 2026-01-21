@@ -215,13 +215,15 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     }
   }, [isSyncing, updateStateWithData]);
 
+  // 初回データ読み込み（一度だけ実行）
   useEffect(() => {
     // ローカル環境では常にデータを読み込む
     refreshData();
     
     // 最後の同期日時を読み込む
     syncService.getLastSyncTime().then(setLastSyncAt);
-  }, [refreshData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 初回のみ実行
 
   // 認証済みユーザーは定期的に同期を実行（5分ごと）
   useEffect(() => {
@@ -241,7 +243,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
         }
       };
     }
-  }, [isAuthenticated, syncWithServer]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]); // isAuthenticatedの変更時のみ実行
 
   // Artist methods
   const addArtist = async (artist: Omit<Artist, keyof BaseEntity>) => {
