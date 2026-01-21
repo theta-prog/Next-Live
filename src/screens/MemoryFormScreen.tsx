@@ -316,6 +316,8 @@ const MemoryFormScreen = ({ navigation, route }: any) => {
             multiline
             numberOfLines={8}
             textAlignVertical="top"
+            blurOnSubmit={false}
+            returnKeyType="default"
           />
         </View>
 
@@ -329,6 +331,8 @@ const MemoryFormScreen = ({ navigation, route }: any) => {
             multiline
             numberOfLines={10}
             textAlignVertical="top"
+            blurOnSubmit={false}
+            returnKeyType="default"
           />
         </View>
 

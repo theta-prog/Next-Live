@@ -50,19 +50,54 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [liveEvents, setLiveEvents] = useState<(LiveEvent & { artist_name: string })[]>([]);
   const [memories, setMemories] = useState<(Memory & { event_title: string; artist_name: string; event_date: string })[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<(LiveEvent & { artist_name: string })[]>([]);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
+
+  // Helper function to update state with data
+  const updateStateWithData = useCallback((
+    artistsData: Artist[],
+    eventsData: (LiveEvent & { artist_name: string })[],
+    memoriesData: (Memory & { event_title: string; artist_name: string; event_date: string })[]
+  ) => {
+    // Sort artists
+    const sortedArtists = artistsData.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    setArtists(sortedArtists);
+
+    // Set events
+    const sortedEvents = eventsData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    setLiveEvents(sortedEvents);
+
+    // Set memories
+    const sortedMemories = memoriesData.sort((a, b) => 
+      new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+    );
+    setMemories(sortedMemories);
+
+    // Filter upcoming events
+    const upcoming = sortedEvents
+      .filter(event => {
+        const eventDate = new Date(event.date);
+        const today = new Date();
+        
+        if (isEventToday(event.date)) {
+          return true;
+        }
+        
+        const eventDateOnly = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+        const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        
+        return eventDateOnly > todayOnly;
+      })
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    
+    setUpcomingEvents(upcoming);
+    setIsDataLoaded(true);
+  }, []);
 
   const refreshData = useCallback(async () => {
     try {
-      // ローカル環境では直接asyncDatabaseからデータを取得
-      // プロダクションではAPI経由でデータを取得
-      const accessToken = await storage.getItem('accessToken');
-      const useLocalDatabase = !isAuthenticated || !accessToken || process.env.NODE_ENV === 'development';
-      
-      let artistsData, eventsData, memoriesData;
-      
-      if (useLocalDatabase) {
-        // Local database access
-        console.log('Using local database for data access');
+      // Step 1: まずローカルデータを即座に表示（高速）
+      if (!isDataLoaded) {
+        console.log('Loading local data first for instant display...');
         const [localArtists, localEvents, localMemories] = await Promise.all([
           database.getAllArtists(),
           database.getLiveEventsWithArtists(), 
@@ -75,78 +110,66 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
           memories: localMemories.length
         });
         
-        artistsData = localArtists;
-        eventsData = localEvents;
-        memoriesData = localMemories;
-      } else {
-        // API access for authenticated users
-        const [apiArtists, apiEvents, apiMemories] = await Promise.all([
-          artistService.getAll(),
-          liveEventService.getAll(),
-          memoryService.getAll(),
-        ]);
-        
-        artistsData = apiArtists;
-        eventsData = apiEvents.map(event => {
-          const artist = apiArtists.find(a => a.id === event.artist_id);
-          return {
-            ...event,
-            artist_name: artist?.name || 'Unknown Artist',
-          };
-        });
-        memoriesData = apiMemories.map(memory => {
-          const event = apiEvents.find(e => e.id === memory.live_event_id);
-          const artist = event ? apiArtists.find(a => a.id === event.artist_id) : null;
-          
-          return {
-            ...memory,
-            event_title: event?.title || 'Unknown Event',
-            artist_name: artist?.name || 'Unknown Artist',
-            event_date: event?.date || '',
-          };
-        });
+        updateStateWithData(localArtists, localEvents, localMemories);
       }
+
+      // Step 2: 認証済みユーザーの場合、バックグラウンドでAPIからデータを取得して更新
+      const accessToken = await storage.getItem('accessToken');
+      const shouldFetchFromAPI = isAuthenticated && accessToken && process.env.NODE_ENV !== 'development';
       
-      // Sort artists
-      const sortedArtists = artistsData.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-      setArtists(sortedArtists);
-
-      // Set events (already includes artist_name from database query)
-      const sortedEvents = eventsData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-      console.log('Setting liveEvents:', sortedEvents);
-      setLiveEvents(sortedEvents);
-
-      // Set memories (already includes event details from database query)
-      const sortedMemories = memoriesData.sort((a, b) => 
-        new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
-      );
-      setMemories(sortedMemories);
-
-      // Filter upcoming events (including today's events)
-      const upcoming = sortedEvents
-        .filter(event => {
-          const eventDate = new Date(event.date);
-          const today = new Date();
+      if (shouldFetchFromAPI) {
+        console.log('Fetching data from API in background...');
+        try {
+          const [apiArtists, apiEvents, apiMemories] = await Promise.all([
+            artistService.getAll(),
+            liveEventService.getAll(),
+            memoryService.getAll(),
+          ]);
           
-          // Include today's events
-          if (isEventToday(event.date)) {
-            return true;
-          }
+          const eventsWithArtists = apiEvents.map(event => {
+            const artist = apiArtists.find(a => a.id === event.artist_id);
+            return {
+              ...event,
+              artist_name: artist?.name || 'Unknown Artist',
+            };
+          });
           
-          // Remove time component for proper date comparison
-          const eventDateOnly = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
-          const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+          const memoriesWithDetails = apiMemories.map(memory => {
+            const event = apiEvents.find(e => e.id === memory.live_event_id);
+            const artist = event ? apiArtists.find(a => a.id === event.artist_id) : null;
+            
+            return {
+              ...memory,
+              event_title: event?.title || 'Unknown Event',
+              artist_name: artist?.name || 'Unknown Artist',
+              event_date: event?.date || '',
+            };
+          });
           
-          return eventDateOnly > todayOnly;
-        })
-        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-      
-      setUpcomingEvents(upcoming);
-
+          console.log('API data retrieved:', {
+            artists: apiArtists.length,
+            events: apiEvents.length,
+            memories: apiMemories.length
+          });
+          
+          updateStateWithData(apiArtists, eventsWithArtists, memoriesWithDetails);
+        } catch (apiError) {
+          console.error('Error fetching from API, using local data:', apiError);
+          // APIエラーでもローカルデータは既に表示されているので問題なし
+        }
+      } else if (isDataLoaded) {
+        // 既にロード済みでローカルモードの場合は最新のローカルデータを取得
+        const [localArtists, localEvents, localMemories] = await Promise.all([
+          database.getAllArtists(),
+          database.getLiveEventsWithArtists(), 
+          database.getMemoriesWithEventDetails(),
+        ]);
+        updateStateWithData(localArtists, localEvents, localMemories);
+      }
     } catch (error) {
       console.error('Error refreshing data:', error);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isDataLoaded, updateStateWithData]);
 
   useEffect(() => {
     // ローカル環境では常にデータを読み込む
