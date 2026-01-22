@@ -83,12 +83,14 @@ export const captureViewAsImage = async (
     debugLog('Capturing view with options', options);
     
     // Webと同じサイズになるようにpixelRatio=2で統一（720px幅の画像を生成）
+    // カードのwidth: 360px × pixelRatio: 2 = 720px幅の画像
     const uri = await captureRef(viewRef, {
       format: options?.format || 'png',
       quality: options?.quality || 1,
       result: 'tmpfile',
-      // デバイスに関係なく固定の高解像度で出力
-      width: 720, // 360 * 2
+      // デバイスのピクセル密度に関係なく、固定のpixelRatio=2で出力
+      // これによりWebのscale: 2と同じ結果になる
+      snapshotContentContainer: false,
     });
 
     debugLog('View capture successful', { uri: uri?.substring(0, 50) + '...' });
@@ -194,6 +196,7 @@ const captureWebView = async (
     const imageUri = await captureWebElement(element, {
       backgroundColor: '#ffffff',
       scale: 2,
+      width: 360, // カードの基準幅を固定
       useCORS: true,
       allowTaint: false,
     });
