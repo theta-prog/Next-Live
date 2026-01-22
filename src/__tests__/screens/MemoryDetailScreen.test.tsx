@@ -82,10 +82,13 @@ describe('MemoryDetailScreen', () => {
       addLiveEvent: jest.fn(),
       updateLiveEvent: jest.fn(),
       deleteLiveEvent: jest.fn(),
+      getLiveEventArtists: jest.fn().mockResolvedValue([]),
       memories: mockMemories,
       addMemory: jest.fn(),
       updateMemory: jest.fn(),
       deleteMemory: jest.fn(),
+      getArtistSetlists: jest.fn().mockResolvedValue([]),
+      setArtistSetlists: jest.fn().mockResolvedValue(undefined),
       refreshData: jest.fn(),
     });
   });
@@ -206,10 +209,13 @@ describe('MemoryDetailScreen', () => {
       addLiveEvent: jest.fn(),
       updateLiveEvent: jest.fn(),
       deleteLiveEvent: jest.fn(),
+      getLiveEventArtists: jest.fn().mockResolvedValue([]),
       memories: memoryWithoutPhotos,
       addMemory: jest.fn(),
       updateMemory: jest.fn(),
       deleteMemory: jest.fn(),
+      getArtistSetlists: jest.fn().mockResolvedValue([]),
+      setArtistSetlists: jest.fn().mockResolvedValue(undefined),
       refreshData: jest.fn(),
     });
 
@@ -238,10 +244,13 @@ describe('MemoryDetailScreen', () => {
       addLiveEvent: jest.fn(),
       updateLiveEvent: jest.fn(),
       deleteLiveEvent: jest.fn(),
+      getLiveEventArtists: jest.fn().mockResolvedValue([]),
       memories: memoryWithoutSetlist,
       addMemory: jest.fn(),
       updateMemory: jest.fn(),
       deleteMemory: jest.fn(),
+      getArtistSetlists: jest.fn().mockResolvedValue([]),
+      setArtistSetlists: jest.fn().mockResolvedValue(undefined),
       refreshData: jest.fn(),
     });
 
@@ -265,10 +274,13 @@ describe('MemoryDetailScreen', () => {
       addLiveEvent: jest.fn(),
       updateLiveEvent: jest.fn(),
       deleteLiveEvent: jest.fn(),
+      getLiveEventArtists: jest.fn().mockResolvedValue([]),
       memories: mockMemories,
       addMemory: jest.fn(),
       updateMemory: jest.fn(),
       deleteMemory: mockDeleteMemory,
+      getArtistSetlists: jest.fn().mockResolvedValue([]),
+      setArtistSetlists: jest.fn().mockResolvedValue(undefined),
       refreshData: jest.fn(),
     });
 
