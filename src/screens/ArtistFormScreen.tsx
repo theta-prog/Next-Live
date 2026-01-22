@@ -28,6 +28,7 @@ const ArtistFormScreen: React.FC<Props> = ({ navigation, route }) => {
   const [website, setWebsite] = useState(editingArtist?.website ?? '');
   const [social, setSocial] = useState(editingArtist?.social_media ?? '');
   const [photo, setPhoto] = useState<string | undefined>(editingArtist?.photo);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleCancel = () => navigation.goBack();
 
@@ -58,6 +59,8 @@ const ArtistFormScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   const handleSave = async () => {
+    if (isSaving) return; // 二重タップ防止
+    
     const trimmedName = name.trim();
     const trimmedWebsite = website.trim();
     const trimmedSocial = social.trim();
@@ -80,6 +83,7 @@ const ArtistFormScreen: React.FC<Props> = ({ navigation, route }) => {
       return;
     }
 
+    setIsSaving(true);
     try {
       if (editingArtist?.id) {
         await updateArtist(editingArtist.id, {
@@ -97,8 +101,10 @@ const ArtistFormScreen: React.FC<Props> = ({ navigation, route }) => {
         });
       }
       navigation.goBack();
-  } catch {
+    } catch {
       Alert.alert('エラー', '保存に失敗しました');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -178,8 +184,8 @@ const ArtistFormScreen: React.FC<Props> = ({ navigation, route }) => {
           <TouchableOpacity onPress={handleCancel} style={[styles.actionBtn, styles.cancelBtn]} testID="artist-cancel-btn">
             <Text style={styles.cancelText}>キャンセル</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={handleSave} style={[styles.actionBtn, styles.saveBtn]} testID="artist-save-btn">
-            <Text style={styles.saveText}>{editingArtist ? '更新' : '追加'}</Text>
+          <TouchableOpacity onPress={handleSave} style={[styles.actionBtn, styles.saveBtn, isSaving && styles.saveBtnDisabled]} disabled={isSaving} testID="artist-save-btn">
+            <Text style={styles.saveText}>{isSaving ? '保存中...' : (editingArtist ? '更新' : '追加')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -284,6 +290,9 @@ const styles = StyleSheet.create({
   },
   saveBtn: {
     backgroundColor: theme.colors.primary,
+  },
+  saveBtnDisabled: {
+    opacity: 0.5,
   },
   cancelText: {
     fontFamily: theme.fonts.primarySemiBold,

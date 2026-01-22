@@ -47,6 +47,7 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showDoorsOpenPicker, setShowDoorsOpenPicker] = useState(false);
   const [showShowStartPicker, setShowShowStartPicker] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Helper to parse time string "HH:mm" to Date
   const parseTime = (timeStr?: string) => {
@@ -80,6 +81,8 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
   }, [editingEvent]);
 
   const handleSave = async () => {
+    if (isSaving) return; // 二重タップ防止
+    
     if (!title.trim()) {
       Alert.alert('エラー', '公演名を入力してください');
       return;
@@ -93,6 +96,7 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
       return;
     }
 
+    setIsSaving(true);
     const eventData: Omit<LiveEvent, keyof BaseEntity> = {
       title: title.trim(),
       artist_id: artistId,
@@ -116,6 +120,8 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
       navigation.goBack();
     } catch {
       Alert.alert('エラー', '保存に失敗しました');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -170,8 +176,10 @@ const LiveEventFormScreen = ({ navigation, route }: any) => {
           <Text style={styles.headerTitle}>
             {editingEvent ? 'ライブ編集' : 'ライブ追加'}
           </Text>
-          <TouchableOpacity onPress={handleSave}>
-            <Text style={styles.saveButton}>保存</Text>
+          <TouchableOpacity onPress={handleSave} disabled={isSaving}>
+            <Text style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}>
+              {isSaving ? '保存中...' : '保存'}
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -511,6 +519,9 @@ const styles = StyleSheet.create({
   saveButton: {
     ...typography.button,
     color: theme.colors.accent,
+  },
+  saveButtonDisabled: {
+    opacity: 0.5,
   },
   scrollContent: {
     flex: 1,

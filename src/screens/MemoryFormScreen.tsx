@@ -37,6 +37,7 @@ const MemoryFormScreen = ({ navigation, route }: any) => {
   const [review, setReview] = useState('');
   const [setlist, setSetlist] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (editingMemory) {
@@ -100,6 +101,8 @@ const MemoryFormScreen = ({ navigation, route }: any) => {
   };
 
   const handleSave = async () => {
+    if (isSaving) return; // 二重タップ防止
+    
     if (!selectedEventId) {
       Alert.alert('イベント未選択', 'まず対象のライブイベントを選んでください');
       return;
@@ -109,6 +112,7 @@ const MemoryFormScreen = ({ navigation, route }: any) => {
       return;
     }
 
+    setIsSaving(true);
     const memoryData: Omit<Memory, keyof BaseEntity> = {
       live_event_id: selectedEventId,
       review: review.trim() || undefined,
@@ -125,6 +129,8 @@ const MemoryFormScreen = ({ navigation, route }: any) => {
       navigation.goBack();
     } catch {
       Alert.alert('エラー', '保存に失敗しました');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -287,8 +293,10 @@ const MemoryFormScreen = ({ navigation, route }: any) => {
         <Text style={styles.headerTitle}>
           {editingMemory ? '思い出編集' : '思い出追加'}
         </Text>
-        <TouchableOpacity onPress={handleSave}>
-          <Text style={styles.saveButton}>保存</Text>
+        <TouchableOpacity onPress={handleSave} disabled={isSaving}>
+          <Text style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}>
+            {isSaving ? '保存中...' : '保存'}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -391,6 +399,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#007AFF',
     fontWeight: '500',
+  },
+  saveButtonDisabled: {
+    opacity: 0.5,
   },
   content: {
     padding: 16,
