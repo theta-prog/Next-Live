@@ -90,6 +90,8 @@ describe('MemoryDetailScreen', () => {
       getArtistSetlists: jest.fn().mockResolvedValue([]),
       setArtistSetlists: jest.fn().mockResolvedValue(undefined),
       refreshData: jest.fn(),
+      getArtistSetlists: jest.fn().mockResolvedValue([]),
+      getLiveEventArtists: jest.fn().mockResolvedValue([]),
     });
   });
 
@@ -217,6 +219,8 @@ describe('MemoryDetailScreen', () => {
       getArtistSetlists: jest.fn().mockResolvedValue([]),
       setArtistSetlists: jest.fn().mockResolvedValue(undefined),
       refreshData: jest.fn(),
+      getArtistSetlists: jest.fn().mockResolvedValue([]),
+      getLiveEventArtists: jest.fn().mockResolvedValue([]),
     });
 
     const { getAllByText } = render(
@@ -252,6 +256,8 @@ describe('MemoryDetailScreen', () => {
       getArtistSetlists: jest.fn().mockResolvedValue([]),
       setArtistSetlists: jest.fn().mockResolvedValue(undefined),
       refreshData: jest.fn(),
+      getArtistSetlists: jest.fn().mockResolvedValue([]),
+      getLiveEventArtists: jest.fn().mockResolvedValue([]),
     });
 
     const { getAllByText } = render(
@@ -282,6 +288,8 @@ describe('MemoryDetailScreen', () => {
       getArtistSetlists: jest.fn().mockResolvedValue([]),
       setArtistSetlists: jest.fn().mockResolvedValue(undefined),
       refreshData: jest.fn(),
+      getArtistSetlists: jest.fn().mockResolvedValue([]),
+      getLiveEventArtists: jest.fn().mockResolvedValue([]),
     });
 
     const { getAllByTestId } = render(

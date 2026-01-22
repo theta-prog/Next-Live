@@ -45,35 +45,7 @@ const MemoryFormScreen = ({ navigation, route }: any) => {
   const [setlist, setSetlist] = useState(''); // 単一アーティスト用（後方互換）
   const [artistSetlists, setArtistSetlistsState] = useState<ArtistSetlistInput[]>([]); // 複数アーティスト用
   const [photos, setPhotos] = useState<string[]>([]);
-  const [watchedArtistIds, setWatchedArtistIds] = useState<string[]>([]); // フェスで見たアーティスト
-  const [eventArtistIds, setEventArtistIds] = useState<string[]>([]); // イベントの出演アーティスト
-
-  // イベントのアーティスト情報を取得
-  useEffect(() => {
-    if (event?.id) {
-      getLiveEventArtists(event.id).then(eventArtists => {
-        if (eventArtists.length > 0) {
-          const ids = eventArtists.map(ea => ea.artist_id);
-          setEventArtistIds(ids);
-          // デフォルトで全アーティストを「見た」とする（新規作成時のみ）
-          if (!editingMemory) {
-            setWatchedArtistIds(ids);
-            // セットリスト入力欄を初期化
-            const initialSetlists = ids.map(id => ({
-              artistId: id,
-              artistName: artists.find(a => a.id === id)?.name || 'Unknown',
-              songs: '',
-            }));
-            setArtistSetlistsState(initialSetlists);
-          }
-        } else if (event.artist_id) {
-          // 旧形式のデータ
-          setEventArtistIds([event.artist_id]);
-        }
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [event?.id]);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (editingMemory) {
@@ -180,6 +152,8 @@ const MemoryFormScreen = ({ navigation, route }: any) => {
   const isFestival = event?.event_type === 'festival';
 
   const handleSave = async () => {
+    if (isSaving) return; // 二重タップ防止
+    
     if (!selectedEventId) {
       Alert.alert('イベント未選択', 'まず対象のライブイベントを選んでください');
       return;
@@ -192,6 +166,7 @@ const MemoryFormScreen = ({ navigation, route }: any) => {
       return;
     }
 
+    setIsSaving(true);
     const memoryData: Omit<Memory, keyof BaseEntity> = {
       live_event_id: selectedEventId,
       review: review.trim() || undefined,
@@ -225,6 +200,8 @@ const MemoryFormScreen = ({ navigation, route }: any) => {
       navigation.goBack();
     } catch {
       Alert.alert('エラー', '保存に失敗しました');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -387,8 +364,10 @@ const MemoryFormScreen = ({ navigation, route }: any) => {
         <Text style={styles.headerTitle}>
           {editingMemory ? '思い出編集' : '思い出追加'}
         </Text>
-        <TouchableOpacity onPress={handleSave}>
-          <Text style={styles.saveButton}>保存</Text>
+        <TouchableOpacity onPress={handleSave} disabled={isSaving}>
+          <Text style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}>
+            {isSaving ? '保存中...' : '保存'}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -561,6 +540,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#007AFF',
     fontWeight: '500',
+  },
+  saveButtonDisabled: {
+    opacity: 0.5,
   },
   content: {
     padding: 16,
