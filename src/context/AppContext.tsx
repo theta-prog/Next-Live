@@ -104,18 +104,11 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     try {
       // Step 1: まずローカルデータを即座に表示（高速）
       if (!isDataLoaded) {
-        console.log('Loading local data first for instant display...');
         const [localArtists, localEvents, localMemories] = await Promise.all([
           database.getAllArtists(),
           database.getLiveEventsWithArtists(), 
           database.getMemoriesWithEventDetails(),
         ]);
-        
-        console.log('Local data retrieved:', {
-          artists: localArtists.length,
-          events: localEvents.length,
-          memories: localMemories.length
-        });
         
         updateStateWithData(localArtists, localEvents, localMemories);
       }
@@ -125,7 +118,6 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       const shouldFetchFromAPI = isAuthenticated && accessToken && process.env.NODE_ENV !== 'development';
       
       if (shouldFetchFromAPI) {
-        console.log('Fetching data from API in background...');
         try {
           const [apiArtists, apiEvents, apiMemories] = await Promise.all([
             artistService.getAll(),
@@ -186,7 +178,6 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
     try {
       setIsSyncing(true);
-      console.log('Starting sync with server...');
       
       const result = await syncService.sync();
       
@@ -202,8 +193,6 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
         // 最後の同期日時を更新
         const syncTime = await syncService.getLastSyncTime();
         setLastSyncAt(syncTime);
-        
-        console.log('Sync completed successfully');
       }
       
       return result;

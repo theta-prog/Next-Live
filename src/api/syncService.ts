@@ -149,16 +149,6 @@ export const syncService = {
       // ローカルの変更を取得
       const localChanges = await syncService.getLocalChanges();
 
-      console.log('Syncing with server...', {
-        lastSyncAt,
-        localChanges: {
-          artists: localChanges.artists.length,
-          liveEvents: localChanges.liveEvents.length,
-          memories: localChanges.memories.length,
-          deletedItems: localChanges.deletedItems.length,
-        },
-      });
-
       // サーバーに同期リクエストを送信
       const response = await client.post<SyncResponse>('/v1/sync', {
         lastSyncAt: lastSyncAt || undefined,
@@ -170,13 +160,6 @@ export const syncService = {
       });
 
       const { serverChanges, syncedAt } = response.data;
-
-      console.log('Server response:', {
-        artists: serverChanges.artists.length,
-        liveEvents: serverChanges.liveEvents.length,
-        memories: serverChanges.memories.length,
-        syncedAt,
-      });
 
       // サーバーからの変更をローカルに適用
       await syncService.applyServerChanges(serverChanges);
@@ -190,7 +173,6 @@ export const syncService = {
       // 同期日時を保存
       await syncService.setLastSyncTime(syncedAt);
 
-      console.log('Sync completed successfully');
       return { success: true };
     } catch (error: any) {
       console.error('Sync failed:', error);
@@ -254,8 +236,6 @@ export const syncService = {
         return { success: false, error: 'Not authenticated' };
       }
 
-      console.log('Performing full sync from server...');
-
       // サーバーから全データを取得
       const response = await client.post<SyncResponse>('/v1/sync', {
         // lastSyncAt を指定しないことで全データを取得
@@ -269,12 +249,6 @@ export const syncService = {
 
       // 同期日時を保存
       await syncService.setLastSyncTime(syncedAt);
-
-      console.log('Full sync completed:', {
-        artists: serverChanges.artists.length,
-        liveEvents: serverChanges.liveEvents.length,
-        memories: serverChanges.memories.length,
-      });
 
       return { success: true };
     } catch (error: any) {
