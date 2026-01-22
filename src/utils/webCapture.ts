@@ -25,8 +25,6 @@ const loadHtml2Canvas = async () => {
 export const captureWebElement = async (
   element: HTMLElement,
   options?: {
-    width?: number;
-    height?: number;
     backgroundColor?: string;
     scale?: number;
     useCORS?: boolean;
@@ -46,9 +44,11 @@ export const captureWebElement = async (
       allowTaint: options?.allowTaint ?? false,
       scrollX: 0,
       scrollY: 0,
-      // 要素の実際のサイズを使用（要素側でwidth: 360pxを固定）
-      width: options?.width,
-      height: options?.height,
+      // 要素の自然なサイズを使用（要素側でwidth: 360pxを固定）
+      // widthは指定しない（テキストレンダリングの問題を回避）
+      // windowWidthを指定してレンダリング環境を統一
+      windowWidth: 800,
+      windowHeight: 1200,
       // 画像読み込み待機
       imageTimeout: 5000,
       // レンダリング品質向上
