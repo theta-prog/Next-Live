@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   content: {
-    padding: 20,
+    padding: 24,
   },
   artistName: {
     fontSize: 14,
@@ -168,6 +168,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text.primary,
     textAlign: 'center',
     marginBottom: 16,
+    paddingHorizontal: 4,
   },
   infoRow: {
     flexDirection: 'row',
@@ -208,6 +209,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: theme.colors.text.primary,
     lineHeight: 22,
+    paddingHorizontal: 2,
   },
   setlistContainer: {
     marginTop: 16,
