@@ -46,7 +46,7 @@ const ShareableMemoryCard = forwardRef<View, ShareableMemoryCardProps>(
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <Ionicons name="musical-notes" size={28} color="#fff" />
-            <Text style={styles.appName}>Next-Live</Text>
+            <Text style={styles.appName}>MEMOLIVE</Text>
           </View>
         </View>
 
@@ -113,7 +113,7 @@ const ShareableMemoryCard = forwardRef<View, ShareableMemoryCardProps>(
 
         {/* フッター */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>🎵 Powered by Next-Live</Text>
+          <Text style={styles.footerText}>🎵 Powered by MEMOLIVE</Text>
         </View>
       </View>
     );

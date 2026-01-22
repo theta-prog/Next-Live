@@ -93,11 +93,11 @@ export const generateFallbackCard = async (data: {
     ctx.fillStyle = '#1a1a1a';
     ctx.fillRect(0, 0, canvas.width, 100);
 
-    // Next-Liveロゴ
+    // MEMOLIVEロゴ
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 40px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('🎵 Next-Live', canvas.width / 2, 65);
+    ctx.fillText('🎵 MEMOLIVE', canvas.width / 2, 65);
 
     let y = 150;
 
@@ -183,7 +183,7 @@ export const generateFallbackCard = async (data: {
     ctx.fillStyle = '#8e8e8e';
     ctx.font = '24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('🎵 Powered by Next-Live', canvas.width / 2, canvas.height - 25);
+    ctx.fillText('🎵 Powered by MEMOLIVE', canvas.width / 2, canvas.height - 25);
 
     resolve(canvas.toDataURL('image/png', 0.9));
   });
