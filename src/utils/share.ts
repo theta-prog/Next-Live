@@ -196,7 +196,7 @@ const captureWebView = async (
     const imageUri = await captureWebElement(element, {
       backgroundColor: '#ffffff',
       scale: 2,
-      width: 360, // カードの基準幅を固定
+      // 要素のサイズをそのまま使用（DOM側で固定サイズを維持）
       useCORS: true,
       allowTaint: false,
     });

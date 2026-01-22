@@ -1,19 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Dimensions,
-  Image,
-  ImageStyle,
-  Modal,
-  Platform,
-  ScrollView,
-  Share,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    Alert,
+    Dimensions,
+    Image,
+    ImageStyle,
+    Modal,
+    Platform,
+    ScrollView,
+    Share,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { memoryService } from '../api/services';
@@ -889,22 +889,31 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
                 style={{
                   flex: 1,
                   overflowY: 'auto',
+                  overflowX: 'auto',
                   padding: 20,
                   display: 'flex',
                   justifyContent: 'center',
+                  alignItems: 'flex-start',
                 }}
                 data-share-card-container
               >
-                <ShareableMemoryCard
-                  ref={shareCardRef}
-                  eventTitle={resolvedMemory.event_title || ''}
-                  artistName={resolvedMemory.artist_name || ''}
-                  eventDate={resolvedMemory.event_date || ''}
-                  venueName={venueName}
-                  review={resolvedMemory.review}
-                  photo={photos.length > 0 ? photos[0] : undefined}
-                  setlist={resolvedMemory.setlist}
-                />
+                {/* キャプチャ用に固定サイズを維持するラッパー */}
+                <div style={{ 
+                  flexShrink: 0, 
+                  width: 360,
+                  minWidth: 360,
+                }}>
+                  <ShareableMemoryCard
+                    ref={shareCardRef}
+                    eventTitle={resolvedMemory.event_title || ''}
+                    artistName={resolvedMemory.artist_name || ''}
+                    eventDate={resolvedMemory.event_date || ''}
+                    venueName={venueName}
+                    review={resolvedMemory.review}
+                    photo={photos.length > 0 ? photos[0] : undefined}
+                    setlist={resolvedMemory.setlist}
+                  />
+                </div>
               </div>
 
               <div

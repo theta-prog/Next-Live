@@ -46,8 +46,8 @@ export const captureWebElement = async (
       allowTaint: options?.allowTaint ?? false,
       scrollX: 0,
       scrollY: 0,
-      // 固定幅を指定して、デバイスに関係なく同じサイズの画像を生成
-      width: options?.width || 360, // カードの基準幅
+      // 要素の実際のサイズを使用（要素側でwidth: 360pxを固定）
+      width: options?.width,
       height: options?.height,
       // 画像読み込み待機
       imageTimeout: 5000,
