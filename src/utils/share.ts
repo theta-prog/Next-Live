@@ -82,10 +82,13 @@ export const captureViewAsImage = async (
 
     debugLog('Capturing view with options', options);
     
+    // Webと同じサイズになるようにpixelRatio=2で統一（720px幅の画像を生成）
     const uri = await captureRef(viewRef, {
       format: options?.format || 'png',
       quality: options?.quality || 1,
       result: 'tmpfile',
+      // デバイスに関係なく固定の高解像度で出力
+      width: 720, // 360 * 2
     });
 
     debugLog('View capture successful', { uri: uri?.substring(0, 50) + '...' });
