@@ -87,6 +87,8 @@ describe('MemoryDetailScreen', () => {
       updateMemory: jest.fn(),
       deleteMemory: jest.fn(),
       refreshData: jest.fn(),
+      getArtistSetlists: jest.fn().mockResolvedValue([]),
+      getLiveEventArtists: jest.fn().mockResolvedValue([]),
     });
   });
 
@@ -211,6 +213,8 @@ describe('MemoryDetailScreen', () => {
       updateMemory: jest.fn(),
       deleteMemory: jest.fn(),
       refreshData: jest.fn(),
+      getArtistSetlists: jest.fn().mockResolvedValue([]),
+      getLiveEventArtists: jest.fn().mockResolvedValue([]),
     });
 
     const { getAllByText } = render(
@@ -243,6 +247,8 @@ describe('MemoryDetailScreen', () => {
       updateMemory: jest.fn(),
       deleteMemory: jest.fn(),
       refreshData: jest.fn(),
+      getArtistSetlists: jest.fn().mockResolvedValue([]),
+      getLiveEventArtists: jest.fn().mockResolvedValue([]),
     });
 
     const { getAllByText } = render(
@@ -270,6 +276,8 @@ describe('MemoryDetailScreen', () => {
       updateMemory: jest.fn(),
       deleteMemory: mockDeleteMemory,
       refreshData: jest.fn(),
+      getArtistSetlists: jest.fn().mockResolvedValue([]),
+      getLiveEventArtists: jest.fn().mockResolvedValue([]),
     });
 
     const { getAllByTestId } = render(

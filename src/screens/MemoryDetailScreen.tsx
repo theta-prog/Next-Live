@@ -156,16 +156,10 @@ const MemoryDetailScreen = ({ navigation, route }: any) => {
   const [isDownloadCompleteModalVisible, setIsDownloadCompleteModalVisible] = useState(false);
   const shareCardRef = useRef<View>(null);
   const initialShareSettings = useMemo(() => {
-    let shared = !!route.params?.shared;
-    let showSetlist = !!route.params?.showSetlist;
-    let shareToken = route.params?.shareToken as string | undefined;
-
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      shared = params.get('share') === '1' || params.get('shared') === '1' || shared;
-      showSetlist = params.get('setlist') === '1' || showSetlist;
-      shareToken = params.get('token') || shareToken;
-    }
+    // route.paramsから共有設定を取得（AppNavigatorでURLパラメータが処理済み）
+    const shared = !!route.params?.shared;
+    const showSetlist = !!route.params?.showSetlist;
+    const shareToken = route.params?.shareToken as string | undefined;
 
     return { shared, showSetlist, shareToken };
   }, [route.params]);
